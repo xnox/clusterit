@@ -62,7 +62,7 @@ DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
 SSEEEE AALLSSOO
-     dsh(1),  rm(1),  rsh(1),  kerberos(3),  hosts.equiv(5),  rhosts(5)
+     dsh(1), rm(1), rsh(1), kerberos(3), hosts.equiv(5), rhosts(5)
 
 HHIISSTTOORRYY
      The pprrmm command appeared in clusterit 1.0. It is based on the pprrmm command

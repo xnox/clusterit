@@ -29,9 +29,9 @@ DDEESSCCRRIIPPTTIIOONN
 
      --pp   The --pp option causes ppccpp to attempt to preserve (duplicate) in its
           copies the modification times and modes of the source files, ignor-
-          ing the _u_m_a_s_k. By default, the mode and owner of _f_i_l_e_2 are preserved
-          if it already existed; otherwise the mode of the source file modi-
-          fied by the umask(2) on the destination host is used.
+          ing the _u_m_a_s_k.  By default, the mode and owner of _f_i_l_e_2 are pre-
+          served if it already existed; otherwise the mode of the source file
+          modified by the umask(2) on the destination host is used.
 
      --rr   If any of the source files are directories, ppccpp copies each subtree
           rooted at that name; in this case the destination must be a directo-
@@ -105,7 +105,7 @@ DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
 SSEEEE AALLSSOO
-     cp(1),  dsh(1),  rcp(1),  kerberos(3),  hosts.equiv(5),  rhosts(5)
+     cp(1), dsh(1), rcp(1), kerberos(3), hosts.equiv(5), rhosts(5)
 
 HHIISSTTOORRYY
      The ppccpp command appeared in clusterit 1.0. It is based on the ppccpp command

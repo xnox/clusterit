@@ -63,7 +63,6 @@ EENNVVIIRROONNMMEENNTT
 
      RCMD_CMD  Command to use to connect to remote machines.  The command cho-
                sen must be able to connect with no password to the remote
-
                host.  Defaults to rrsshh
 
      FANOUT    When set, limits the maximum number of concurrent commands sent
@@ -89,9 +88,9 @@ FFIILLEESS
 
      This example would have pollux and castor a member of no groups, rigel
      and kent a member of group 'alpha', and alshain and altair a member of
-     group `sparc'. Note the format of the GROUP command, it is in all capital
-     letters, followed by a colon, and the group name.  There can be no spaces
-     following the GROUP command, or in the name of the group.
+     group `sparc'.  Note the format of the GROUP command, it is in all capi-
+     tal letters, followed by a colon, and the group name.  There can be no
+     spaces following the GROUP command, or in the name of the group.
 
      There is also a LUMP command, which is identical in syntax to the GROUP
      command.  This command allows you to create a named group of groups.
@@ -131,8 +130,8 @@ DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
 SSEEEE AALLSSOO
-     dshbak(1),  pcp(1),  pdf(1),  prm(1),  rsh(1),  kerberos(3),
-     hosts.equiv(5),  rhosts(5)
+     dshbak(1), pcp(1), pdf(1), prm(1), rsh(1), kerberos(3), hosts.equiv(5),
+     rhosts(5)
 
 HHIISSTTOORRYY
      The ddsshh command appeared in clusterit 1.0. It is based on the ddsshh command

@@ -44,7 +44,7 @@ DDIIAAGGNNOOSSTTIICCSS
      to 1 if the connection is lost, or the server rejects your connection.
 
 SSEEEE AALLSSOO
-     barrierd(1),  dsh(1),
+     barrierd(1), dsh(1),
 
 HHIISSTTOORRYY
      The bbaarrrriieerr command appeared in clusterit 1.1.

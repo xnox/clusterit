@@ -63,7 +63,7 @@ DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
 SSEEEE AALLSSOO
-     dsh(1),  rsh(1),  seq(1),  kerberos(3),  hosts.equiv(5),  rhosts(5)
+     dsh(1), rsh(1), seq(1), kerberos(3), hosts.equiv(5), rhosts(5)
 
 HHIISSTTOORRYY
      The rruunn command appeared in clusterit 1.1.

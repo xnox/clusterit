@@ -62,8 +62,8 @@ EENNVVIIRROONNMMEENNTT
 
      SEQ_FILE  Specifies a specific sequence file.  This is a temporary file,
                which saves the number of the last node run on.  It defaults to
-               `/tmp/[pid].seq'. Where [pid] is the pid of the parent process
-               of sseeqq. It may be useful to wire the SEQ_FILE to a particular
+               `/tmp/[pid].seq'.  Where [pid] is the pid of the parent process
+               of sseeqq.  It may be useful to wire the SEQ_FILE to a particular
                file, in order to keep proper sequence when invoking sseeqq from
                subshells or scripts.
 
@@ -71,7 +71,7 @@ DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
 SSEEEE AALLSSOO
-     dsh(1),  rsh(1),  kerberos(3),  hosts.equiv(5),  rhosts(5)
+     dsh(1), rsh(1), kerberos(3), hosts.equiv(5), rhosts(5)
 
 HHIISSTTOORRYY
      The sseeqq command appeared in clusterit 1.1.

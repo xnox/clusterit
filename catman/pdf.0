@@ -62,7 +62,6 @@ EENNVVIIRROONNMMEENNTT
      ppddff utilizes the following environment variables.
 
      CLUSTER   Contains a filename, which is a newline separated list of nodes
-
                in the cluster.
 
      RCMD_CMD  Command to use to connect to remote machines.  The command cho-
@@ -73,7 +72,7 @@ DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
 SSEEEE AALLSSOO
-     dsh(1),  df(1),  rsh(1),  kerberos(3),  hosts.equiv(5),  rhosts(5)
+     dsh(1), df(1), rsh(1), kerberos(3), hosts.equiv(5), rhosts(5)
 
 HHIISSTTOORRYY
      The ppddff command appeared in clusterit 1.0. It is based on the ppddff command

@@ -23,7 +23,7 @@ DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
 SSEEEE AALLSSOO
-     barrier(1),  dsh(1),
+     barrier(1), dsh(1),
 
 HHIISSTTOORRYY
      The bbaarrrriieerrdd command appeared in clusterit 1.1.
