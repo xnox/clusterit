@@ -1,0 +1,222 @@
+.\" $Id: dvt.1,v 1.1 2001/08/13 21:24:55 garbled Exp $
+.\" Copyright (c) 2001
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd January 7, 2001
+.Dt DVT 1
+.Sh NAME
+.Nm dvt
+.Nd launch an interactive window on a cluster of machines
+.Sh SYNOPSIS
+.Nm
+.Op Fl eiq
+.Op Fl f Ar fanout
+.Op Fl g Ar rungroup1,...,rungroupN
+.Op Fl l Ar username
+.Op Fl w Ar node1,...,nodeN
+.Op Fl x Ar node1,...,nodeN
+.Sh DESCRIPTION
+The 
+.Nm
+utility launches a number of terminal windows, one for each machine the user
+specifies on the command line.  In addition, it launches a single control
+window.  The terminal windows are similar to terminal windows provided by
+.Xr xterm 1 ,
+.Xr xvt 1
+or
+.Xr rxvt 1
+in most regards, and may be used as a standard terminal window by themselves.
+The control window however, allows global control of all the terminal
+windows.  The user can type in the command box of the control window,
+and the keystrokes will be sent to all the terminal windows at once.
+In this way the user can perform interactive commands, such as editing
+a file, in parallel.  At any point, the user can switch his keyboard
+focus to a particular window, and issue commands to that window only,
+should it become neccesary.
+The following options are available:
+.Bl -tag -width www
+.It Fl e
+Unless the
+.Fl e
+option is specified, stderr from remote commands will not be reported to the
+user.
+.It Fl i
+The
+.Fl i
+option will list information about the current cluster, and command groupings. 
+It will print out the current value of the fanout, and how many groups of 
+machines there are within the cluster. It will also show you which command 
+you are about to run, and your username if specified with the
+.Fl l
+option.
+.It Fl q
+The
+.Fl q
+option does not issue any commands, but displays information about the 
+cluster, and the fanout groupings.
+.It Fl f
+If the
+.Fl f
+option is specified, followed by a number, it sets the fanout size of the 
+cluster.  The fanout size is the number of nodes a command will run on in 
+parallel at one time.  The fanout option, restricts the maximum number
+of windows that can be opened at one time.  This is used to prevent
+the user from accidentally launching hundreds of windows, and crashing
+their X-terminal, or server.  The fanout size defaults to 64.  This
+option overrides the
+.Ev FANOUT
+environment variable.
+.It Fl g
+If the
+.Fl g
+option is specified, followed by a comma separated list of group names, the 
+command will only be run on that group of nodes.  A node may be a part of 
+more than one group if desired, however running without the
+.Fl g
+option will open windows to the same node as many times as it appears in the
+file specified by the
+.Ev CLUSTER
+environment variable.  This option is silently ignored if used with the
+.Fl w
+option.
+.It Fl l
+If the
+.Fl l
+option is specified, followed by a username, the initial connection
+attempted will pass the username argument and attempt to login with
+that account to the remote system. Consideration must be taken for
+proper authentication, for this to work.
+.It Fl w
+If the
+.Fl w
+option is specified, followed by a comma delimited list of machine names,
+windows will be opened to each node in the list.  Without this option,
+.Nm
+open windows to all the nodes listed in the file pointed to by the
+.Ev CLUSTER
+environment variable.
+.It Fl x
+The
+.Fl x
+option can be used to exclude specific nodes from the cluster.  The format 
+is the same as the
+.Fl w
+option, a comma delimited list of machine names.  This option is silently 
+ignored if used with the
+.Fl w
+option.
+.El
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "RVT_CMD"
+.It Ev CLUSTER
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+.It Ev RVT_CMD
+Contains the name of a binary to be executed by
+.Nm
+which will open a terminal window and connection to a single remote
+host.  The user may override this with another program that performs
+the same function, however, the program must supply as it's only
+output to stdout, it's X Window-ID in decimal.  In addition, it must
+take as the final argument, the name of a remtoe machine to connect
+to.  This program must also be capable of recieving X events sent via
+the
+.Xr XSendEvent 3
+facility.  If this environment variable is not set, it defaults to
+.Ic rvt
+.It Ev FANOUT
+When set, limits the maximum number of terminal windows to open
+simultaneously.  This is designed to safeguard the user from
+potentially opening hundreds of windows, and overloading the
+X-terminal or server. Defaults to 64.  This environment setting can be
+overridden by the
+.Fl f
+option.
+.El
+.Sh FILES
+The file pointed to by the
+.Ev CLUSTER
+environment variable has the following format:
+.Bd -literal -offset indent
+pollux
+castor
+GROUP:alpha
+rigel
+kent
+GROUP:sparc
+alshain
+altair
+LUMP:alphasparc
+alpha
+sparc
+.Ed
+.Pp
+This example would have pollux and castor a member of no groups, rigel and
+kent a member of group 'alpha', and alshain and altair a member of group 
+.Sq sparc .
+Note the format of the GROUP command, it is in all capital letters, followed
+by a colon, and the group name.  There can be no spaces following the GROUP
+command, or in the name of the group.
+.Pp
+There is also a LUMP command, which is identical in syntax to the GROUP
+command.  This command allows you to create a named group of groups.  Each
+member of the lump is the name of a group.  The LUMP command is terminated
+by another LUMP or GROUP command, or the EOF marker.
+.Pp
+Any line beginning with a
+.Sq #
+symbol denotes a comment field, and the entire line will be ignored.
+Note that a hash mark placed anywhere other than the first character
+of a line, will be considered part of a valid hostname or command.
+.Sh DIAGNOSTICS
+Exit status is 0 on success, 1 if an error occurs.
+.Sh SEE ALSO
+.Xr xterm 1 ,
+.Xr dsh 1 ,
+.Xr rvt 1 ,
+.Xr XSendEvent 3 ,
+.Xr kerberos 3 ,
+.Xr hosts.equiv 5 ,
+.Xr rhosts 5
+.Sh HISTORY
+The
+.Nm
+command appeared in clusterit 2.0.
+.Sh AUTHOR
+.Nm Dvt
+was written by Tim Rightnour.
+.Sh BUGS
+Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
+that
+.Nm
+will fail on a fanout size greater than about 32-40 nodes.
