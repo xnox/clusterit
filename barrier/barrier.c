@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.2 1998/10/14 09:30:20 garbled Exp $ */
+/* $Id: barrier.c,v 1.3 1998/10/14 09:58:43 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: barrier.c,v 1.2 1998/10/14 09:30:20 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.3 1998/10/14 09:58:43 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK 1933	/* default socket for barrier */
@@ -163,6 +163,7 @@ int make_barrier(key, nodes)
 	}
 	if (!quietflag)
 		(void)printf("Barrier syncing with token: %s\n", key);
+	sprintf(message, "%s %d", key, nodes);
 	write_to_server(sock, message);
 	return(read(sock, &p, 1));
 }

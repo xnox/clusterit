@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.1 1998/10/14 07:23:25 garbled Exp $ */
+/* $Id: barrierd.c,v 1.2 1998/10/14 09:58:43 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: barrierd.c,v 1.1 1998/10/14 07:23:25 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.2 1998/10/14 09:58:43 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK	1933	/* default socket for barrier */
@@ -163,8 +163,10 @@ int sleeper(void)
 	int connections[MAX_TOKENS];
 	int sockets[MAX_TOKENS][MAX_CLUSTER];
 
+#ifndef DEBUG
 	switch (fork()) {
 	case 0: 
+#endif
 		/* Create the socket and set it up to accept connections. */
 		sock = make_socket();
 
@@ -204,8 +206,10 @@ int sleeper(void)
 							perror("accept");
 							exit(EXIT_FAILURE);
 						}
+#ifdef DEBUG
 						(void)fprintf(stderr, "Server: connect from host %s, port %hd.\n",
 						    inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port));
+#endif
 						FD_SET(new, &active_fd_set);
 						if (read_from_client(new, &buf) > 0) {
 							key = strsep(&buf, " ");
@@ -224,39 +228,44 @@ int sleeper(void)
 							if (k > MAX_TOKENS - 1) {
 								(void)fprintf(stderr, "Server: too many tokens. Disconnected host %s, port %hd.\n",
 								    inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port));
+								write_to_client(new,"fail");
 								close(new);
 								FD_CLR(new, &active_fd_set);
-							}
-							for (l=0; sockets[k][l] != 0; l++)
-								;
-							if (l > MAX_CLUSTER - 1) {
-								(void)fprintf(stderr, "Server: too many sockets on token. Disconnected host %s, port %hd.\n",
-								    inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port));
-								close(new);
-								FD_CLR(new, &active_fd_set);
-							} else {
-								sockets[k][l] = new;
-								tokens[k] = key;
-								sizes[k] = atoi(buf);
-								connections[k] += 1;
-								if (connections[k] == sizes[k]) {
-									l = connections[k];
-									for (m=0; m < l; m++) {
-										close(sockets[k][m]);
-										FD_CLR (sockets[k][m], &active_fd_set);
-										sockets[k][m] = 0;
-										tokens[k] = NULL;
-										sizes[k] = 0;
-										connections[k] = 0;
-									} /* for */
-								} /* connections == sizes */
-							} /* too many sockets */
+							} else { 
+								for (l=0; sockets[k][l] != 0; l++)
+									;
+								if (l > MAX_CLUSTER - 1) {
+									(void)fprintf(stderr, "Server: too many sockets on token. Disconnected host %s, port %hd.\n",
+									    inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port));
+									write_to_client(new,"fail");
+									close(new);
+									FD_CLR(new, &active_fd_set);
+								} else {
+									sockets[k][l] = new;
+									tokens[k] = key;
+									sizes[k] = atoi(buf);
+									connections[k] += 1;
+									if (connections[k] == sizes[k]) {
+										l = connections[k];
+										for (m=0; m < l; m++) {
+											close(sockets[k][m]);
+											FD_CLR (sockets[k][m], &active_fd_set);
+											sockets[k][m] = 0;
+											tokens[k] = NULL;
+											sizes[k] = 0;
+											connections[k] = 0;
+										} /* for */
+									} /* connections == sizes */
+								} /* too many sockets */
+							} /* too many tokens */
 						} /* data from client */
 					} /* i == sock */
 				} /* fd isset */
 		} /* infinate while */
+#ifndef DEBUG
 	default:
 		exit(EXIT_SUCCESS);
 		break;
 	} /* switch */
+#endif
 }
