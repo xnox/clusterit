@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.11 2001/08/13 20:52:15 garbled Exp $
+# $Id: Makefile,v 1.12 2001/08/13 22:39:37 garbled Exp $
 # Makefile for clusterit:  Tim Rightnour
 
 OPSYS!=		uname
@@ -7,7 +7,7 @@ OPSYS!=		uname
 PREFIX?=	/usr/local
 INSTALL?=	/usr/bin/install
 
-SUBDIR=		dsh pcp barrier jsd rvt dvt
+SUBDIR=		dsh pcp barrier jsd rvt dvt tools
 
 all:
 	@for dir in ${SUBDIR} ; do \
