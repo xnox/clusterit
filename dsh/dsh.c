@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.13 2000/01/14 23:29:32 garbled Exp $ */
+/* $Id: dsh.c,v 1.14 2000/01/17 04:00:51 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -46,7 +46,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.13 2000/01/14 23:29:32 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.14 2000/01/17 04:00:51 garbled Exp $");
 #endif /* not lint */
 
 extern int errno;
@@ -76,15 +76,15 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
+	extern char	*optarg;
+	extern int	optind;
+	extern int debug, errorflag, gotsigterm, gotsigint;
+
 	int someflag, ch, i, fanout, showflag, fanflag;
 	char *p, *q, *group, *nodename, *username;
 	char **grouptemp, **exclude;
 	struct rlimit	limit;
 	node_t *nodeptr;
-
-	extern char	*optarg;
-	extern int	optind;
-	extern int debug, errorflag, gotsigterm, gotsigint;
 
 	someflag = showflag = fanflag = 0;
 	exclusion = debug = errorflag = 0;
@@ -299,6 +299,8 @@ do_command(argv, fanout, username)
 		if (command != NULL)
 			if (strcmp(command,"\n") == 0)
 				command = NULL;
+	} else {
+		close(STDIN_FILENO); /* DAMN this bug took awhile to find */
 	}
 
 	signaler.sa_handler = sig_handler;
@@ -348,6 +350,9 @@ do_command(argv, fanout, username)
 					 * passing signals to children.
 					 */
 					(void)setsid();
+					if (piping)
+						if (close(STDIN_FILENO) != 0)
+							bailout(__LINE__);
 					if (dup2(nodeptr->out.fds[1], STDOUT_FILENO) 
 						!= STDOUT_FILENO) 
 						bailout(__LINE__);
