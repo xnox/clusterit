@@ -1,4 +1,4 @@
-.\" $Id: dsh.1,v 1.7 1998/12/14 17:15:22 garbled Exp $
+.\" $Id: dsh.1,v 1.8 1998/12/14 17:23:06 garbled Exp $
 .\" Copyright (c) 1998
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -205,3 +205,8 @@ Error handling could use some work.
 .Pp
 The maximum number of nodes in a cluster is hardwired to 512.  This
 can be modified by recompiling the program.
+.Pp
+Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
+that
+.Nm
+will fail on a fanout size greater than about 32-40 nodes.
