@@ -1,6 +1,6 @@
-/* $Id: jsh.c,v 1.1 2000/01/17 04:02:29 garbled Exp $ */
+/* $Id: jsh.c,v 1.2 2000/02/17 08:03:58 garbled Exp $ */
 /*
- * Copyright (c) 1998, 1999, 2000
+ * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,15 @@
  * SUCH DAMAGE.
  */
 
-#include "../dsh/common.h"
-#include "jcommon.h"
+#include <signal.h>
+#include "../common/common.h"
+#include "../common/sockcommon.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
-"@(#) Copyright (c) 1998, 1999, 2000\n\
+"@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.1 2000/01/17 04:02:29 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.2 2000/02/17 08:03:58 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -54,11 +55,11 @@ void log_bailout __P((int));
 
 /* globals */
 
-int debug, exclusion, grouping, sharedmem;
-int errorflag, portnum, semkey;
+int debug, exclusion, grouping;
+int errorflag, iportnum, oportnum;
 char **grouplist;
 char **rungroup;
-char *progname;
+char *progname, *jsd_host;
 node_t *nodelink;
 
 /* 
@@ -78,10 +79,8 @@ main(argc, argv)
 	extern int errorflag;
 	extern char *optarg;
 	extern int optind;
-	extern int semkey;
 
-	sharedmem = 1;
-	semkey = 0;
+	iportnum = oportnum = 0;
 	someflag = 0;
 	showflag = 0;
 	exclusion = 0;
@@ -94,6 +93,7 @@ main(argc, argv)
 	group = NULL;
 	nodeptr = NULL;
 	nodelink = NULL;
+	jsd_host = NULL;
 
 	progname = p = q = argv[0];
 	while (progname != NULL) {
@@ -119,17 +119,19 @@ main(argc, argv)
 		case 'l':		/* invoke me as some other user */
 			username = strdup(optarg);
 			break;
-		case 'k':		/* the shared memory key, (pid of jsd) */
-			semkey = atoi(optarg);
+		case 'o':		/* port to get nodes from jsd on */
+			oportnum = atoi(optarg);
 			break;
-		case 'p':		/* port to listen on, shuts off SHM */
-			sharedmem = 0;
-			portnum = atoi(optarg);
+		case 'p':		/* port to release nodes to jsd on */
+			iportnum = atoi(optarg);
 			break;
+		case 'h':		/* host to connect to jsd on */
+			jsd_host = strdup(optarg);
+			break;			
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
-			    "usage: %s [-aei] [-l username] [-k jsdpid] "
-				"[command ...]\n", progname);
+			    "usage: %s [-aei] [-l username] [-p portnum] [-o portnum] "
+				"[-h hostname] [command ...]\n", progname);
 			exit(EXIT_FAILURE);
 			break;
 		default:
@@ -138,15 +140,25 @@ main(argc, argv)
 
 	argc -= optind;
 	argv += optind;
-	if (sharedmem) {
-		if (getenv("JSD_PID"))
-			semkey = atoi(getenv("JSD_PID"));
-		if (semkey == 0) {
-			(void)fprintf(stderr, "%s must set JSD_PID or use -k option\n",
-				progname);
-			exit(EXIT_FAILURE);
-		}
-	}
+
+	if (!iportnum)
+		if (getenv("JSD_IPORT"))
+			iportnum = atoi(getenv("JSD_IPORT"));
+		else
+			iportnum = JSDIPORT;
+
+	if (!oportnum)
+		if (getenv("JSD_OPORT"))
+			oportnum = atoi(getenv("JSD_OPORT"));
+		else
+			oportnum = JSDOPORT;
+
+	if (jsd_host == NULL)
+		if (getenv("JSD_HOST"))
+			jsd_host = strdup(getenv("JSD_HOST"));
+		else
+			jsd_host = "localhost";
+
 	do_command(argv, allflag, username);
 	exit(EXIT_SUCCESS);
 }
@@ -154,66 +166,75 @@ main(argc, argv)
 char *
 check_node()
 {
-	int semid, shmid;
-	char *buf, *buf2;
+	char *buf;
+	int sock, i;
+	struct sockaddr_in name;
+	struct hostent *hostinfo;
 
-	extern int semkey;
-
-	semid = semget(semkey, 4, NULL);
-	if (semid == -1)
-		bailout(__LINE__);
-	shmid = shmget(semkey, MAXBUF * sizeof(char), NULL);
-	if (shmid == -1)
+	/* create socket */
+	sock = socket(PF_INET, SOCK_STREAM, 0);
+	if (sock < 0)
 		bailout(__LINE__);
 
-	buf = shmat(shmid, NULL, 0);
-	if ((int)buf == -1)
+	name.sin_family = AF_INET;
+	name.sin_port = htons(oportnum);
+	hostinfo = gethostbyname(jsd_host);
+
+	if (hostinfo == NULL) {
+		(void)fprintf(stderr, "Unknown host %s.\n", jsd_host);
+		exit(EXIT_FAILURE);
+	}
+
+	name.sin_addr = *(struct in_addr *)hostinfo->h_addr;
+
+	if (connect(sock, (struct sockaddr *)&name, sizeof(name)) < 0)
 		bailout(__LINE__);
 
-	kill((pid_t)semkey, SIGUSR1); /* alert jsd that we are coming in */
+	i = read_from_client(sock, &buf); /* get a node */
+	buf[i] = '\0';
+    if (debug)
+		printf("Got node %s\n", buf);
+	(void)close(sock);
 
-	shm_wait_deeplock(semid);
-	shm_take_mainlock(semid);
-	printf("Locked jsd\n");
-
-	shm_take_deeplock(semid);
-	buf2 = strdup(buf);
-	printf("buf=%s buf2=%s\n", buf, buf2);
-	memcpy(buf, "\0", MAXBUF * sizeof(char)); /* reinit the buffer */
-	printf("buf=%s buf2=%s\n", buf, buf2);
-
-	shm_leave_deeplock(semid);
-	shm_leave_mainlock(semid);
-
-	return(buf2);
+	return(buf);
 }
 
 void
 free_node(nodename)
 	char *nodename;
 {
-	int semid, shmid;
+	int sock;
 	char *buf;
+	struct sockaddr_in name;
+	struct hostent *hostinfo;
 
-	extern int semkey;
-
-	semid = semget(semkey, 4, NULL);
-	if (semid == -1)
-		bailout(__LINE__);
-	shmid = shmget(semkey, MAXBUF * sizeof(char), NULL);
-	if (shmid == -1)
+	/* create socket */
+	sock = socket(PF_INET, SOCK_STREAM, 0);
+	if (sock < 0)
 		bailout(__LINE__);
 
-	buf = shmat(shmid, NULL, 0);
-	if ((int)buf == -1)
+	name.sin_family = AF_INET;
+	name.sin_port = htons(iportnum);
+	hostinfo = gethostbyname(jsd_host);
+
+	if (hostinfo == NULL) {
+		(void)fprintf(stderr, "Unknown host %s.\n", jsd_host);
+		exit(EXIT_FAILURE);
+	}
+
+	name.sin_addr = *(struct in_addr *)hostinfo->h_addr;
+
+	if (connect(sock, (struct sockaddr *)&name, sizeof(name)) < 0)
 		bailout(__LINE__);
 
-	kill((pid_t)semkey, SIGUSR2); /* alert jsd that we are coming in */
-	shm_take_freelock(semid);
-	shm_wait_seclock(semid);
-	bcopy(nodename, buf, MAXBUF * sizeof(char));
-	printf("freeing node %s\n", buf);
-	shm_leave_freelock(semid);
+    if (debug)
+		printf("Freeing node %s\n", nodename);
+	read_from_client(sock, &buf);
+	if (write_to_client(sock, nodename) != 0)
+		bailout(__LINE__);
+	if (debug)
+		printf("freed node %s\n", nodename);
+	(void)close(sock);
 }
 
 /* 

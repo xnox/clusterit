@@ -1,6 +1,6 @@
-/* $Id: jsd.c,v 1.3 2000/01/17 04:01:25 garbled Exp $ */
+/* $Id: jsd.c,v 1.4 2000/02/17 08:03:57 garbled Exp $ */
 /*
- * Copyright (c) 1998, 1999, 2000
+ * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,25 +34,20 @@
 /* Semi-intelligent job scheduling daemon.  Intended for heterogenous
  * network load sharing applications.
  *
- *
- * Note for the casual observer.  While this program does indeed share a
- * large number of routines with dsh, and common.c, it is *vital* that it
- * remain totally separate.  There are some minor differences in the routines
- * and they are not compatible.
  */
 
 #include <syslog.h>
 #include <signal.h>
 #include <setjmp.h>
 
-#include "../dsh/common.h"
-#include "jcommon.h"
+#include "../common/common.h"
+#include "../common/sockcommon.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
-"@(#) Copyright (c) 1998, 1999, 2000\n\
+"@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.3 2000/01/17 04:01:25 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.4 2000/02/17 08:03:57 garbled Exp $");
 #endif
 
 extern int errno;
@@ -61,8 +56,8 @@ extern int errno;
 #endif
 
 /* globals */
-int debug, errorflag, exclusion, sharedmem, grouping, portnum;
-int gotsigterm, gotsigusr1, gotsigusr2;
+int debug, errorflag, exclusion, grouping, iportnum, oportnum;
+int gotsigterm;
 jmp_buf jmpenv;
 char **grouplist;
 node_t *nodelink;
@@ -74,7 +69,7 @@ void log_bailout __P((int));
 void do_bench_command __P((char *, int, char *));
 void sig_handler __P((int));
 void main_loop __P((void));
-void free_node __P((int, int));
+void free_node __P((int));
 
 /*
  * Main should handle deciding which group or nodes we run on, running the
@@ -96,9 +91,9 @@ main(argc, argv)
 	pid_t pid;
 
 	someflag = showflag = fanflag = 0;
-	gotsigusr1 = gotsigterm = gotsigusr2 = 0;
+	gotsigterm = 0;
 	exclusion = debug = 0;
-	sharedmem = 1;
+	iportnum = oportnum = 0;
 	fanout = DEFAULT_FANOUT;
 	nodename = NULL;
 	username = NULL;
@@ -188,9 +183,11 @@ main(argc, argv)
 					(void)nodealloc(nodename);
 			}
 			break;
-		case 'p':		/* port to listen on, shuts off SHM */
-			sharedmem = 0;
-			portnum = atoi(optarg);
+		case 'o':		/* port to listen to requests on */
+			oportnum = atoi(optarg);
+			break;
+		case 'p':		/* port to listen to completions on */
+			iportnum = atoi(optarg);
 			break;
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
@@ -204,10 +201,22 @@ main(argc, argv)
 		default:
 			break;
 	}
-	if (!fanflag)
 /* check for a fanout var, and use it if the fanout isn't on the commandline */
+	if (!fanflag)
 		if (getenv("FANOUT"))
 			fanout = atoi(getenv("FANOUT"));
+
+	if (!iportnum)
+		if (getenv("JSD_IPORT"))
+			iportnum = atoi(getenv("JSD_IPORT"));
+		else
+			iportnum = JSDIPORT;
+
+	if (!oportnum)
+		if (getenv("JSD_OPORT"))
+			oportnum = atoi(getenv("JSD_OPORT"));
+		else
+			oportnum = JSDOPORT;
 
 	if (!someflag)
 		parse_cluster(exclude);
@@ -275,164 +284,122 @@ main(argc, argv)
 void
 main_loop()
 {
-	int semid, shmid, shpid;
 	char *buf;
 	pid_t *pid;
 	node_t *nodeptr, *fastnode;
 	double topspeed;
+	int osock, isock, new, i;
+	struct sockaddr_in clientname;
+	size_t size;
+	fd_set node_fd_set, free_fd_set, full_fd_set;
+	struct timeval timeout;
 	struct sigaction signaler;
-	int semdat[4] = { 1, 1, 1, 1 };
 
 	extern int gotsigterm, gotsigusr1, gotsigusr2;
 	extern jmp_buf jmpenv;
 
-	semid = shmid = shpid = 0;
 	buf = NULL;
 
 	signaler.sa_handler = sig_handler;
 	signaler.sa_flags |= SA_RESTART;
 	if (sigaction(SIGTERM, &signaler, NULL) != 0)
 		log_bailout(__LINE__);
-	if (sigaction(SIGUSR1, &signaler, NULL) != 0)
-		log_bailout(__LINE__);
-	if (sigaction(SIGUSR2, &signaler, NULL) != 0)
-		log_bailout(__LINE__);
 	
-	if (sharedmem) {
-		semid = semget((key_t)getpid(), 4,
-			IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
-		if (semid == -1)
-			log_bailout(__LINE__);
-
-		shmid = shmget((key_t)getpid(), MAXBUF * sizeof(char), 
-			IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-		if (shmid == -1)
-			log_bailout(__LINE__);
-		
-		shpid = shmget((key_t)getpid(), sizeof(pid_t), 
-			IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-		if (shpid == -1)
-			log_bailout(__LINE__);
-		
-/* 		if (semctl(semid, 0, SETALL, semdat) == -1) */
-/* 			log_bailout(__LINE__); */
-
-		if (semctl(semid, 0, SETVAL, 1) == -1)
-			log_bailout(__LINE__);
-		if (semctl(semid, 1, SETVAL, 1) == -1)
-			log_bailout(__LINE__);
-		if (semctl(semid, 2, SETVAL, 1) == -1)
-			log_bailout(__LINE__);
-		if (semctl(semid, 3, SETVAL, 1) == -1)
-			log_bailout(__LINE__);
-
-		buf = shmat(shmid, NULL, 0);
-		if ((int)buf == -1)
-			log_bailout(__LINE__);
-		memcpy(buf, "\0", MAXBUF * sizeof(char)); /* init the buffer */
-		pid = shmat(shpid, NULL, 0);
-		*pid = getpid();
-
-	} else {
-		syslog(LOG_ERR, "Ports not implemented yet");
-		_exit(EXIT_FAILURE);
-	}
-
+	osock = make_socket(oportnum);
+	isock = make_socket(iportnum);
 	setpriority(PRIO_PROCESS, 0, 20); /* nice ourselves */
-	for(;;) {
-		if (gotsigusr2 && !setjmp(jmpenv) && sharedmem)
-			free_node(semid, shmid);
-		else if (gotsigusr2)
-			gotsigusr2--;
-		if (gotsigterm) {
-			syslog(LOG_INFO, "Got SIGTERM, cleaning up.");
-			if (sharedmem) {
-				semctl(semid, 0, IPC_RMID, NULL);
-				shmctl(shmid, IPC_RMID, NULL);
-				shmctl(shpid, IPC_RMID, NULL);
-			}
-			_exit(EXIT_SUCCESS);
-			/* jsh will send a sigusr, to tell jsd it is about to request
-			   something */
-		} else if (gotsigusr1 && sharedmem) {
+
+	if (listen(osock, SOMAXCONN) < 0)
+		log_bailout(__LINE__);
+	if (listen(isock, SOMAXCONN) < 0)
+		log_bailout(__LINE__);
+
+
+	for (;;) { /* loop */
+		FD_ZERO(&node_fd_set);
+		FD_ZERO(&full_fd_set);
+		FD_ZERO(&free_fd_set);
+		FD_SET(osock, &node_fd_set);
+		FD_SET(isock, &free_fd_set);
+		FD_SET(osock, &full_fd_set);
+		FD_SET(isock, &full_fd_set);
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 0;
+		if (debug)
+			syslog(LOG_DEBUG, "Entering main loop");
+		if (select(FD_SETSIZE, &full_fd_set, &full_fd_set, NULL, NULL) < 0)
+			log_bailout(__LINE__);
+		if (debug)
+			syslog(LOG_DEBUG, "We have a connection");
+		if (select(FD_SETSIZE, &free_fd_set, &free_fd_set, NULL, &timeout)) {
+			/* jsh wants to free a node */
 			if (debug)
-				syslog(LOG_DEBUG, "Got SIGUSR1 in sharedmemory mode");
-			shm_take_deeplock(semid);
-			shm_wait_mainlock(semid);
+				syslog(LOG_DEBUG, "Someone wants to free a node");
+			free_node(isock);
+		} else if (select(FD_SETSIZE, &node_fd_set, NULL, NULL, &timeout)) {
+			/* jsh wants a node */
 			if (debug)
-				syslog(LOG_DEBUG, "Entering deep lock");
-			if (debug)
-				syslog(LOG_DEBUG, "Jsh took main lock");
+				syslog(LOG_DEBUG, "Someone wants a node");
+			new = accept(osock, (struct sockaddr *) &clientname, &size);
+			if (new < 0)
+				log_bailout(__LINE__);
 			topspeed = 0.0;
 			fastnode = nodeptr = NULL;
 			while (fastnode == NULL)
 				for (nodeptr = nodelink; nodeptr; nodeptr = nodeptr->next) {
-					printf("nodeptr->name = %s top=%f index=%f free=%d\n",
-						nodeptr->name, topspeed, nodeptr->index,
-						nodeptr->free);
-					if (gotsigusr2 && !setjmp(jmpenv))
-						free_node(semid, shmid);
-					else if (gotsigusr2)
-						gotsigusr2--;
-
+					FD_ZERO(&free_fd_set);
+					FD_SET(isock, &free_fd_set);
 					if (nodeptr->index > topspeed && nodeptr->free)
 						fastnode = nodeptr;
+					else if (select(FD_SETSIZE, &free_fd_set, &free_fd_set,
+						NULL, &timeout)) {
+						free_node(isock);
+					}
 				}
-			(void)sprintf(buf, "%s", fastnode->name);
+			fastnode->free = 0;
 			if (debug)
-				syslog(LOG_DEBUG, "found node %s", fastnode->name);
-			fastnode->free = 0; /* mark the node as in use */
-			gotsigusr1--; /* mark the event handled */
-			shm_leave_deeplock(semid);
-
-			if (debug)
-				syslog(LOG_DEBUG, "leaving deep lock");
-			/* jsh takes care of the other lock for us */
+				syslog(LOG_DEBUG, "Handing out node %s to a jsh process",
+					fastnode->name);
+			write_to_client(new, fastnode->name);
+			close(new);
 		}
 	}
 }
 
+/*
+ * Free up a node for use by other requestors
+ */
+
 void
-free_node(semid, shmid)
-	int semid, shmid;
+free_node(sock)
+	int sock;
 {
-	node_t *nodeptr;
+	int new, i;
+	struct sockaddr_in clientname;
+	size_t size;
 	char *buf;
+	node_t *nodeptr;
 
-	extern jmp_buf jmpenv;
-
-	buf = shmat(shmid, NULL, 0);
-	if ((int)buf == -1)
+	if (debug)
+		syslog(LOG_DEBUG, "Entered free_node");
+	new = accept(sock, (struct sockaddr *) &clientname, &size);
+	if (debug)
+		syslog(LOG_DEBUG, "accepted new connection");
+	if (new < 0)
 		log_bailout(__LINE__);
-
+	write_to_client(new, "1");
+	i = read_from_client(new, &buf);
+	buf[i] = '\0';
 	if (debug)
-		syslog(LOG_DEBUG, "entering free_node");
-	shm_wait_freelock(semid);
-	shm_take_seclock(semid);
-	shm_take_freelock(semid);
-	if (debug)
-		syslog(LOG_DEBUG, "took seclock");
-	if (debug)
-		syslog(LOG_DEBUG, "found freelock: %s", buf);
+		syslog(LOG_DEBUG, "got node %s from client", buf);
 	for (nodeptr = nodelink; nodeptr; nodeptr = nodeptr->next)
 		if (strcmp(buf, nodeptr->name) == 0) {
 			nodeptr->free = 1;
 			if (debug)
 				syslog(LOG_DEBUG, "freeing node %s", nodeptr->name);
 		}
-	memcpy(buf, "\0", MAXBUF * sizeof(char)); /* reinit the buffer */
-	if (shmdt(buf) != 0)
-		log_bailout(__LINE__);
-
-	shm_leave_seclock(semid);
-	shm_leave_freelock(semid);
-	if (debug)
-		syslog(LOG_DEBUG, "long jumping");
-
-	longjmp(jmpenv, 0);
+	close(new);
 }
-
-
 
 /*
  * Note that while the below is nearly identical, it has but one purpose in
@@ -596,13 +563,7 @@ sig_handler(i)
 
 	switch (i) {
 	case SIGTERM:
-		gotsigterm = 1;
-		break;
-	case SIGUSR1:
-		gotsigusr1++;
-		break;
-	case SIGUSR2:
-		gotsigusr2++;
+		_exit(EXIT_SUCCESS);
 		break;
 	default:
 		log_bailout(__LINE__);
