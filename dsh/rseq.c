@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.10 2000/02/17 07:59:23 garbled Exp $ */
+/* $Id: rseq.c,v 1.11 2001/08/13 21:06:36 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,7 +40,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.10 2000/02/17 07:59:23 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.11 2001/08/13 21:06:36 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -69,19 +69,14 @@ char *progname;
  *  commands in paralell on a group of machines.
  */
 
-int main(argc, argv) 
-	int argc;
-	char *argv[];
+int main(int argc, char *argv[]) 
 {
 	extern char *optarg;
 	extern int optind;
 
-	int someflag, ch, i, allflag, showflag, exclusion;
+	int someflag, ch, i, allflag, showflag;
 	char *p, *group, *nodename, *username, *q;
 	char **exclude, **grouptemp;
-
-	extern int debug;
-	extern int errorflag;
 
 	someflag = 0;
 	seqnumber = -1;
@@ -205,8 +200,8 @@ int main(argc, argv)
 
 /* this should be atomic, but *hello* this is *userland* */
 
-void
-test_and_set()
+static void
+test_and_set(void)
 {
 	int i;
 	char *p, *seqfile;
@@ -280,8 +275,6 @@ do_command(argv, allrun, username)
 	char *p, *command, *rsh;
 	node_t *nodeptr;
 
-	extern int debug;
-
 	i = 0;
 	piping = 0;
 	in = NULL;
@@ -341,7 +334,9 @@ do_command(argv, allrun, username)
 					bailout(__LINE__);
 				rsh = getenv("RCMD_CMD");
 				if (rsh == NULL)
-					rsh = "rsh";
+					rsh = strdup("rsh");
+				if (rsh == NULL)
+					bailout(__LINE__);
 				if (debug)
 					printf("%s %s %s\n", rsh, nodeptr->name, command);
 				if (username != NULL)

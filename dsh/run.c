@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.8 2000/02/17 07:59:23 garbled Exp $ */
+/* $Id: run.c,v 1.9 2001/08/13 21:06:36 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,7 +40,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: run.c,v 1.8 2000/02/17 07:59:23 garbled Exp $");
+__RCSID("$Id: run.c,v 1.9 2001/08/13 21:06:36 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -69,9 +69,7 @@ group_t *grouplist;
  */
 
 int
-main(argc, argv) 
-	int argc;
-	char *argv[];
+main(int argc, char *argv[])
 {
 	extern char *optarg;
 	extern int optind;
@@ -80,9 +78,6 @@ main(argc, argv)
 	char *p, *q, *group, *nodename, *username;
 	char **exclude, **grouptemp;
 	node_t *nodeptr;
-
-	extern int debug;
-	extern int errorflag;
 
 	someflag = 0;
 	showflag = 0;
@@ -244,8 +239,6 @@ do_command(argv, allrun, username)
 	node_t *nodeptr;
 	size_t maxnodelen;
 
-	extern int debug;
-
 	i = 0;
 	piping = 0;
 	in = NULL;
@@ -313,7 +306,9 @@ do_command(argv, allrun, username)
 					bailout(__LINE__);
 				rsh = getenv("RCMD_CMD");
 				if (rsh == NULL)
-					rsh = "rsh";
+					rsh = strdup("rsh");
+				if (rsh == NULL)
+					bailout(__LINE__);
 				if (debug)
 					printf("%s %s %s\n", rsh, nodeptr->name, command);
 				if (username != NULL)
