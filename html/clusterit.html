@@ -1,105 +1,183 @@
 <HTML>
-<head><title>ClusterIt</title></head>
-<body bgcolor="#ffffff">
-<!-- $Id: clusterit.html,v 1.4 1999/05/05 09:39:30 garbled Exp $ -->
+  <head>
+	<title>ClusterIt</title>
+  </head>
+  <body bgcolor="#ffffff">
+	<!-- $Id: clusterit.html,v 1.5 2000/02/20 20:13:01 garbled Exp $ -->
+	
+	<center><h2>Welcome to clusterit-1.3 !</center></h2>
+	
+	<p>
+	  This is a collection of clustering tools, to turn your ordinary
+	  everyday pile of UNIX workstations into a speedy parallel beast.
+	  
+	<p>
+	  Initially this work was based on the work of IBM's PSSP, and copied
+	  heavily from the ideas there.  Its also lightly based on the work
+	  pioneered in GLUnix.  I've decided to simplify, and complexify it
+	  however:
+	  
+	<p>
+	  Glunix is a monstrosity.  It allows better control over the
+	  individual nodes, and much better load sharing.  However I'm
+	  convinced alot of the speed advantages of having a parallel
+	  cluster are lost with the incredible overhead of running the
+	  glunix master and daemon services on a host.  Glunix does
+	  however offer a real parallel programming  environment.
+	  Something which is totally beyond the scope of this package.
+	  
+	<p>
+	  PSSP is also a very powerful set of tools.  Not much more than a
+	  bunch of staples written in perl, they provide an incredible
+	  tool for tying an unwieldy number of UNIX machines into one fast
+	  demon of an MPP.
+	  
+	<p>
+	  The advantages of both systems are central control of a large
+	  number of machines.  Unfortunately, they all have drawbacks.. as
+	  does my solution.
 
-<center><h2>Welcome to clusterit-1.3 !</center></h2>
-
-<p>This is a collection of clustering tools, to turn your ordinary
-everyday pile of UNIX workstations into a speedy parallel beast.
-
-<p>Initially this work was based on the work of IBM's PSSP, and copied
-heavily from the ideas there.  Its also lightly based on the work
-pioneered in GLUnix.  I've decided to simplify, and complexify it
-however:
-
-<p>Glunix is a monstrosity.  It allows better control over the
-individual nodes, and much better load sharing.  However I'm convinced
-alot of the speed advantages of having a parallel cluster are lost with
-the incredible overhead of running the glunix master and daemon services
-on a host.  Glunix does however offer a real parallel programming
-environment.  Something which is totally beyond the scope of this package.
-
-<p>PSSP is also a very powerful set of tools.  Not much more than a bunch
-of staples written in perl, they provide an incredible tool for tying
-an unwieldy number of UNIX machines into one fast demon of an MPP.
-
-<p>The advantages of both systems are central control of a large number of
-machines.  Unfortunately, they all have drawbacks.. as does my solution.
-
-What my solution provides:
-<br>
-<dl>
-<dt>*Fast* parallel execution of remote commands.</DT>
-<dd>C vs. Perl.  You do the math.</DD>
-
-<dt>Heterogeneous cluster makeup.</dt>
-<dd>This makes it very easy to administer a large number of machines,
-of varying architectures, and operating systems.  The fact that my tools are
-completely architecture independent, make it possible to dsh commands out
-to machines that aren't even running the same OS!  This can be useful for a
-variety of mass administration tasks an admin may have to undertake.</dd>
-
-<dt>Choice of authentication.</dt>
-<dd>IBM forces you to use kerberos 4 for authentication on the SP's.
-This is actually fine for a closed environment like an SP, but for something
-to be run on just a stack of otherwise useful boxes, you need more freedom.
-This suite allows you to do whatever you like.. ssh, kerberos, .rhosts.
-Whatever suits your security needs best.</dd>
-
-<dt>Sequential node, and random node execution</dt>
-<dd>The idea here is that these dsh-like programs allow you to do something
-akin to load balanced scripting.  For example one could set up an NFS shared
-build directory, and issue the command:<DD>
-<pre>make -j4 CC="seq 'cd /usr/src/foo ; gcc'"</pre><br>
-Which would execute a build in parallel, on 4 nodes in your cluster, assigning
-processes to each node in sequence.   The run command is equivalent to saying:
-"I don't care where you run, just run and tell me how things turned out."  Generally speaking, the run command will achieve better results as the size of the
-cluster increases.  If you have only three nodes, the odds of getting the same
-node over and over are fairly good.
-
-<Dt>Barrier sync for shell scripting.</dt>
-<dd>This is a new idea.  The barrier mechanism consists of a daemon run on
-a host, and a client which can be used to barrier sync with.  An example of use
-would be:</dd>
-<pre>
+	<p>
+	  What my solution provides:<br>
+	<dl>
+	  <dt>*Fast* parallel execution of remote commands.</DT>
+	  <dd>C vs. Perl.  You do the math.</DD>	  
+	  <dt>Heterogeneous cluster makeup.</dt>
+	  <dd>
+		This makes it very easy to administer a large number of
+		machines, of varying architectures, and operating systems.
+		The fact that my tools are completely architecture
+		independent, make it possible to dsh commands out to machines
+		that aren't even running the same OS!  This can be useful for
+		a variety of mass administration tasks an admin may have to
+		undertake.</dd>
+	  
+	  <dt>Choice of authentication.</dt>
+	  <dd>
+		IBM forces you to use kerberos 4 for authentication on the
+		SP's. This is actually fine for a closed environment like an
+		SP, but for something to be run on just a stack of otherwise
+		useful boxes, you need more freedom. This suite allows you to
+		do whatever you like.. ssh, kerberos, .rhosts. Whatever suits
+		your security needs best.</dd>
+	  
+	  <dt>Sequential node, and random node execution</dt>
+	  <dd>
+		The idea here is that these dsh-like programs allow you to do
+		something akin to load balanced scripting.  For example one
+		could set up an NFS shared build directory, and issue the
+		command:
+	  <DD>
+		<pre>
+make -j4 CC="seq 'cd /usr/src/foo ; gcc'"
+		</pre><br>
+		Which would execute a build in parallel, on 4 nodes in your
+		cluster, assigning processes to each node in sequence.   The
+		run command is equivalent to saying: "I don't care where you
+		run, just run and tell me how things turned out."  Generally
+		speaking, the run command will achieve better results as the
+		size of the cluster increases.  If you have only three nodes,
+		the odds of getting the same node over and over are fairly
+		good.		
+	  <dt>Job sequencing</dt>
+	  <dd>
+		It is possible using this package to schedule processes on the 
+		remote machines, so that no more than one process per machine
+		is active at any one time.  This was designed to combat
+		problems with using seq for paralell builds.
+		<p>
+		  When building in paralell with seq, it is possible that a
+		  node recieves a task that will take it much longer than the
+		  other nodes to complete.  It is also possible that as other
+		  nodes finish thier jobs faster, the node which has been
+		  bogged down is handed another job.  When performing large
+		  paralell builds, eventually very slow machines will stall
+		  the entire build, as they are attempting to compile many
+		  objects at once, and are usually at this point near-death
+		  from swapping.
+		<p>
+		  The Job Scheduling in ClusterIt can prevent this in two
+		  ways.  First, the job scheduling will not allow a node to
+		  process any more than one command at a time.  If more
+		  commands than nodes are requested, the excess commands will
+		  block until a node has freed up.  Second, the scheduler has
+		  the ability to register a benchmark number of some sort for
+		  each node.  This allows the scheduler to allways give out
+		  the fastest of the remaining nodes whenever one is
+		  requested.  This allows a paralell build to more efficiently 
+		  utilize a heterogenous cluster.
+	  </dd>
+	  <Dt>Barrier sync for shell scripting.</dt>
+	  <dd>
+		This is a new idea.  The barrier mechanism consists of a
+		daemon run on a host, and a client which can be used to
+		barrier sync with.  An example of use would be:</dd>
+	<pre>
 #!/bin/sh
 do something
 barrier -h host -k token -s 5
 do something else
-</pre>
-<p>then you would dsh the execution of this script to your hosts.  The barrier makes
-sure that all hosts have completed the first "something" before the continue on to
-the next something.  The -s, is the level of parallelism for the script, ie: how
-many processes to wait for before continuing.
-</DL>
-<HR>
-<DL>What my solution does not provide:
-
-<DT>A parallel programming API</DT>
-<DD>Use MPI, or PVM, or whatever for that.. thats outside the scope of
-this suite.</DD>
-</DL>
-<hr>
-<DL>
-Things to do still:
-<br>
-<dt>supper</dt>
-<dd>Mimic IBM's supper suite.. but do a better job of
-it than big blue did.  Yuck.</dd>
-</dl>
-<hr><center><h2>Download Clusterit</h2></center>
-<ul>
-<li><a href="clusterit-1.0.tar.gz">ClusterIt 1.0 Source</a>
-<li><a href="clusterit-1.1.tar.gz">ClusterIt 1.1 Source</a>
-<li><a href="cluster-1.1.patch1">ClusterIt 1.1 Patch 1</a>
-<li><a href="clusterit-1.2.tar.gz">ClusterIt 1.2 Source</a>
-<li><a href="clusterit-1.3.tar.gz">ClusterIt 1.3 Source</a>
-<li><a href="ftp://ftp.netbsd.org/pub/NetBSD/packages/pkgsrc/parallel/clusterit/README.html">Latest ClusterIt package for NetBSD</a>
-</ul>
-<p>ClusterIt is known to work on all arches of NetBSD 1.3 and later, Solaris 2.51 and 2.6, AIX 4.3 and 4.2.1.
-Reports of other sucesses (and any patches needed) would be greatly appreciated.
-<p>ClusterIt is Free software, with a standard BSD-style License.  You are encouraged to download this, work with it, enhance it, or whatever suits your needs.  Redistribution can take place if the license stays intact.
-<p>Please send any bug reports, enhancements, bricks to: <a href="mailto:root@garbled.net">Tim Rightnour</a>
-<br><br>
-</body></html>
+	</pre>
+	<p>
+	  You would then dsh the execution of this script to your hosts.
+	  The barrier makes sure that all hosts have completed the first
+	  "something" before the continue on to the next something.  The
+	  -s, is the level of parallelism for the script, ie: how many
+	  processes to wait for before continuing.
+	</DL>
+	<HR>
+	<DL>What my solution does not provide:
+	  
+	  <DT>A parallel programming API</DT>
+	  <DD>
+		Use MPI, or PVM, or whatever for that.. thats outside the scope of
+		this suite.</DD>
+	</DL>
+	<hr>
+	<DL>
+	  Things to do still:
+	  <br>
+	  <dt>supper</dt>
+	  <dd>
+		Mimic IBM's supper suite.. but do a better job of it than big
+		blue did.  Yuck.</dd>
+	</dl>
+	<hr><center><h2>ClusterIt Manpages</h2></center>
+	<ul>
+	  <li><a href="man/dsh.html">dsh(1)</a>
+	  <li><a href="man/dshbak.html">dshbak(1)</a>
+	  <li><a href="man/barrier.html">barrier(1)</a>
+	  <li><a href="man/barrierd.html">barrierd(1)</a>
+	  <li><a href="man/jsd.html">jsd(1)</a>
+	  <li><a href="man/jsh.html">jsh(1)</a>
+	  <li><a href="man/run.html">run(1)</a>
+	  <li><a href="man/seq.html">seq(1)</a>
+	  <li><a href="man/pcp.html">pcp(1)</a>
+	  <li><a href="man/pdf.html">pdf(1)</a>
+	  <li><a href="man/prm.html">prm(1)</a>
+	</ul>
+	<hr><center><h2>Download ClusterIt</h2></center>
+	<ul>
+	  <li><a href="clusterit-1.0.tar.gz">ClusterIt 1.0 Source</a>
+	  <li><a href="clusterit-1.1.tar.gz">ClusterIt 1.1 Source</a>
+	  <li><a href="cluster-1.1.patch1">ClusterIt 1.1 Patch 1</a>
+	  <li><a href="clusterit-1.2.tar.gz">ClusterIt 1.2 Source</a>
+	  <li><a href="clusterit-1.3.tar.gz">ClusterIt 1.3 Source</a>
+	  <li><a href="clusterit-2.0.tar.gz">ClusterIt 2.0 Source</a>
+	  <li><a href="ftp://ftp.netbsd.org/pub/NetBSD/packages/pkgsrc/parallel/clusterit/README.html">Latest ClusterIt package for NetBSD</a>
+	</ul>
+	<p>
+	  ClusterIt is known to work on all arches of NetBSD 1.3 and later,
+	  Solaris 2.51 and 2.6, AIX 4.3 and 4.2.1. Reports of other
+	  sucesses (and any patches needed) would be greatly appreciated.
+	<p>
+	  ClusterIt is Free software, with a standard BSD-style License.  You
+	  are encouraged to download this, work with it, enhance it, or
+	  whatever suits your needs.  Redistribution can take place if the
+	  license stays intact. 
+	<p>
+	  Please send any bug reports, enhancements, bricks to: 
+	  <a href="mailto:root@garbled.net">Tim Rightnour</a> 
+	  <br><br>
+  </body>
+</html>
