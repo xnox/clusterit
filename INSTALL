@@ -1,0 +1,14 @@
+$Id: INSTALL,v 1.1 1999/05/04 19:49:51 garbled Exp $
+Hints for installing/compiling on various platforms.
+
+AIX:  if you are using gcc, simply run `patch -p 0 <make.aix.gcc' in the
+clusterit-1.2/ directory.  This will patch most of the Makefiles to what
+needs to be there for a proper gcc build on AIX.
+
+If you are using IBM C (tested with 4.4 C on AIX 4.3.2) you can use
+`patch -p 0 <make.aix.ibmc' to prepare the makefiles for use with IBM C.
+
+Please let me know if anything goes wrong with these.
+
+After your Makefiles are in order, you should just be able to do a
+make , followed by a make install.

@@ -1,0 +1,33 @@
+# $Id: TODO,v 1.1 1999/05/04 19:49:51 garbled Exp $
+# no particular order:
+
+Fix handling of g in loops.  If you have a massive cluster, and pick
+two sparse groups in it.. it will run twice, rather than once..
+
+Break apart do_command in dsh.c to something sane.
+
+create a common subdir and try to share more subroutines
+
+Move strcat to common for non BSD builds
+
+create makefile patch for SUNWpro C, and SUN gnu C.  (assistance here would 
+be greatly appreciated)
+
+instead of showing stdout, followed by stderr in dsh, use poll or select to
+multiplex the input and show it like it would actually appear on the remote
+servers.
+
+make dshbak more useful.  The IBM format is nasty.
+
+pdf could probably use a little work.
+
+supper  <groan>
+
+make bailout() able to provide real data about failures.  Move into common, or
+perhaps make it a macro.
+
+Remove #ifdef DEBUG and use a -d for a switchable debugging flag.
+
+Make a common header file of some sort.
+
+could alignstring be a macro?
