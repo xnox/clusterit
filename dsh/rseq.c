@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.1 1998/10/15 18:05:04 garbled Exp $ */
+/* $Id: rseq.c,v 1.2 1998/10/15 18:30:04 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: rseq.c,v 1.1 1998/10/15 18:05:04 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.2 1998/10/15 18:30:04 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
@@ -201,19 +201,21 @@ void main(argc, argv)
 	argc -= optind;
 	argv += optind;
 	/*  now we do the magic to increment.  God I wish netbsd semget worked */
+	p = NULL;
 	seqfile = getenv("SEQ_FILE");
 	if (seqfile == NULL) {
 		sprintf(buf,"/tmp/%d.seq", getppid());
 		seqfile = strdup(buf);
 	}
-	sd = fopen(seqfile,"r");
+	sd = fopen(seqfile, "r");
 	if (sd == NULL)
-		sd = fopen(seqfile,"w");
+		sd = fopen(seqfile, "w");
 	else {
-		fscanf(sd,"%s", p);
-		setenv("SEQ_LAST",p,1);
+		fscanf(sd,"%s", buf);
+		p = strdup(buf);
+		setenv("SEQ_LAST", p, 1);
 		fclose(sd);
-		sd = fopen(seqfile,"w");
+		sd = fopen(seqfile, "w");
 	}
 	if (sd == NULL)
 		bailout(__LINE__);
