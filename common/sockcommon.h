@@ -1,4 +1,4 @@
-/* $Id: sockcommon.h,v 1.3 2000/02/19 19:37:38 garbled Exp $ */
+/* $Id: sockcommon.h,v 1.4 2000/02/19 19:42:34 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,9 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/mbuf.h>
 #include <net/if.h>
+#include <net/if_dl.h>
 #include <netinet/if_ether.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
