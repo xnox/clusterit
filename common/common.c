@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.9 2002/03/14 19:04:54 garbled Exp $ */
+/* $Id: common.c,v 1.10 2002/03/14 19:33:15 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.9 2002/03/14 19:04:54 garbled Exp $");
+__RCSID("$Id: common.c,v 1.10 2002/03/14 19:33:15 garbled Exp $");
 #endif
 
 
@@ -91,7 +91,7 @@ do_showcluster(fanout)
 		for (i=0; (i < fanout && nodeptr != NULL); i++) {
 			l++;
 			group = NULL;
-			if (nodeptr->group >= 0 && grouplist[nodeptr->group].name)
+			if (nodeptr->group >= 0 && grouplist && grouplist[nodeptr->group].name)
 				group = strdup(grouplist[nodeptr->group].name);
 			if (group == NULL)
 				(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None"
@@ -241,6 +241,8 @@ parse_cluster(exclude)
 								rungroup[j]) == 0))
 							gfail = 0;
 				}
+			    if (g >= 0 && gfail && exclusion && rungroup[0] == 0)
+					gfail = 0;
 				if (!fail) {
 					if (strstr(p, "GROUP") != NULL) {
 						g++;
