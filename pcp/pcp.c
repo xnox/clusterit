@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.8 2000/02/17 08:00:06 garbled Exp $ */
+/* $Id: pcp.c,v 1.9 2000/02/20 19:05:54 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.8 2000/02/17 08:00:06 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.9 2000/02/20 19:05:54 garbled Exp $");
 #endif
 
 extern int errno;
@@ -183,8 +183,8 @@ main(argc, argv)
 			break;
 		case '?':
 			(void)fprintf(stderr,
-				"usage: %s [-cepr] [-f fanout] [-g rungroup1,...,rungroupN]"
-				" [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
+				"usage: %s [-cepr] [-f fanout] [-g rungroup1,...,rungroupN] "
+				"[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
 				"source_file1 [source_file2 ... source_fileN] "
 				"[desitination_file]\n", progname);
 			return(EXIT_FAILURE);
