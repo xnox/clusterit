@@ -1,0 +1,25 @@
+$Id: CHANGES,v 1.1 1998/12/14 17:45:48 garbled Exp $
+
+# Started at 1.1 (sorry)
+
+Bug fixes in dsh to deal with the start of a fangroup, and
+a race condition, where large output would cause it to hang
+waiting for descriptors to die.
+
+Fix a bug in dsh that caused it to lose data on AIX, and 
+dump core when transitioning fangroups.
+
+Added the rungroup, and exclusion commands to all the programs.
+
+Fix pdf to work on a heterogenous cluster.
+
+Add concurrency to pcp, to eliminate startup latency lossage.
+
+Take some of the work out of the main loop in pcp, and only do it
+once.  This should speed up serial copies by small amount.
+
+Fix seq, and run to actually work.  Use a semi-atomic test and set
+to create the seq file, so it actually runs through the nodes, rather
+than execute on the same one over and over.
+
+* Release 1.2 *
