@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.10 1999/05/04 19:30:36 garbled Exp $ */
+/* $Id: dsh.c,v 1.11 1999/05/05 09:45:05 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -51,7 +51,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: dsh.c,v 1.10 1999/05/04 19:30:36 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.11 1999/05/05 09:45:05 garbled Exp $");
 #endif
 
 enum {
@@ -604,8 +604,7 @@ sig_handler(i)
 			gotsigterm = 1;
 			break;
 		default:
-			(void)fprintf(stderr, "Recieved unknown signal in sig_handler\n");
-			_exit(EXIT_FAILURE);
+			bailout(__LINE__);
 			break;
 	}
 }
