@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2000/02/25 21:47:59 garbled Exp $
+# $Id: Makefile,v 1.10 2000/02/25 21:50:07 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
 #Uncomment things for solaris.
@@ -26,4 +26,4 @@ install: ${PROG}
 	${INSTALL} -c -o bin -g bin -m 0444 pcp.1 ${PREFIX}/man/man1
 
 clean:
-	rm -f ${PROG} *.o dshbak.sh ../common/*.o
+	rm -f ${PROG} *.o ../common/*.o
