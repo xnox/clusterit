@@ -1,3 +1,4 @@
+/* $Id: dsh.c,v 1.2 1998/10/13 07:04:25 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -44,7 +45,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: dsh.c,v 1.1 1998/10/13 06:54:33 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.2 1998/10/13 07:04:25 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
