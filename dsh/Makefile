@@ -1,3 +1,4 @@
+# $Id: Makefile,v 1.2 1998/10/13 07:03:24 garbled Exp $
 # dsh Makefile: Tim Rightnour
 
 CC=	/usr/local/bin/gcc
