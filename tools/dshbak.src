@@ -1,8 +1,7 @@
 #!@@@AWK@@@ -f 
-# $Id: dshbak.src,v 1.1 1999/05/05 07:49:37 garbled Exp $
+# $Id: dshbak.src,v 1.2 1999/05/05 09:20:45 garbled Exp $
 # dshbak  *must have nawk or compatible*
-BEGIN { LASTNODE="null" 
-	FS="\t"}
+BEGIN { LASTNODE="null" }
 {
 	if ($1 != LASTNODE) {
 		LASTNODE = $1
@@ -10,7 +9,8 @@ BEGIN { LASTNODE="null"
 		gsub(/./,"-",FOO)
 		printf("-----%s\nNode %s\n-----%s\n", FOO, $1, FOO)
 	}
-	sub(/^.*:\t/,"")
+	sub(/:/,"!@#$!")
+	sub(/^.*!@#$! /,"")
 	print $0
 }
 	
