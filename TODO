@@ -1,4 +1,4 @@
-# $Id: TODO,v 1.3 2000/01/14 22:48:14 garbled Exp $
+# $Id: TODO,v 1.4 2000/01/17 04:07:59 garbled Exp $
 # no particular order:
 
 LUMPS, which would be groups of GROUPS, to allow a sort of virtual group.
@@ -6,15 +6,11 @@ ie: you could have functions in groups, like mail, www, etc.. and have machine
 type lumps, for example, all NetBSD, all hpux, for other types of
 machine-specific administration.
 
-jsd, jsh
+finish jsd, jsh
 
 Port interrupt handling to seq and run.
 
 Break apart do_command in dsh.c to something sane.
-
-create a common subdir and try to share more subroutines
-
-Move strcat to common for non BSD builds
 
 create makefile patch for SUNWpro C, and SUN gnu C.  (assistance here would 
 be greatly appreciated)
@@ -45,3 +41,9 @@ Fixed post 1.3
 	Make a common header file of some sort.
 
 	could alignstring be a macro?
+
+	create a common subdir and try to share more subroutines
+
+	Move strsep to common for non BSD builds
+
+
