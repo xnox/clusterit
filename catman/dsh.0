@@ -98,6 +98,11 @@ FFIILLEESS
      Each member of the lump is the name of a group.  The LUMP command is ter-
      minated by another LUMP or GROUP command, or the EOF marker.
 
+     Any line beginning with a `#' symbol denotes a comment field, and the en-
+     tire line will be ignored.  Note that a hash mark placed anywhere other
+     than the first character of a line, will be considered part of a valid
+     hostname or command.
+
 EEXXAAMMPPLLEESS
      The command:
 

@@ -39,40 +39,6 @@ utility can be used to delete files or directories on a cluster of
 machines.
 The following options are available:
 <dl compact>
-<p><dt><b></b><b>-w</b><dd>
-If the
-<b></b><b>-w</b>
-option is specified, followed by a comma delimited list of machine names,
-the
-<i></i><i>command</i>
-will be run on each node in the list.  Without this flag,
-<b>prm</b>
-runs on the nodes listed in the file pointed to by the
-<code></code><code>CLUSTER</code>
-environment variable.
-<p><dt><b></b><b>-g</b><dd>
-If the
-<b></b><b>-g</b>
-option is specified, followed by a comma separated list of group names, the
-command will only be run on that group of nodes.  A node may be a part of
-more than one group if desired, however running without the
-<b></b><b>-g</b>
-option will run the command on the same node as many times as it appears in the
-file specified by the
-<code></code><code>CLUSTER</code>
-environment variable.  This option is silently ignored if used with the
-<b></b><b>-w</b>
-option.
-<p><dt><b></b><b>-x</b><dd>
-The
-<b></b><b>-x</b>
-option can be used to exclude specific nodes from the cluster.  The format is
-the same as the
-<b></b><b>-w</b>
-option, a comma delimited list of machine names.  This option is silently
-ignored if used with the
-<b></b><b>-w</b>
-option.
 <p><dt><b></b><b>-d</b><dd>
 Attempt to remove directories as well as other types of files.
 <p><dt><b></b><b>-f</b><dd>
@@ -98,6 +64,40 @@ Equivalent to
 Attempts to undelete the named files.
 Currently, this option can only be used to recover
 files covered by whiteouts.
+<p><dt><b></b><b>-g</b><dd>
+If the
+<b></b><b>-g</b>
+option is specified, followed by a comma separated list of group names, the
+command will only be run on that group of nodes.  A node may be a part of
+more than one group if desired, however running without the
+<b></b><b>-g</b>
+option will run the command on the same node as many times as it appears in the
+file specified by the
+<code></code><code>CLUSTER</code>
+environment variable.  This option is silently ignored if used with the
+<b></b><b>-w</b>
+option.
+<p><dt><b></b><b>-w</b><dd>
+If the
+<b></b><b>-w</b>
+option is specified, followed by a comma delimited list of machine names,
+the
+<i></i><i>command</i>
+will be run on each node in the list.  Without this flag,
+<b>prm</b>
+runs on the nodes listed in the file pointed to by the
+<code></code><code>CLUSTER</code>
+environment variable.
+<p><dt><b></b><b>-x</b><dd>
+The
+<b></b><b>-x</b>
+option can be used to exclude specific nodes from the cluster.  The format is
+the same as the
+<b></b><b>-w</b>
+option, a comma delimited list of machine names.  This option is silently
+ignored if used with the
+<b></b><b>-w</b>
+option.
 </dl>
      <p>
      <h3>
@@ -113,6 +113,7 @@ in the cluster.
 Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 <b></b><b>rsh</b>
+</dl>
      <h3>
      DIAGNOSTICS
      </h3>
@@ -151,6 +152,5 @@ Consult the
 manpage on the remote host if you have problems.
 </font></body>
 </html>
-
 
 

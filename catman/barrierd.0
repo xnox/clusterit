@@ -15,7 +15,7 @@ DDEESSCCRRIIPPTTIIOONN
           faults to 1933, and overrides the BARRIER_PORT environment variable.
 
 EENNVVIIRROONNMMEENNTT
-     bbaarrrriieerrdd utilizes the following environment variables.
+     bbaarrrriieerrdd utilizes the following environment variables:
 
      BARRIER_HOST  Sets the default remote host to connect to.
 

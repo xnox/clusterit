@@ -56,17 +56,19 @@ and
 options below).
 The following options are available:
 <dl compact>
-<p><dt><b></b><b>-w</b><dd>
-If the
-<b></b><b>-w</b>
-option is specified, followed by a comma delimited list of machine names,
-the
-<i></i><i>command</i>
-will be run on each node in the list.  Without this flag,
+<p><dt><b></b><b>-l</b><dd>
+Display statistics only about mounted file systems with the MNT_LOCAL
+flag set.  If a non-local file system is given as an argument, a
+warning is issued and no information is given on that file system.
+<p><dt><b></b><b>-n</b><dd>
+Print out the previously obtained statistics from the file systems.
+This option should be used if it is possible that one or more
+file systems are in a state such that they will not be able to provide
+statistics without a long delay.
+When this option is specified,
 <b>pdf</b>
-runs on the nodes listed in the file pointed to by the
-<code></code><code>CLUSTER</code>
-environment variable.
+will not request new statistics from the file systems, but will respond
+with the possibly stale statistics that were previously obtained.
 <p><dt><b></b><b>-g</b><dd>
 If the
 <b></b><b>-g</b>
@@ -81,29 +83,6 @@ appears in the file specified by the
 environment variable.  This option is silently ignored if used with the
 <b></b><b>-w</b>
 option.
-<p><dt><b></b><b>-x</b><dd>
-The
-<b></b><b>-x</b>
-option can be used to exclude specific nodes from the cluster.  The
-format is the same as the
-<b></b><b>-w</b>
-option, a comma delimited list of machine names.  This option is
-silently ignored if used with the
-<b></b><b>-w</b>
-option.
-<p><dt><b></b><b>-l</b><dd>
-Display statistics only about mounted file systems with the MNT_LOCAL
-flag set.  If a non-local file system is given as an argument, a
-warning is issued and no information is given on that file system.
-<p><dt><b></b><b>-n</b><dd>
-Print out the previously obtained statistics from the file systems.
-This option should be used if it is possible that one or more
-file systems are in a state such that they will not be able to provide
-statistics without a long delay.
-When this option is specified,
-<b>pdf</b>
-will not request new statistics from the file systems, but will respond
-with the possibly stale statistics that were previously obtained.
 <p><dt><b></b><b>-m</b><i></i><i> size</i><dd>
 Is used to limit the displayed file systems to only those with a
 size greater than the user-supplied
@@ -120,6 +99,27 @@ to specify the filesystem types for which action should
 be taken.  If a file system is given on the command line that is not of
 the specified type, a warning is issued and no information is given on
 that file system.
+<p><dt><b></b><b>-w</b><dd>
+If the
+<b></b><b>-w</b>
+option is specified, followed by a comma delimited list of machine names,
+the
+<i></i><i>command</i>
+will be run on each node in the list.  Without this flag,
+<b>pdf</b>
+runs on the nodes listed in the file pointed to by the
+<code></code><code>CLUSTER</code>
+environment variable.
+<p><dt><b></b><b>-x</b><dd>
+The
+<b></b><b>-x</b>
+option can be used to exclude specific nodes from the cluster.  The
+format is the same as the
+<b></b><b>-w</b>
+option, a comma delimited list of machine names.  This option is
+silently ignored if used with the
+<b></b><b>-w</b>
+option.
 </dl>
      <p>
      <h3>
@@ -166,7 +166,7 @@ was written by Tim Rightnour.
      </h3>
 Output is formatted for 80 columns.  This means that mount points and
 filesystems with long names
-(> 20 characters)
+(&gt; 20 characters)
 will be truncated.  In
 addition, numbers longer than 9 digits will be truncated as well.
      <p>

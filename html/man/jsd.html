@@ -106,15 +106,6 @@ If the
 option is specified, followed by a username, the commands will be run under
 that userid on the remote machines.  Consideration must be taken for proper
 authentication, for this to work.
-<p><dt><b></b><b>-o</b><dd>
-The
-<b></b><b>-o</b>
-option can be used to set the port number which jsd will listen to
-requests from
-<em></em><em>jsh</em>
-processes for remote nodes.  This option overrides the
-<code></code><code>JSD_OPORT</code>
-environment variable.  The default listen port is 2002.
 <p><dt><b></b><b>-p</b><dd>
 The
 <b></b><b>-p</b>
@@ -125,6 +116,15 @@ processes indicating completion of processing on remote nodes.  This
 option overrides the
 <code></code><code>JSD_IPORT</code>
 environment variable.  The default listen port is 2001.
+<p><dt><b></b><b>-o</b><dd>
+The
+<b></b><b>-o</b>
+option can be used to set the port number which jsd will listen to
+requests from
+<em></em><em>jsh</em>
+processes for remote nodes.  This option overrides the
+<code></code><code>JSD_OPORT</code>
+environment variable.  The default listen port is 2002.
 <p><dt><b></b><b>-w</b><dd>
 If the
 <b></b><b>-w</b>
@@ -146,11 +146,12 @@ option, a comma delimited list of machine names.  This option is silently
 ignored if used with the
 <b></b><b>-w</b>
 option.
+</dl>
      <h3>
      ENVIRONMENT
      </h3>
 <b>jsd</b>
-utilizes the following environment variables.
+utilizes the following environment variables:
 <dl compact>
 <p><dt><code></code><code>CLUSTER</code><dd>
 Contains a filename, which is a newline separated list of nodes
@@ -195,6 +196,7 @@ This environment setting can be overriden
 by the
 <b></b><b>-p</b>
 option.
+</dl>
      <h3>
      EXAMPLES
      </h3>
@@ -208,7 +210,8 @@ run that as your benchmark command.  The below script shows how to
 process the output of the
 <code>whetstone(1)</code>
 command into a format useable by
-<b>:</b>
+<b>jsd</b>
+:
 <dl compact><dt><dd>
 <code>
 <pre>
@@ -244,3 +247,6 @@ and stands for
 <b>Jsd</b>
 was written by Tim Rightnour.
 </font></body>
+</html>
+
+

@@ -4,7 +4,7 @@ NNAAMMEE
      ppccpp - copy a file to a cluster of machines
 
 SSYYNNOOPPSSIISS
-     ppccpp [--cceerrpp] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N]
+     ppccpp [--cceepprr] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N]
      [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] _s_o_u_r_c_e___f_i_l_e_1 [source_file2 ... source_fileN]
      [destination file]
 
@@ -64,7 +64,7 @@ DDEESSCCRRIIPPTTIIOONN
           the --ww option.
 
 EENNVVIIRROONNMMEENNTT
-     ppccpp utilizes the following environment variables.
+     ppccpp utilizes the following environment variables:
 
      CLUSTER  Contains a filename, which is a newline separated list of nodes
               in the cluster.

@@ -107,6 +107,7 @@ option, a comma delimited list of machine names.  This option is
 silently ignored if used with the
 <b></b><b>-w</b>
 option.
+</dl>
      <h3>
      ENVIRONMENT
      </h3>
@@ -123,16 +124,18 @@ be able to connect with no password to the remote host.  Defaults to
 <p><dt><code></code><code>SEQ_FILE</code><dd>
 Specifies a specific sequence file.  This is a temporary file, which
 saves the number of the last node run on.  It defaults to
-<code></code><code>/tmp/ [</code><code>pid</code><code> .seq]</code>.
+<code></code><code>/tmp/</code>pid[. .seq. ]
 Where
 [pid]
 is the pid of the parent process of
-<b>.</b>
+<b>seq</b>.
 It may be useful to wire the
 <code></code><code>SEQ_FILE</code>
 to a particular file, in order to keep proper sequence when invoking
 <b>seq</b>
 from subshells or scripts.
+</dl>
+</pre>
      <h3>
      DIAGNOSTICS
      </h3>
@@ -172,3 +175,6 @@ predictable.  The sequence is calculated on each invocation of
 and the sequence numbers recorded in the temporary file may not match up
 to a new sequence placed on the command line.
 </font></body>
+</html>
+
+

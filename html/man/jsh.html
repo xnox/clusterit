@@ -65,6 +65,39 @@ Unless the
 <b></b><b>-e</b>
 option is specified, stderr from remote commands will not be reported
 to the user.
+<p><dt><b></b><b>-i</b><dd>
+The
+<b></b><b>-i</b>
+option will list information about the current cluster, and command
+groupings. It will also show you which command you are about to run,
+and your username if specified with the
+<b></b><b>-l</b>
+option.
+<p><dt><b></b><b>-l</b><dd>
+If the
+<b></b><b>-l</b>
+option is specified, followed by a username, the commands will be run under
+that userid on the remote machines.  Consideration must be taken for proper
+authentication, for this to work.
+<p><dt><b></b><b>-p</b><dd>
+The
+<b></b><b>-p</b>
+option can be used to set the port number which jsd will listen to
+replies from
+<em></em><em>jsh</em>
+processes indicating completion of processing on remote nodes.  This
+option overrides the
+<code></code><code>JSD_IPORT</code>
+environment variable.  The default listen port is 2001.
+<p><dt><b></b><b>-o</b><dd>
+The
+<b></b><b>-o</b>
+option can be used to set the port number which jsd will listen to
+requests from
+<em></em><em>jsh</em>
+processes for remote nodes.  This option overrides the
+<code></code><code>JSD_OPORT</code>
+environment variable.  The default listen port is 2002.
 <p><dt><b></b><b>-h</b><dd>
 The
 <b></b><b>-h</b>
@@ -80,49 +113,12 @@ daemon.  The
 option will override the
 <code></code><code>JSD_HOST</code>
 environment variable.
-<p><dt><b></b><b>-i</b><dd>
-The
-<b></b><b>-i</b>
-option will list information about the current cluster, and command
-groupings. It will also show you which command you are about to run,
-and your username if specified with the
-<b></b><b>-l</b>
-option.
-<p><dt><b></b><b>-l</b><dd>
-If the
-<b></b><b>-l</b>
-option is specified, followed by a username, the commands will be run under
-that userid on the remote machines.  Consideration must be taken for proper
-authentication, for this to work.
-<p><dt><b></b><b>-o</b><dd>
-The
-<b></b><b>-o</b>
-option can be used to set the port number which jsd will listen to
-requests from
-<em></em><em>jsh</em>
-processes for remote nodes.  This option overrides the
-<code></code><code>JSD_OPORT</code>
-environment variable.  The default listen port is 2002.
-<p><dt><b></b><b>-p</b><dd>
-The
-<b></b><b>-p</b>
-option can be used to set the port number which jsd will listen to
-replies from
-<em></em><em>jsh</em>
-processes indicating completion of processing on remote nodes.  This
-option overrides the
-<code></code><code>JSD_IPORT</code>
-environment variable.  The default listen port is 2001.
-<p><dt><b></b><b>-q</b><dd>
-The
-<b></b><b>-q</b>
-option does not issue any commands, but displays information about the
-cluster.
+</dl>
      <h3>
      ENVIRONMENT
      </h3>
 <b>jsh</b>
-utilizes the following environment variables.
+utilizes the following environment variables:
 <dl compact>
 <p><dt><code></code><code>RCMD_CMD</code><dd>
 Command to use to connect to remote machines.  The command chosen must
@@ -150,6 +146,7 @@ daemon is listening on.  This environment setting can be overriden by
 the
 <b></b><b>-h</b>
 option.
+</dl>
      <h3>
      SEE ALSO
      </h3>
@@ -172,3 +169,6 @@ command first appeared in clusterit 2.0.
 was written by Tim Rightnour.
 </font></body>
 </html>
+
+
+
