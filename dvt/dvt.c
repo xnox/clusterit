@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.1 2001/08/13 21:24:55 garbled Exp $ */
+/* $Id: dvt.c,v 1.2 2002/03/14 18:11:13 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -56,7 +56,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.1 2001/08/13 21:24:55 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.2 2002/03/14 18:11:13 garbled Exp $");
 #endif /* not lint */
 
 #ifndef __P
@@ -417,7 +417,7 @@ do_command(fanout, username)
 	struct sigaction signaler;
 	FILE *fd, *in;
 	char pipebuf[2048];
-	int count, status, i, j, n, g, l, piping;
+	int count, status, i, j, g, l, piping;
 	size_t maxnodelen;
 	char *rsh, *cd;
 	node_t *nodeptr, *nodehold;
@@ -488,8 +488,8 @@ do_command(fanout, username)
 		if (gotsigterm)
 			exit(EXIT_FAILURE);
 		if (debug)
-			(void)printf("Working node: %d, fangroup %d,"
-				" fanout part: %d\n", g, n, i);
+			(void)printf("Working node: %d, fanout part: %d\n",
+			    g, i);
 /*
  * we set up pipes for each node, to prepare for the oncoming barrage of data.
  * Close on exec must be set here, otherwise children spawned after other
@@ -557,8 +557,8 @@ do_command(fanout, username)
 		if (gotsigterm)
 			exit(EXIT_FAILURE);
 		if (debug)
-			(void)printf("Printing node: %d, fangroup %d,"
-				" fanout part: %d\n", g-fanout+i, n, i);
+			(void)printf("Printing node: %d, "
+				" fanout part: %d\n", g-fanout+i, i);
 		currentchild = nodeptr->childpid;
 		/* now close off the useless stuff, and read the goodies */
 		if (close(nodeptr->out.fds[1]) != 0)
