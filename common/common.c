@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.11 2003/11/02 15:33:11 garbled Exp $ */
+/* $Id: common.c,v 1.12 2004/10/04 18:21:43 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.11 2003/11/02 15:33:11 garbled Exp $");
+__RCSID("$Id: common.c,v 1.12 2004/10/04 18:21:43 garbled Exp $");
 #endif
 
 
@@ -54,55 +54,55 @@ __RCSID("$Id: common.c,v 1.11 2003/11/02 15:33:11 garbled Exp $");
  */
 
 void
-do_showcluster(fanout)
-	int fanout;
+do_showcluster(int fanout)
 {
-	node_t *nodeptr;
-	int i, j, l, n;
-	char *group;
+    node_t *nodeptr;
+    int i, j, l, n;
+    char *group;
 
-	i = l = 0;
-	for (nodeptr = nodelink; nodeptr->next != NULL;
-		 nodeptr = nodeptr->next)
-		i++; /* just count the nodes */
-		;
-	j = i / fanout;
-      /* how many times do I have to run in order to reach them all */
-	if (i % fanout)
-		j++;
+    i = l = 0;
+    for (nodeptr = nodelink; nodeptr->next != NULL;
+	 nodeptr = nodeptr->next)
+	i++; /* just count the nodes */
+    ;
+    j = i / fanout;
+    /* how many times do I have to run in order to reach them all */
+    if (i % fanout)
+	j++;
 
-	if (rungroup[0] != NULL) {
-		(void)printf("Rungroup:");
-		for (i=0; rungroup[i] != NULL; i++) {
-			if (!(i % 4) && i > 0)
-				(void)printf("\n");
-			(void)printf("\t%s", rungroup[i]);
-		}
-		if (i % 4)
-			(void)printf("\n");
+    if (rungroup[0] != NULL) {
+	(void)printf("Rungroup:");
+	for (i=0; rungroup[i] != NULL; i++) {
+	    if (!(i % 4) && i > 0)
+		(void)printf("\n");
+	    (void)printf("\t%s", rungroup[i]);
 	}
+	if (i % 4)
+	    (void)printf("\n");
+    }
 
-	nodeptr = nodelink;
+    nodeptr = nodelink;
 
-	if (getenv("CLUSTER"))
-		(void)printf("Cluster file: %s\n", getenv("CLUSTER"));
-	(void)printf("Fanout size: %d\n", fanout);
-	for (n=0; n <= j; n++) {
-		for (i=0; (i < fanout && nodeptr != NULL); i++) {
-			l++;
-			group = NULL;
-			if (nodeptr->group >= 0 && grouplist && grouplist[nodeptr->group].name)
-				group = strdup(grouplist[nodeptr->group].name);
-			if (group == NULL)
-				(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None"
-					"             Host: %-15s\n", l, n + 1, nodeptr->name);
-			else
-				(void)printf("Node: %3d  Fangroup: %3d  Rungroup: %-15s"
-					"  Host: %-15s\n", l, n + 1, group,
-					nodeptr->name);
-			nodeptr = nodeptr->next;
-		}
+    if (getenv("CLUSTER"))
+	(void)printf("Cluster file: %s\n", getenv("CLUSTER"));
+    (void)printf("Fanout size: %d\n", fanout);
+    for (n=0; n <= j; n++) {
+	for (i=0; (i < fanout && nodeptr != NULL); i++) {
+	    l++;
+	    group = NULL;
+	    if (nodeptr->group >= 0 && grouplist &&
+		grouplist[nodeptr->group].name)
+		group = strdup(grouplist[nodeptr->group].name);
+	    if (group == NULL)
+		(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None"
+		    "             Host: %-15s\n", l, n + 1, nodeptr->name);
+	    else
+		(void)printf("Node: %3d  Fangroup: %3d  Rungroup: %-15s"
+		    "  Host: %-15s\n", l, n + 1, group,
+		    nodeptr->name);
+	    nodeptr = nodeptr->next;
 	}
+    }
 }
 
 
@@ -112,230 +112,220 @@ do_showcluster(fanout)
  */
 
 int
-parse_cluster(exclude)
-	char **exclude;
+parse_cluster(char **exclude)
 {
-	FILE *fd;
-	char *clusterfile, *p, *nodename;
-	int i, j, g, fail, gfail, lumping, n, ging;
-	char	buf[MAXBUF];
-	extern int errno;
-	group_t *grouptemp;
-	node_t *nodeptr;
-	char **lumptemp;
+    FILE *fd;
+    char *clusterfile, *p, *nodename;
+    int i, j, g, fail, gfail, lumping, n, ging;
+    char buf[MAXBUF];
+    extern int errno;
+    group_t *grouptemp;
+    node_t *nodeptr;
+    char **lumptemp;
 
-	g = -1;
-	lumping = ging = 0;
-	n = 0;
-	gfail = 1;
+    g = 0;
+    lumping = ging = 0;
+    n = 0;
+    gfail = 1;
 
-	grouplist = (group_t *)malloc(GROUP_MALLOC * sizeof(group_t));
-	if (grouplist == NULL)
-		bailout(__LINE__);
+    grouplist = (group_t *)malloc(GROUP_MALLOC * sizeof(group_t));
+    if (grouplist == NULL)
+	bailout();
 
-	lumplist = (char **)malloc(GROUP_MALLOC * sizeof(char *));
-	if (lumplist == NULL)
-		bailout(__LINE__);
+    lumplist = (char **)malloc(GROUP_MALLOC * sizeof(char *));
+    if (lumplist == NULL)
+	bailout();
 
     /* if -w wasn't specified, we need to parse the cluster file */
-	clusterfile = getenv("CLUSTER");
-	if (clusterfile == NULL) {
-		(void)fprintf(stderr,
-			"%s: must use -w flag without CLUSTER environment setting.\n",
-			progname);
-		exit(EXIT_FAILURE);
-	}
-	fd = fopen(clusterfile, "r");
-	if (NULL == fd) {
-		(void)fprintf(stderr, "%s: open of clusterfile failed:%s\n",
-			progname, strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+    clusterfile = getenv("CLUSTER");
+    if (clusterfile == NULL) {
+	(void)fprintf(stderr,
+	    "%s: must use -w flag without CLUSTER environment setting.\n",
+	    progname);
+	exit(EXIT_FAILURE);
+    }
+    fd = fopen(clusterfile, "r");
+    if (NULL == fd) {
+	(void)fprintf(stderr, "%s: open of clusterfile failed:%s\n",
+	    progname, strerror(errno));
+	exit(EXIT_FAILURE);
+    }
 
-	/* this is horrid. rewrite me in lex/yacc */
+    /* this is horrid. rewrite me in lex/yacc */
 
-	/* First, find all the groups, and build a grouplist */
-	while ((nodename = fgets(buf, sizeof(buf), fd))) {
-		p = (char *)strsep(&nodename, "\n");
-		if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
-			if (strstr(p, "GROUP") != NULL) {
-				ging = 1;
-				strsep(&p, ":");
-				if (((g+1) % GROUP_MALLOC) != 0 && n > 0) {
-					grouplist[++g].name = strdup(p);
-					grouplist[g].lump = 0;
-				} else {
-					grouptemp = realloc(grouplist,
-						(g+1)*sizeof(group_t) + GROUP_MALLOC *
-						sizeof(group_t));
-					if (grouptemp != NULL)
-						grouplist = grouptemp;
-					else
-						bailout(__LINE__);
-					grouplist[++g].name = strdup(p);
-					grouplist[g].lump = 0;
-				}
-			} else if (ging && ((strstr(p, "GROUP") != NULL) ||
-			    (strstr(p, "LUMP") != NULL)))
-				ging = 0;
+    /* First, find all the groups, and build a grouplist */
+    while ((nodename = fgets(buf, sizeof(buf), fd))) {
+	p = (char *)strsep(&nodename, "\n");
+	if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
+	    if (strstr(p, "GROUP") != NULL) {
+		ging = 1;
+		strsep(&p, ":");
+		if (((g+1) % GROUP_MALLOC) != 0) {
+		    grouplist[g].name = strdup(p);
+		    grouplist[g].numlump = 0;
+		} else {
+		    grouptemp = realloc(grouplist,
+			(g+1+GROUP_MALLOC)*sizeof(group_t));
+		    if (grouptemp != NULL)
+			grouplist = grouptemp;
+		    else
+			bailout();
+		    grouplist[g].name = strdup(p);
+		    grouplist[g].numlump = 0;
 		}
+		g++;
+	    } else if (ging && ((strstr(p, "GROUP") != NULL) ||
+			   (strstr(p, "LUMP") != NULL)))
+		ging = 0;
 	}
-	rewind(fd);
-	/* now build the lump list */
-	lumplist[0] = strdup("NO_GROUP_HERE");
-	if (lumplist[0] == NULL)
-		bailout(__LINE__);
-	while ((nodename = fgets(buf, sizeof(buf), fd))) {
-		p = (char *)strsep(&nodename, "\n");
-		/* check for a null line, or a comment */
-		if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
-			if (strstr(p, "LUMP") != NULL) {
-				lumping = 1;
-				strsep(&p, ":");
-				if (((n+1) % GROUP_MALLOC) != 0 && n > 0) {
-					lumplist[++n] = strdup(p);
-				} else {
-					lumptemp = realloc(lumplist,
-						(n+1)*sizeof(char *) + GROUP_MALLOC *
-						sizeof(char *));
-					if (lumptemp != NULL)
-						lumplist = lumptemp;
-					else
-						bailout(__LINE__);
-					lumplist[++n] = strdup(p);
-				}
-			} else if (lumping){
-				if ((strstr(p, "GROUP") != NULL) ||
-				    (strstr(p, "LUMP") != NULL))
-					lumping = 0;
-				else {
-					for (j = 0; j <= g; j++)
-						if (strcmp(p, grouplist[j].name) == 0)
-							grouplist[j].lump = n;
-				}
+    }
+    rewind(fd);
+    /* now build the lump list */
+    lumplist[0] = strdup("NO_GROUP_HERE");
+    if (lumplist[0] == NULL)
+	bailout();
+    while ((nodename = fgets(buf, sizeof(buf), fd))) {
+	p = (char *)strsep(&nodename, "\n");
+	/* check for a null line, or a comment */
+	if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
+	    if (strstr(p, "LUMP") != NULL) {
+		lumping = 1;
+		strsep(&p, ":");
+		if (((n+1) % GROUP_MALLOC) != 0) {
+		    lumplist[n] = strdup(p);
+		} else {
+		    lumptemp = realloc(lumplist,
+			(n+1+GROUP_MALLOC)*sizeof(char *));
+		    if (lumptemp != NULL)
+			lumplist = lumptemp;
+		    else
+			bailout();
+		    lumplist[n] = strdup(p);
+		}
+		n++;
+	    } else if (lumping){
+		if ((strstr(p, "GROUP") != NULL) ||
+		    (strstr(p, "LUMP") != NULL))
+		    lumping = 0;
+		else {
+		    for (j = 0; j < g; j++)
+			if (strcmp(p, grouplist[j].name) == 0) {
+			    if (grouplist[j].numlump == 0)
+			        grouplist[j].lump = malloc(sizeof(int)*2);
+			    else
+				grouplist[j].lump =
+				    realloc(grouplist[j].lump, sizeof(int)*grouplist[j].numlump+2);
+			    grouplist[j].lump[grouplist[j].numlump] = n-1;
+			    grouplist[j].numlump++;
 			}
 		}
+	    }
 	}
-	rewind(fd);
-	/* Now.. parse the file for real, and build the nodelist */
-	g = -1;
-	i = 0;
-	while ((nodename = fgets(buf, sizeof(buf), fd))) {
-		p = (char *)strsep(&nodename, "\n");
-		if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
-			/*printf("g = %d p = %s\n", g, p);*/
-			if (strstr(p, "LUMP") != NULL)
-				lumping = 1;
-			if (lumping && (strstr(p, "GROUP") != NULL))
-					lumping = 0;
-			if (exclusion || grouping) { /* this handles the -x,g option */
-				fail = 0;
-				for (j = 0; exclude[j] != NULL; j++)
-					if (strcmp(p, exclude[j]) == 0)
-						fail = 1;
-				if (g >= 0) {
-					gfail = 1;
-					for (j = 0; (rungroup[j] != NULL && gfail == 1); j++)
-						if ((strcmp(grouplist[g].name, rungroup[j]) == 0) ||
-							(strcmp(lumplist[grouplist[g].lump],
-								rungroup[j]) == 0))
-							gfail = 0;
-				}
-			    if (g >= 0 && gfail && exclusion && rungroup[0] == 0)
-					gfail = 0;
-				if (!fail) {
-					if (strstr(p, "GROUP") != NULL) {
-						g++;
-					} else if (!gfail && !lumping) {
-						nodeptr = nodealloc(strdup(p));
-						if (g >= 0)
-							nodeptr->group = g;
-					}
-				}
-			} else {
-				if (strstr(p, "GROUP") != NULL) {
-					g++;
-				} else if (!lumping){
-					nodeptr = nodealloc(strdup(p));
-					if (g >= 0)
-						nodeptr->group = g;
-				}
-			} /* exlusion */
-		} /* strcmp */
-	} /* while nodename */
-	fclose(fd);
-	return(g);
+    }
+    rewind(fd);
+    /* Now.. parse the file for real, and build the nodelist */
+    g = 0;
+    i = 0;
+    while ((nodename = fgets(buf, sizeof(buf), fd))) {
+	p = (char *)strsep(&nodename, "\n");
+	if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
+	    /*printf("g = %d p = %s\n", g, p);*/
+	    if (strstr(p, "LUMP") != NULL)
+		lumping = 1;
+	    if (lumping && (strstr(p, "GROUP") != NULL))
+		lumping = 0;
+	    if (exclusion || grouping) { /* this handles the -x,g option */
+		fail = 0;
+		for (j = 0; exclude[j] != NULL; j++)
+		    if (strcmp(p, exclude[j]) == 0)
+			fail = 1;
+		if (g >= 0) {
+		    gfail = 1;
+		    for (j = 0; (rungroup[j] != NULL && gfail == 1); j++) {
+			int l;
+			for (l=0; l < grouplist[g].numlump; l++) {
+			    if (!strcmp(grouplist[g].name, rungroup[j]) ||
+				!strcmp(lumplist[grouplist[g].lump[l]],
+				    rungroup[j]))
+				gfail = 0;
+			}
+		    }
+		}
+		if (g >= 0 && gfail && exclusion && rungroup[0] == 0)
+		    gfail = 0;
+		if (!fail) {
+		    if (strstr(p, "GROUP") != NULL) {
+			g++;
+		    } else if (!gfail && !lumping) {
+			nodeptr = nodealloc(strdup(p));
+			if (g >= 0)
+			    nodeptr->group = g;
+		    }
+		}
+	    } else {
+		if (strstr(p, "GROUP") != NULL) {
+		    g++;
+		} else if (!lumping){
+		    nodeptr = nodealloc(strdup(p));
+		    if (g >= 0)
+			nodeptr->group = g;
+		}
+	    } /* exlusion */
+	} /* strcmp */
+    } /* while nodename */
+    fclose(fd);
+    return(g);
 }
 
 /* allocates a new/first node, and returns a pointer to the user */
 struct node_data *
-nodealloc(nodename)
-	char * nodename;
+nodealloc(char *nodename)
 {
-	struct node_data *nodeptr, *nodex;
+    struct node_data *nodeptr, *nodex;
 
-	if (nodelink == NULL) {
-		nodelink = malloc((size_t)sizeof(node_t));
-		nodelink->name = strdup(nodename);
-		nodelink->group = 0;
-		nodelink->err.fds[0] = 0;
-		nodelink->err.fds[1] = 0;
-		nodelink->out.fds[0] = 0;
-		nodelink->out.fds[1] = 0;
-		nodelink->index = 1.0;
-		nodelink->free = 1;
-		nodelink->childpid = 0;
-		nodelink->next = NULL;
+    if (nodelink == NULL) {
+	nodelink = malloc((size_t)sizeof(node_t));
+	nodelink->name = strdup(nodename);
+	nodelink->group = 0;
+	nodelink->err.fds[0] = 0;
+	nodelink->err.fds[1] = 0;
+	nodelink->out.fds[0] = 0;
+	nodelink->out.fds[1] = 0;
+	nodelink->index = 1.0;
+	nodelink->free = 1;
+	nodelink->childpid = 0;
+	nodelink->next = NULL;
 #ifdef USE_X11
-		nodelink->win_id = 0;
+	nodelink->win_id = 0;
 #endif
-		return(nodelink);
-	}
-	nodex = malloc(sizeof(node_t));
-	if (NULL == nodex)
-		bailout(__LINE__);
+	return(nodelink);
+    }
+    nodex = malloc(sizeof(node_t));
+    if (NULL == nodex)
+	bailout();
 	
-	for (nodeptr = nodelink; nodeptr->next != NULL;
-		 nodeptr = nodeptr->next)
-		;
+    for (nodeptr = nodelink; nodeptr->next != NULL;
+	 nodeptr = nodeptr->next)
+	;
 	
-	nodeptr->next = nodex;
-	nodex->name = strdup(nodename);
-	nodex->group = 0;
-	nodex->err.fds[0] = 0;
-	nodex->err.fds[1] = 0;
-	nodex->out.fds[0] = 0;
-	nodex->out.fds[1] = 0;
-	nodex->childpid = 0;
-	nodex->next = 0;
-	nodex->free = 1;
-	nodex->index = 1.0;
+    nodeptr->next = nodex;
+    nodex->name = strdup(nodename);
+    nodex->group = 0;
+    nodex->err.fds[0] = 0;
+    nodex->err.fds[1] = 0;
+    nodex->out.fds[0] = 0;
+    nodex->out.fds[1] = 0;
+    nodex->childpid = 0;
+    nodex->next = 0;
+    nodex->free = 1;
+    nodex->index = 1.0;
 #ifdef USE_X11
-	nodex->win_id = 0;
+    nodex->win_id = 0;
 #endif
-	return(nodex);
+    return(nodex);
 }
 
 #endif /* CLUSTERS */
-
-/* return a string, followed by n - strlen spaces */
-
-char *
-alignstring(string, n)
-	char *string;
-	size_t n;
-{
-	size_t i;
-	char *newstring;
-
-	newstring = (char *)malloc(1 + strlen(string) + n * sizeof(char));
-	strcpy(newstring, string);
-	for (i=1; i <= n - strlen(string); i++)
-		newstring = strcat(newstring, " ");
-
-	return(newstring);
-}
-
 
 /* 
  * Simple error handling routine, needs severe work.
@@ -344,17 +334,12 @@ alignstring(string, n)
 
 /*ARGSUSED*/
 void
-bailout(line) 
-	int line;
+_bailout(int line, char *file)
 {
-	extern int errno;
+    extern int errno;
 	
-	if (debug)
-		(void)fprintf(stderr, "%s: Failed on line %d: %s %d\n",
-			progname, line,	strerror(errno), errno);
-	else
-		(void)fprintf(stderr, "%s: Internal error, aborting: %s\n",
-			progname, strerror(errno));
+    (void)fprintf(stderr, "%s: Failed in %s line %d: %s %d\n",
+	progname, file, line, strerror(errno), errno);
 
-	_exit(EXIT_FAILURE);
+    _exit(EXIT_FAILURE);
 }

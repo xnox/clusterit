@@ -1,4 +1,4 @@
-/* $Id: netbsd.c,v 1.2 2002/03/14 18:10:31 garbled Exp $ */
+/* $Id: netbsd.c,v 1.3 2004/10/04 18:21:43 garbled Exp $ */
 
 /*	$NetBSD: strsep.c,v 1.7 1998/02/03 18:49:23 perry Exp $	*/
 /*	$NetBSD: pty.c,v 1.16 2000/07/10 11:16:38 ad Exp $	*/
@@ -38,8 +38,10 @@
  */
 
 
+#include "config.h"
+
 #include <string.h>
-#if !defined(__SVR4) && !defined(__sun__)
+#ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #endif
 #include <sys/types.h>
@@ -70,6 +72,8 @@ revoke(path)
 #endif
 
 #define TTY_LETTERS	"pqrstuvwxyzPQRST"
+
+#ifndef HAVE_STRSEP
 
 /*
  * Get next token from string *stringp, where tokens are possibly-empty
@@ -111,7 +115,9 @@ strsep(stringp, delim)
 	/* NOTREACHED */
 }
 
-#ifdef NEED_PTY
+#endif /* HAVE_STRSEP */
+
+#ifndef HAVE_OPENPTY
 
 int
 openpty(int *amaster, int *aslave, char *name, struct termios *termp, 
@@ -168,6 +174,10 @@ openpty(int *amaster, int *aslave, char *name, struct termios *termp,
 	return (-1);
 }
 
+#endif /* HAVE_OPENPTY */
+
+#ifndef HAVE_LOGIN_TTY
+
 int
 login_tty(int fd)
 {
@@ -193,4 +203,4 @@ login_tty(int fd)
 		(void) close(fd);
 	return (0);
 }
-#endif
+#endif /* HAVE_LOGIN_TTY */

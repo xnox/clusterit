@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.7 2003/11/02 15:33:11 garbled Exp $ */
+/* $Id: common.h,v 1.8 2004/10/04 18:21:43 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -32,12 +32,16 @@
  */
 
 /* Headers for common.c, used by dsh-like programs. */
+#include "config.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>
+#endif /* HAVE_TERMIOS_H */
 
 #ifdef USE_X11
 #include <X11/Xlib.h>
@@ -47,52 +51,53 @@
 #endif
 
 enum {
-	DEFAULT_FANOUT = 64,
-	GROUP_MALLOC = 16,
-	MAXBUF = 1024
+    DEFAULT_FANOUT = 64,
+    GROUP_MALLOC = 16,
+    MAXBUF = 1024
 };
 
-#ifndef __P
-#define __P(protos) protos
-#endif
+typedef struct {
+    int fds[2];
+} pipe_t;
 
-typedef struct { int fds[2]; } pipe_t;
-
-struct node_data {
-	char *name;					/* node name */
-	int group;					/* member of this group */
-	pipe_t err, out;			/* pipe structures */
-	pid_t childpid;				/* pid of the child */
-	struct node_data *next;		/* pointer to next node */
-	int free;
-	double index;
+typedef struct node_data {
+    char *name;			/* node name */
+    int group;			/* member of this group */
+    pipe_t err, out;		/* pipe structures */
+    pid_t childpid;		/* pid of the child */
+    struct node_data *next;	/* pointer to next node */
+    int free;
+    double index;
 #ifdef USE_X11
-	Window win_id;				/* the window ID of node's window */
+    Window win_id;		/* the window ID of node's window */
 #endif
-};
-typedef struct node_data node_t;
+} node_t;
 
-struct group_data {
-	char *name;					/* group name */
-	int lump;					/* member of this lump */
-};
-typedef struct group_data group_t;
+typedef struct group_data {
+    char *name;		/* group name */
+    int numlump;	/* number of lumps I am a member of */
+    int *lump;		/* member of this lump */
+} group_t;
 
-void bailout __P((int));
-char *alignstring __P((char *, size_t));
-#if !defined(__NetBSD__) && !defined(__linux__)
-char * strsep(char **stringp, const char *delim);
+void _bailout(int line, char *file);
+
+#define bailout() _bailout(__LINE__, __FILE__)
+
+#ifndef HAVE_STRSEP
+char *strsep(char **stringp, const char *delim);
 #endif
-#ifdef NEED_PTY
-int     login_tty __P((int));
-int     openpty __P((int *, int *, char *, struct termios *,
-		     struct winsize *));
+#ifndef HAVE_LOGIN_TTY
+int login_tty(int fd);
+#endif
+#ifndef HAVE_OPENPTY
+int openpty(int *amaster, int *aslave, char *name, struct termios *termp,
+    struct winsize *winp);
 #endif
 
 #ifdef CLUSTERS
-void do_showcluster __P((int));
-int parse_cluster __P((char **));
-node_t *nodealloc __P((char *));
+void do_showcluster(int fanout);
+int parse_cluster(char **exclude);
+node_t *nodealloc(char *nodename);
 
 extern char **lumplist;
 extern char **rungroup;
