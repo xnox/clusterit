@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.10 1999/10/14 16:50:52 garbled Exp $
+# $Id: Makefile,v 1.11 1999/10/14 17:11:39 garbled Exp $
 # dsh Makefile: Tim Rightnour
 
 # Some of the below needs to be uncommented for Solaris to work.
@@ -7,7 +7,7 @@
 CFLAGS=		-Wall -O2 #-DDEBUG -g
 PROGS=		dsh seq run
 
-OBJS= dsh.o seq.o run.o
+OBJS= dsh.o seq.o run.o common.o
 #SSRCS= strsep.o
 SSRCS=
 #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
