@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2000/02/20 04:46:11 garbled Exp $
+# $Id: Makefile,v 1.4 2000/02/25 21:47:41 garbled Exp $
 # jsd Makefile: Tim Rightnour
 
 # Some of the below needs to be uncommented for Solaris to work.
@@ -26,8 +26,8 @@ ${SSRCS}: ${SSRCS:.o=.c}
 	${CC} ${CFLAGS} -c $*.c -o $*.o
 
 install: ${PROGS} ${MAN}
-	/usr/bin/install -c -s -o bin -g bin -m 0755 ${PROGS} ${PREFIX}/bin
-	/usr/bin/install -c -o bin -g bin -m 0444 ${MAN} ${PREFIX}/man/man1
+	${INSTALL} -c -s -o bin -g bin -m 0755 ${PROGS} ${PREFIX}/bin
+	${INSTALL} -c -o bin -g bin -m 0444 ${MAN} ${PREFIX}/man/man1
 
 clean:
 	rm -f *.o ${PROGS} ../common/*.o
