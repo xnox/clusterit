@@ -1,4 +1,4 @@
-$Id: README,v 1.2 1998/10/14 07:34:05 garbled Exp $
+$Id: README,v 1.3 1998/10/16 00:35:45 garbled Exp $
 
 Welcome to clusterit-1.1 !
 
@@ -14,7 +14,8 @@ Glunix is a monstrosity.  It allows better control over the
 individual nodes, and much better load sharing.  However I'm convinced
 alot of the speed advantages of having a parallel cluster are lost with
 the incredible overhead of running the glunix master and daemon services
-on a host.
+on a host.  Glunix does however offer a real paralell programming
+environment.  Something which is totally beyond the scope of this package.
 
 PSSP is also a very powerful set of tools.  Not much more than a bunch
 of staples written in perl, they provide an incredible tool for tying
@@ -41,6 +42,15 @@ This is actually fine for a closed environment like an SP, but for something
 to be run on just a stack of otherwise useful boxes, you need more freedom.
 This suite allows you to do whatever you like.. ssh, kerberos, .rhosts.
 Whatever suits your security needs best.
+
+Sequential node, and random node execution
+	The idea here is that these dsh-like programs allow you to do something
+akin to load balanced scripting.  For example one could set up an NFS shared
+build directory, and issue the command
+make -j4 CC='seq gcc'
+Which would execute a build in paralell, on 4 nodes in your cluster, assigning
+processes to each node in sequence.   The run command is equivilent to saying:
+"I dont care where you run, just run and tell me how things turned out."
 
 Barrier sync for shell scripting.
 	This is a new idea.  The barrier mechanism consists of a daemon run on
