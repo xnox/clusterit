@@ -1,4 +1,4 @@
-.\" $Id: run.1,v 1.6 2000/01/14 23:29:32 garbled Exp $
+.\" $Id: run.1,v 1.7 2000/02/20 04:45:48 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -61,7 +61,8 @@ option causes each command to be run on a random node.
 .It Fl e
 Unless the
 .Fl e
-option is specified, stderr from remote commands will not be reported to the user.
+option is specified, stderr from remote commands will not be reported
+to the user.
 .It Fl i
 The
 .Fl i
@@ -77,8 +78,9 @@ option does not issue any commands, but displays information about the cluster.
 .It Fl g
 If the
 .Fl g
-option is specified, followed by a comma separated list of group names, the command will only be run on that group
-of nodes.  A node may be a part of more than one group if desired, however running without the
+option is specified, followed by a comma separated list of group
+names, the command will only be run on that group of nodes.  A node
+may be a part of more than one group if desired, however running without the
 .Fl g
 option will run the command on the same node as many times as it appears in the
 file specified by the
@@ -89,9 +91,9 @@ option.
 .It Fl l
 If the
 .Fl l
-option is specified, followed by a username, the commands will be run under that
-userid on the remote machines.  Consideration must be taken for proper authentication, 
-for this to work.
+option is specified, followed by a username, the commands will be run
+under that userid on the remote machines.  Consideration must be taken 
+for proper authentication, for this to work.
 .It Fl w
 If the
 .Fl w
@@ -106,10 +108,12 @@ environment variable.
 .It Fl x
 The
 .Fl x
-option can be used to exclude specific nodes from the cluster.  The format is the same as
+option can be used to exclude specific nodes from the cluster.  The
+format is the same as
 the
 .Fl w
-option, a comma delimited list of machine names.  This option is silently ignored if used with the
+option, a comma delimited list of machine names.  This option is
+silently ignored if used with the
 .Fl w
 option.
 .Sh ENVIRONMENT
