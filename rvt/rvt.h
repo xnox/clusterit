@@ -1,28 +1,71 @@
-/*  Copyright 1992 John Bovey, University of Kent at Canterbury.
+/*  Copyright 1992, 1997 John Bovey, University of Kent at Canterbury.
  *
- *  You can do what you like with this source code as long as
- *  you don't try to make money out of it and you include an
- *  unaltered copy of this message (including the copyright).
+ *  Redistribution and use in source code and/or executable forms, with
+ *  or without modification, are permitted provided that the following
+ *  condition is met:
+ *
+ *  Any redistribution must retain the above copyright notice, this
+ *  condition and the following disclaimer, either as part of the
+ *  program source code included in the redistribution or in human-
+ *  readable materials provided with the redistribution.
+ *
+ *  THIS SOFTWARE IS PROVIDED "AS IS".  Any express or implied
+ *  warranties concerning this software are disclaimed by the copyright
+ *  holder to the fullest extent permitted by applicable law.  In no
+ *  event shall the copyright-holder be liable for any damages of any
+ *  kind, however caused and on any theory of liability, arising in any
+ *  way out of the use of, or inability to use, this software.
+ *
+ *  -------------------------------------------------------------------
+ *
+ *  In other words, do not misrepresent my work as your own work, and
+ *  do not sue me if it causes problems.  Feel free to do anything else
+ *  you wish with it.
  */
 
-/* @(#)xvt.h	1.2 18/9/92 (UKC) */
+/* @(#)xvt.h	1.3 16/11/93 (UKC) */
 
-#define VERSION "1.0"		/* Overall release number of the current
-				 * version */
+#define VERSION "2.1"	/* Overall release number of the current version */
 
-#define MARGIN 2		/* gap between the text and the window edges */
+#define MARGIN 2	/* gap between the text and the window edges */
 
 /*  Some wired in defaults so we can run without any external resources.
  */
 #define DEF_FONT "8x13"
-#define DEF_SAVED_LINES 64	/* number of saved lines that have scrolled of
-				 * the top */
+#define FIXED_FONT "fixed"	/* last resort font */
+#define DEF_SAVED_LINES 64	/* number of saved lines that have scrolled of the top */
 #define TERM_ENV "TERM=xterm"
+#define COMMAND "/bin/sh"	/* default command to run */
 
 /* arguments to set and reset functions.
  */
 #define LOW	0
 #define HIGH	1
 
+#ifdef __STDC__
 void *cmalloc(int);
-char *scopy(char *);
+#else /* __STDC__ */
+void *cmalloc();
+#endif /* __STDC__ */
+
+#ifdef __STDC__
+
+/*  Standard system prototypes included here because they are not in a convenient
+ *  system header file.
+ */
+#ifdef SUNOS5
+int gethostname(char *,int);
+int getdtablesize();
+int grantpt(int);
+int unlockpt(int);
+char *ptsname(int);
+#else /* !SUNOS5 */
+/*
+#ifndef LINUX
+int ioctl(int fd, unsigned request, char *arg);
+#endif / * LINUX * /
+*/
+#include <sys/ioctl.h>
+#endif /* !SUNOS5 */
+
+#endif /* __STDC__ */

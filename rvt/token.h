@@ -1,11 +1,29 @@
 /*  Copyright 1992 John Bovey, University of Kent at Canterbury.
  *
- *  You can do what you like with this source code as long as
- *  you don't try to make money out of it and you include an
- *  unaltered copy of this message (including the copyright).
+ *  Redistribution and use in source code and/or executable forms, with
+ *  or without modification, are permitted provided that the following
+ *  condition is met:
+ *
+ *  Any redistribution must retain the above copyright notice, this
+ *  condition and the following disclaimer, either as part of the
+ *  program source code included in the redistribution or in human-
+ *  readable materials provided with the redistribution.
+ *
+ *  THIS SOFTWARE IS PROVIDED "AS IS".  Any express or implied
+ *  warranties concerning this software are disclaimed by the copyright
+ *  holder to the fullest extent permitted by applicable law.  In no
+ *  event shall the copyright-holder be liable for any damages of any
+ *  kind, however caused and on any theory of liability, arising in any
+ *  way out of the use of, or inability to use, this software.
+ *
+ *  -------------------------------------------------------------------
+ *
+ *  In other words, do not misrepresent my work as your own work, and
+ *  do not sue me if it causes problems.  Feel free to do anything else
+ *  you wish with it.
  */
 
-/* @(#)token.h	1.1 14/7/92 (UKC) */
+/* @(#)token.h	1.2 16/11/93 (UKC) */
 
 /*  Values of tk_region for Xevent generated tokens.
  */
@@ -68,8 +86,8 @@
 #define TK_DECSTBM	'r'	/* set top and bottom margins */
 
 #define TK_DECSWH	'#'	/* set character width or height */
-#define TK_SCS0		'('	/* select character set as G0 */
-#define TK_SCS1		')'	/* select character set as G1 */
+#define TK_SCS0		'('	/* set character set G0 */
+#define TK_SCS1		')'	/* set character set G1 */
 #define TK_DECSC	'7'	/* save cursor position */
 #define TK_DECRC	'8'	/* restore cursor position */
 #define TK_DECPAM	'='	/* keypad to applications mode */

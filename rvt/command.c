@@ -1,61 +1,71 @@
-/*  Copyright 1992 John Bovey, University of Kent at Canterbury.
+/*  Copyright 1992, 1993 John Bovey, University of Kent at Canterbury.
  *
- *  You can do what you like with this source code as long as
- *  you don't try to make money out of it and you include an
- *  unaltered copy of this message (including the copyright).
+ *  Redistribution and use in source code and/or executable forms, with
+ *  or without modification, are permitted provided that the following
+ *  condition is met:
+ *
+ *  Any redistribution must retain the above copyright notice, this
+ *  condition and the following disclaimer, either as part of the
+ *  program source code included in the redistribution or in human-
+ *  readable materials provided with the redistribution.
+ *
+ *  THIS SOFTWARE IS PROVIDED "AS IS".  Any express or implied
+ *  warranties concerning this software are disclaimed by the copyright
+ *  holder to the fullest extent permitted by applicable law.  In no
+ *  event shall the copyright-holder be liable for any damages of any
+ *  kind, however caused and on any theory of liability, arising in any
+ *  way out of the use of, or inability to use, this software.
+ *
+ *  -------------------------------------------------------------------
+ *
+ *  In other words, do not misrepresent my work as your own work, and
+ *  do not sue me if it causes problems.  Feel free to do anything else
+ *  you wish with it.
  */
 
-char xvt_command_c_sccsid[] = "@(#)command.c	1.1 14/7/92 (UKC)";
+char xvt_command_c_sccsid[] = "@(#)command.c	1.3 9/12/93 (UKC)";
 
+#ifdef __STDC__
 #include <stdarg.h>
+#else
+#include <varargs.h>
+#endif
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/Xauth.h>
 #include <X11/keysym.h>
-#include <sys/ioctl.h>
 #include <sys/types.h>
-
-#ifdef _AIX
-#include <termios.h>
-#else
-#include <sys/termios.h>
-#endif
-
-#include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
-#include <netdb.h>
 #include <utmp.h>
-#include <grp.h>
-#include <pwd.h>
 #include <errno.h>
-#include <malloc.h>
 #include <string.h>
-#include <stdio.h>
-
 #include "rvt.h"
 #include "token.h"
 #include "command.h"
+#include "ttyinit.h"
 #include "screen.h"
 #include "xsetup.h"
-#include "../common/common.h"
 
-#define NLMAX	15		/* max number of lines to scroll */
+#ifdef AIX3
+#include <sys/select.h>
+#endif /* AIX3 */
+
+#define NLMAX	15	/* max number of lines to scroll */
 
 #define KBUFSIZE	256	/* size of keyboard mapping buffer */
-#define COM_BUF_SIZE	2048	/* size of buffer used to read from the
-				 * command */
+#define COM_BUF_SIZE	2048	/* size of buffer used to read from the command */
 #define COM_PUSH_MAX	20	/* max number of characters that can be pushed
-				 * back into the input queue */
+				   back into the input queue */
 #define MP_INTERVAL	500	/* multi-press interval in milliseconds */
 
 /*  Special character returned by get_com_char().
  */
-#define GCC_NULL	0x100	/* Input buffer is empty */
+#define GCC_NULL	0x100		/* Input buffer is empty */
 #define ESC		033
 
 /*  Flags used to control get_com_char();
@@ -65,40 +75,24 @@ char xvt_command_c_sccsid[] = "@(#)command.c	1.1 14/7/92 (UKC)";
 
 /*  Global variables that are set up at the beginning and then not changed
  */
-extern Display *display;
-extern Window vt_win;
-extern Window sb_win;
-extern Window main_win;
+extern Display		*display;
+extern Window		vt_win;
+extern Window		sb_win;
+extern Window		main_win;
 
-static int comm_fd = -1;	/* file descriptor connected to the command */
-static int comm_pid;		/* process id if child */
-static int x_fd;		/* file descriptor of the X server connection */
-static int fd_width;		/* width of file descriptors being used */
-static int app_cur_keys = 0;	/* flag to say cursor keys are in application
-				 * mode */
+int comm_fd = -1;	/* file descriptor connected to the command */
+int fd_width;	/* width of file descriptors being used */
+
+static int x_fd;	/* file descriptor of the X server connection */
+static int app_cur_keys = 0;/* flag to say cursor keys are in application mode */
 static int app_kp_keys = 0;	/* flag to set application keypad keys */
-static char *ttynam;
+static int sun_function_keys = 0;	/* flag set to use Sun function key mapping */
 static Atom wm_del_win;
 
-static char *send_buf = NULL;	/* characters waiting to be sent to the
-				 * command */
-static char *send_nxt = NULL;	/* next character to be sent */
+static unsigned char *send_buf = NULL;	/* characters waiting to be sent to the command */
+static unsigned char *send_nxt = NULL;	/* next character to be sent */
 static int send_count = 0;	/* number of characters waiting to be sent */
 
-/*  Terminal mode structures.
-
-static struct termios ttmode = {
-	BRKINT | IGNPAR | ISTRIP | ICRNL | IXON | IMAXBEL,
-	OPOST | ONLCR,
-	B9600 | PARENB | CS7 | CREAD,
-	ISIG | IEXTEN | ICANON | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE,
-	{003, 034, 0177, 025,
-		004, 000, 000, 000,
-		021, 023, 032, 022,
-		022, 017, 027, 026
-	},
-	0, 0
-};*/
 /*  Static variables used to record interesting X events.
  */
 /*  Small X event structure used to queue interesting X events that need to
@@ -115,121 +109,174 @@ struct xeventst {
 	int xe_detail;
 	unsigned long xe_time;
 	Window xe_window;
-	Atom xe_property;	/* for selection requests */
+	Atom xe_property;		/* for selection requests */
 	Atom xe_target;
-	Window xe_requestor;	/* ditto */
+	Window xe_requestor;		/* ditto */
 	struct xeventst *xe_next;
 	struct xeventst *xe_prev;
 };
 
 static struct xeventst *xevent_start = NULL;
-static struct xeventst *xevent_last = NULL;	/* start and end of queue */
+static struct xeventst *xevent_last = NULL;		/* start and end of queue */
 
 /*  Variables used for buffered command input.
  */
-static char com_buf[COM_BUF_SIZE];
-static char *com_buf_next, *com_buf_top;
-static char com_stack[COM_PUSH_MAX];	/* stack of pushed back characters */
-static char *com_stack_top;
+static unsigned char com_buf[COM_BUF_SIZE];
+static unsigned char *com_buf_next, *com_buf_top;
+static unsigned char com_stack[COM_PUSH_MAX];	/* stack of pushed back characters */
+static unsigned char *com_stack_top;
 
+/*  Thanks to Rob McMullen for the following function key mapping tables
+ *  and code.
+ */
+/*  Structure used to describe the string generated by a function key,
+ *  keypad key, etc.
+ */
+struct keystringst {
+	char ks_type;		/* the way  to generate the string (see below) */
+	unsigned char ks_value;	/* value used in creating the string */
+};
+
+/*  Different values for ks_type which determine how the value is used to
+ *  generate the string.
+ */
+#define KS_TYPE_NONE	(char)0		/* No output */
+#define KS_TYPE_CHAR	(char)1		/* as printf("%c",ks_value) */
+#define KS_TYPE_XTERM	(char)2		/* as printf("\033[%d",ks_value) */
+#define KS_TYPE_SUN	(char)3		/* as printf("\033[%dz",ks_value) */
+#define KS_TYPE_APPKEY	(char)4		/* as printf("\033O%c",ks_value) */
+#define KS_TYPE_NONAPP	(char)5		/* as printf("\033[%c",ks_value) */
+/* Added by cpbs for Debian, 1999/12/7: this is only used for the Delete key */
+#define KS_TYPE_VT220	(char)6		/* as printf("\033[%d~",ks_value) */
+
+/*  Structure used to map a keysym to a string.
+ */
+struct keymapst {
+	KeySym km_keysym;
+	struct keystringst km_normal;	/* The usual string */
+	struct keystringst km_alt;	/* The alternative string */
+};
+
+/*  Table of function key mappings
+ */
+static struct keymapst func_key_table[] = {
+	{XK_F1,		{KS_TYPE_XTERM,11},	{KS_TYPE_SUN,224}},
+	{XK_F2,		{KS_TYPE_XTERM,12},	{KS_TYPE_SUN,225}},
+	{XK_F3,		{KS_TYPE_XTERM,13},	{KS_TYPE_SUN,226}},
+	{XK_F4,		{KS_TYPE_XTERM,14},	{KS_TYPE_SUN,227}},
+	{XK_F5,		{KS_TYPE_XTERM,15},	{KS_TYPE_SUN,228}},
+	{XK_F6,		{KS_TYPE_XTERM,17},	{KS_TYPE_SUN,229}},
+	{XK_F7,		{KS_TYPE_XTERM,18},	{KS_TYPE_SUN,230}},
+	{XK_F8,		{KS_TYPE_XTERM,19},	{KS_TYPE_SUN,231}},
+	{XK_F9,		{KS_TYPE_XTERM,20},	{KS_TYPE_SUN,232}},
+	{XK_F10,	{KS_TYPE_XTERM,21},	{KS_TYPE_SUN,233}},
+	{XK_F11,	{KS_TYPE_XTERM,23},	{KS_TYPE_SUN,192}},
+	{XK_F12,	{KS_TYPE_XTERM,24},	{KS_TYPE_SUN,193}},
+	{XK_F13,	{KS_TYPE_XTERM,25},	{KS_TYPE_SUN,194}},
+	{XK_F14,	{KS_TYPE_XTERM,26},	{KS_TYPE_SUN,195}},
+	{XK_F15,	{KS_TYPE_XTERM,28},	{KS_TYPE_SUN,196}},
+	{XK_F16,	{KS_TYPE_XTERM,29},	{KS_TYPE_SUN,197}},
+	{XK_F17,	{KS_TYPE_XTERM,31},	{KS_TYPE_SUN,198}},
+	{XK_F18,	{KS_TYPE_XTERM,32},	{KS_TYPE_SUN,199}},
+	{XK_F19,	{KS_TYPE_XTERM,33},	{KS_TYPE_SUN,200}},
+	{XK_F20,	{KS_TYPE_XTERM,34},	{KS_TYPE_SUN,201}},
+	{XK_F21,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,208}},
+	{XK_F22,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,209}},
+	{XK_F23,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,210}},
+	{XK_F24,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,211}},
+	{XK_F25,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,212}},
+	{XK_F26,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,213}},
+	{XK_F27,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,214}},
+	{XK_F28,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,215}},
+	{XK_F29,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,216}},
+	{XK_F30,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,217}},
+	{XK_F31,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,218}},
+	{XK_F32,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,219}},
+	{XK_F33,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,220}},
+	{XK_F34,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,221}},
+	{XK_F35,	{KS_TYPE_NONE,0},	{KS_TYPE_SUN,222}},
+	{XK_Find,	{KS_TYPE_XTERM,1},	{KS_TYPE_SUN,1}},
+	{XK_Insert,	{KS_TYPE_XTERM,2},	{KS_TYPE_SUN,2}},
+	{XK_Delete,	{KS_TYPE_VT220,3},	{KS_TYPE_SUN,3}},
+	{XK_BackSpace,	{KS_TYPE_CHAR,127},	{KS_TYPE_SUN,3}},
+	{XK_Select,	{KS_TYPE_XTERM,4},	{KS_TYPE_SUN,4}},
+	{XK_Prior,	{KS_TYPE_XTERM,5},	{KS_TYPE_SUN,5}},
+	{XK_Next,	{KS_TYPE_XTERM,6},	{KS_TYPE_SUN,6}},
+	{XK_Help,	{KS_TYPE_XTERM,28},	{KS_TYPE_SUN,196}},
+	{XK_Menu,	{KS_TYPE_XTERM,29},	{KS_TYPE_SUN,197}},
+	{0,		{KS_TYPE_NONE,0},	{KS_TYPE_NONE,0}}
+};
+
+/*  PC keys and VT100 keypad function keys
+ */
+static struct keymapst other_key_table[]={
+	{ XK_Up,	{KS_TYPE_NONAPP,'A'},	{KS_TYPE_APPKEY,'A'}},
+	{ XK_Down,	{KS_TYPE_NONAPP,'B'},	{KS_TYPE_APPKEY,'B'}},
+	{ XK_Right,	{KS_TYPE_NONAPP,'C'},	{KS_TYPE_APPKEY,'C'}},
+	{ XK_Left,	{KS_TYPE_NONAPP,'D'},	{KS_TYPE_APPKEY,'D'}},
+	{ XK_Home,	{KS_TYPE_NONAPP,'h'},	{KS_TYPE_APPKEY,'h'}},
+	{ XK_End,	{KS_TYPE_NONAPP,'\0'},	{KS_TYPE_APPKEY,'\0'}},
+	{ XK_KP_F1,	{KS_TYPE_APPKEY,'P'},	{KS_TYPE_APPKEY,'P'}},
+	{ XK_KP_F2,	{KS_TYPE_APPKEY,'Q'},	{KS_TYPE_APPKEY,'Q'}},
+	{ XK_KP_F3,	{KS_TYPE_APPKEY,'R'},	{KS_TYPE_APPKEY,'R'}},
+	{ XK_KP_F4,	{KS_TYPE_APPKEY,'S'},	{KS_TYPE_APPKEY,'S'}},
+	{0,		{KS_TYPE_NONE,0},	{KS_TYPE_NONE,0}}
+};
+
+/*  VT100 numeric keypad keys
+ */
+static struct keymapst kp_key_table[]={
+	{ XK_KP_0,	{KS_TYPE_CHAR,'0'},	{KS_TYPE_APPKEY,'p'}},
+	{ XK_KP_1,	{KS_TYPE_CHAR,'1'},	{KS_TYPE_APPKEY,'q'}},
+	{ XK_KP_2,	{KS_TYPE_CHAR,'2'},	{KS_TYPE_APPKEY,'r'}},
+	{ XK_KP_3,	{KS_TYPE_CHAR,'3'},	{KS_TYPE_APPKEY,'s'}},
+	{ XK_KP_4,	{KS_TYPE_CHAR,'4'},	{KS_TYPE_APPKEY,'t'}},
+	{ XK_KP_5,	{KS_TYPE_CHAR,'5'},	{KS_TYPE_APPKEY,'u'}},
+	{ XK_KP_6,	{KS_TYPE_CHAR,'6'},	{KS_TYPE_APPKEY,'v'}},
+	{ XK_KP_7,	{KS_TYPE_CHAR,'7'},	{KS_TYPE_APPKEY,'w'}},
+	{ XK_KP_8,	{KS_TYPE_CHAR,'8'},	{KS_TYPE_APPKEY,'x'}},
+	{ XK_KP_9,	{KS_TYPE_CHAR,'9'},	{KS_TYPE_APPKEY,'y'}},
+	{ XK_KP_Add,	{KS_TYPE_CHAR,'+'},	{KS_TYPE_APPKEY,'k'}},
+	{ XK_KP_Subtract,{KS_TYPE_CHAR,'-'},	{KS_TYPE_APPKEY,'m'}},
+	{ XK_KP_Multiply,{KS_TYPE_CHAR,'*'},	{KS_TYPE_APPKEY,'j'}},
+	{ XK_KP_Divide,	{KS_TYPE_CHAR,'/'},	{KS_TYPE_APPKEY,'o'}},
+	{ XK_KP_Separator,{KS_TYPE_CHAR,','},	{KS_TYPE_APPKEY,'l'}},
+	{ XK_KP_Decimal,{KS_TYPE_CHAR,'.'},	{KS_TYPE_APPKEY,'n'}},
+	{ XK_KP_Enter,	{KS_TYPE_CHAR,'\r'},	{KS_TYPE_APPKEY,'M'}},
+	{ XK_KP_Space,	{KS_TYPE_CHAR,' '},	{KS_TYPE_APPKEY,' '}},
+	{ XK_KP_Tab,	{KS_TYPE_CHAR,'\t'},	{KS_TYPE_APPKEY,'I'}},
+	{0,		{KS_TYPE_NONE,0},	{KS_TYPE_NONE,0}}
+};
+
+#ifdef __STDC__
 static void push_xevent(struct xeventst *);
 static struct xeventst *pop_xevent(void);
-static void catch_child(int);
-static void catch_sig(int);
-static int run_command(char *, char **);
-static const char *lookup_key(XEvent *, int *);
+static unsigned char * get_keycode_value(struct keymapst *,KeySym,unsigned char *,int);
+static unsigned char *lookup_key(XEvent *,int *);
 static int get_com_char(int);
 static void push_com_char(int);
+#ifdef DEBUG
 static void show_token_args(struct tokenst *);
 static void show_hex_token_args(struct tokenst *);
+#endif /* DEBUG */
+#else /* __STDC__ */
+static void push_xevent();
+static struct xeventst *pop_xevent();
+static unsigned char * get_keycode_value();
+static unsigned char *lookup_key();
+static int get_com_char();
+static void push_com_char();
+#ifdef DEBUG
+static void show_token_args();
+static void show_hex_token_args();
+#endif /* DEBUG */
+#endif /* __STDC__ */
 
-/*  Send a 'Magic Cookie' authorisation string to the command.
- */
-void
-send_auth(void)
-{
-	static char hexdigits[] = "0123456789abcdef";
-	char *display_name, *nptr, *dot;
-	char *buf, *optr;
-	Xauth *auth;
-	int i, nlen, len;
-	struct hostent *h;
-	char hostname[64];
-
-	display_name = DisplayString(display);
-
-	if ((nptr = strchr(display_name, ':')) == NULL)
-		return;
-
-	if (nptr == display_name || nptr - display_name > sizeof(hostname))
-		return;
-
-	memcpy(hostname, display_name, nptr - display_name);
-	hostname[nptr - display_name] = '\0';
-	++nptr;
-
-	if ((h = gethostbyname(hostname)) == NULL)
-		return;
-	if (h->h_addrtype != AF_INET)
-		return;
-
-	if ((dot = strchr(nptr, '.')) != NULL)
-		nlen = dot - nptr;
-	else
-		nlen = strlen(nptr);
-
-	auth = XauGetAuthByAddr(FamilyInternet, 4, h->h_addr_list[0],
-	    nlen, nptr, 0, "");
-	if (auth == NULL)
-		return;
-
-	len = 2 + 2 +
-	    2 + auth->address_length +
-	    2 + auth->number_length +
-	    2 + auth->name_length +
-	    2 + auth->data_length;
-
-	if ((buf = (char *) cmalloc(len * 2 + 1)) == NULL) {
-		XauDisposeAuth(auth);
-		return;
-	}
-	optr = buf;
-
-#define PUTSHORT(o, n)	  *o++ = (n >> 8) & 0xff, *o++ = n & 0xff
-#define PUTBYTES(o, s, n) PUTSHORT(o, n), memcpy(o, s, n), o += n
-
-	PUTSHORT(optr, (len - 2) * 2);
-	PUTSHORT(optr, auth->family);
-
-	PUTBYTES(optr, auth->address, auth->address_length);
-	PUTBYTES(optr, auth->number, auth->number_length);
-	PUTBYTES(optr, auth->name, auth->name_length);
-	PUTBYTES(optr, auth->data, auth->data_length);
-
-#undef PUTSHORT
-#undef PUTBYTES
-
-	if (optr != buf + len)
-		abort();
-
-	for (i = len - 1; i >= 0; --i) {
-		buf[i * 2 + 1] = hexdigits[buf[i] & 0xf];
-		buf[i * 2] = hexdigits[(buf[i] >> 4) & 0xf];
-	}
-
-	buf[len * 2] = '\n';
-	send_string(buf, len * 2 + 1);
-
-	free(buf);
-	XauDisposeAuth(auth);
-
-	return;
-}
 /*  Push a mini X event onto the queue
  */
 static void
 push_xevent(xe)
-	struct xeventst *xe;
+struct xeventst *xe;
 {
 	xe->xe_next = xevent_start;
 	xe->xe_prev = NULL;
@@ -240,12 +287,12 @@ push_xevent(xe)
 }
 
 static struct xeventst *
-pop_xevent(void)
+pop_xevent()
 {
 	struct xeventst *xe;
 
 	if (xevent_last == NULL)
-		return (NULL);
+		return(NULL);
 
 	xe = xevent_last;
 	xevent_last = xe->xe_prev;
@@ -253,95 +300,17 @@ pop_xevent(void)
 		xevent_last->xe_next = NULL;
 	else
 		xevent_start = NULL;
-	return (xe);
-}
-/*  Catch a SIGCHLD signal and exit if the direct child has died.
- */
-
-/* ARGSUSED */
-static void
-catch_child(sig)
-	int sig;
-{
-	if (wait((int *) NULL) == comm_pid)
-		quit(0);
+	return(xe);
 }
 
-/*  Catch a fatal signal and tidy up before quitting
- */
-static void
-catch_sig(sig)
-	int sig;
-{
-	signal(sig, SIG_DFL);
-	setuid(getuid());
-	kill(getpid(), sig);
-}
-
-/*  Quit with the status after first removing our entry from the utmp file.
- */
-void
-quit(status)
-	int status;
-{
-	exit(status);
-}
-
-/*  Run the command in a subprocess and return a file descriptor for the
- *  master end of the pseudo-teletype pair with the command talking to
- *  the slave.
- */
-static int
-run_command(command, argv)
-	char *command;
-	char **argv;
-{
-	int ptyfd, ttyfd;
-	int i;
-
-	for (i = 1; i <= 15; i++)
-		signal(i, catch_sig);
-	signal(SIGCHLD, catch_child);
-	openpty(&ptyfd, &ttyfd, ttynam, NULL, NULL);
-	comm_pid = fork();
-	if (comm_pid < 0) {
-		error("Can't fork");
-		return (-1);
-	}
-	if (comm_pid == 0) {
-		close(ptyfd);
-		login_tty(ttyfd);
-		execvp(command, argv);
-		error("Couldn't execute %s", command);
-		quit(1);
-	}
-	close(ttyfd);
-	return (ptyfd);
-}
-/*  Tell the teletype handler what size the window is.  Called after a window
- *  size change.
- */
-void
-tty_set_size(width, height)
-	int width, height;
-{
-	struct winsize wsize;
-
-	if (comm_fd < 0)
-		return;
-	wsize.ws_row = height;
-	wsize.ws_col = width;
-	ioctl(comm_fd, TIOCSWINSZ, (char *) &wsize);
-}
 /*  Initialise the command connection.  This should be called after the X
  *  server connection is established.
  */
 void
-init_command(command, argv)
-	char *command;
-	char **argv;
+init_command(char *command, char **argv)
 {
-	/* Enable the delete window protocol. */
+	/*  Enable the delete window protocol.
+	 */
 	wm_del_win = XInternAtom(display, "WM_DELETE_WINDOW", False);
 	XSetWMProtocols(display, main_win, &wm_del_win, 1);
 
@@ -350,117 +319,124 @@ init_command(command, argv)
 		quit(1);
 	}
 	x_fd = XConnectionNumber(display);
-	fd_width = getdtablesize();
 	com_buf_next = com_buf_top = com_buf;
 	com_stack_top = com_stack;
 }
+
 /*  Set the current cursor keys mode.
  */
 void
 set_cur_keys(mode)
-	int mode;
+int mode;
 {
 	app_cur_keys = (mode == HIGH);
 }
+
 /*  Set the current keypad keys mode.
  */
 void
 set_kp_keys(mode)
-	int mode;
+int mode;
 {
 	app_kp_keys = (mode == HIGH);
 }
+
+/*  Enable or disable the use of Sun function key mapping.
+ */
+void
+set_sun_function_keys(value)
+int value;
+{
+	sun_function_keys = value;
+}
+
+/*  Look up function key keycode
+*/
+static unsigned char *
+get_keycode_value(keymaptable,keysym,buf,use_alternate)
+struct keymapst *keymaptable;
+KeySym keysym;
+unsigned char *buf;
+int use_alternate;
+{
+	struct keymapst *km;
+	struct keystringst *ks;
+
+	for (km = keymaptable; km->km_keysym != 0; km++) {
+		if (km->km_keysym == keysym) {
+			ks = use_alternate ? &km->km_alt : &km->km_normal;
+			switch (ks->ks_type) {
+			    case KS_TYPE_NONE:
+				return NULL;
+			    case KS_TYPE_CHAR:
+				sprintf((char *)buf,"%c",ks->ks_value);
+				return buf;
+			    case KS_TYPE_XTERM:
+				sprintf((char *)buf,"\033[%d~",ks->ks_value);
+				return buf;
+			    case KS_TYPE_SUN:
+				sprintf((char *)buf,"\033[%dz",ks->ks_value);
+				return buf;
+			    case KS_TYPE_APPKEY:
+				sprintf((char *)buf,"\033O%c",ks->ks_value);
+				return buf;
+			    case KS_TYPE_NONAPP:
+				sprintf((char *)buf,"\033[%c",ks->ks_value);
+				return buf;
+			    case KS_TYPE_VT220:
+				sprintf((char *)buf,"\033[%d~",ks->ks_value);
+				return buf;
+			}
+		}
+	}
+	return NULL;
+}
+
 /*  Convert the keypress event into a string.
  */
-static const char *
-lookup_key(ev, pcount)
-	int *pcount;
-	XEvent *ev;
+static unsigned char *
+lookup_key(ev,pcount)
+int *pcount;
+XEvent *ev;
 {
 	KeySym keysym;
-	XComposeStatus compose;
 	int count;
-	static char kbuf[KBUFSIZE];
-	const char *s;
+	static unsigned char kbuf[KBUFSIZE];
+	unsigned char *s;
+	unsigned char *str;
 
-	count = XLookupString(&ev->xkey, kbuf, KBUFSIZE, &keysym, &compose);
+	count = XLookupString(&ev->xkey,kbuf,KBUFSIZE,&keysym,NULL);
 	s = NULL;
-	switch (keysym) {
-	case XK_Up:
-		s = app_cur_keys ? "\033OA" : "\033[A";
-		break;
-	case XK_Down:
-		s = app_cur_keys ? "\033OB" : "\033[B";
-		break;
-	case XK_Right:
-		s = app_cur_keys ? "\033OC" : "\033[C";
-		break;
-	case XK_Left:
-		s = app_cur_keys ? "\033OD" : "\033[D";
-		break;
-	case XK_KP_F1:
-		s = "\033OP";
-		break;
-	case XK_KP_F2:
-		s = "\033OQ";
-		break;
-	case XK_KP_F3:
-		s = "\033OR";
-		break;
-	case XK_KP_F4:
-		s = "\033OS";
-		break;
-	case XK_KP_0:
-		s = app_kp_keys ? "\033Op" : "0";
-		break;
-	case XK_KP_1:
-		s = app_kp_keys ? "\033Oq" : "1";
-		break;
-	case XK_KP_2:
-		s = app_kp_keys ? "\033Or" : "2";
-		break;
-	case XK_KP_3:
-		s = app_kp_keys ? "\033Os" : "3";
-		break;
-	case XK_KP_4:
-		s = app_kp_keys ? "\033Ot" : "4";
-		break;
-	case XK_KP_5:
-		s = app_kp_keys ? "\033Ou" : "5";
-		break;
-	case XK_KP_6:
-		s = app_kp_keys ? "\033Ov" : "6";
-		break;
-	case XK_KP_7:
-		s = app_kp_keys ? "\033Ow" : "7";
-		break;
-	case XK_KP_8:
-		s = app_kp_keys ? "\033Ox" : "8";
-		break;
-	case XK_KP_9:
-		s = app_kp_keys ? "\033Oy" : "9";
-		break;
-	case XK_KP_Subtract:
-		s = app_kp_keys ? "\033Om" : "-";
-		break;
-	case XK_KP_Separator:
-		s = app_kp_keys ? "\033Ol" : ",";
-		break;
-	case XK_KP_Decimal:
-		s = app_kp_keys ? "\033On" : ".";
-		break;
-	case XK_KP_Enter:
-		s = app_kp_keys ? "\033OM" : "\r";
-		break;
+
+	if (IsFunctionKey(keysym) || IsMiscFunctionKey(keysym)
+					|| keysym == XK_Next || keysym == XK_Prior
+					|| keysym == XK_Delete || keysym == XK_BackSpace)
+		s = get_keycode_value(func_key_table,keysym,kbuf,sun_function_keys);
+	else if (IsCursorKey(keysym) || IsPFKey(keysym))
+		s = get_keycode_value(other_key_table,keysym,kbuf,app_cur_keys);
+	else
+		s = get_keycode_value(kp_key_table,keysym,kbuf,app_kp_keys);
+
+	if (s != NULL) {
+		*pcount = strlen((char *)s);
+		str = s;
+	} else {
+		str = kbuf;
+		if ((ev->xkey.state & Mod1Mask) && (count == 1)) {
+			if (is_eightbit()) {
+				kbuf[0] |= 0200;
+				*pcount = 1;
+			} else {
+				kbuf[1] = kbuf[0];
+				kbuf[0] = '\033';
+				*pcount = 2;
+			}
+		} else
+			*pcount = count;
 	}
-	if (s != NULL)
-		*pcount = strlen(s);
-	else {
-		s = kbuf;
-		*pcount = count;
-	}
-	return (s);
+	return (str);
 }
+
 /*  Return the next input character after first passing any keyboard input
  *  to the command.  If flags & BUF_ONLY is true then only buffered characters are
  *  returned and once the buffer is empty the special value GCC_NULL is
@@ -469,46 +445,50 @@ lookup_key(ev, pcount)
  */
 static int
 get_com_char(flags)
-	int flags;
+int flags;
 {
 	XEvent event;
 	struct xeventst *xe;
 	fd_set in_fdset, out_fdset;
-	const char *s;
+	unsigned char *s;
 	int count, sv;
+	unsigned char mask = is_eightbit() ? 0xff : 0x7f;
+	extern int errno;
 
 	if (com_stack_top > com_stack)
-		return (*--com_stack_top);
+		return(*--com_stack_top);
 
 	if (com_buf_next < com_buf_top)
-		return (*com_buf_next++ & 0177);
+		return(*com_buf_next++ & mask);
 	else if (flags & BUF_ONLY)
-		return (GCC_NULL);
+		return(GCC_NULL);
 
 	for (;;) {
 		FD_ZERO(&in_fdset);
 		while (XPending(display) == 0) {
-			if (FD_ISSET(x_fd, &in_fdset))
-				/* If we get to this point something is wrong
-				 * because there is X input available but no
-				 * events.  Exit the program to avoid looping
-				 * forever. */
+			if (FD_ISSET(x_fd,&in_fdset))
+				/*  If we get to this point something is wrong
+				 *  because there is X input available but no
+				 *  events.  Exit the program to avoid looping
+				 *  forever.
+				 */
 				quit(0);
-			FD_SET(comm_fd, &in_fdset);
-			FD_SET(x_fd, &in_fdset);
+			FD_SET(comm_fd,&in_fdset);
+			FD_SET(x_fd,&in_fdset);
 			FD_ZERO(&out_fdset);
 			if (send_count > 0)
-				FD_SET(comm_fd, &out_fdset);
-			if ((sv = select(fd_width, &in_fdset, &out_fdset, NULL, NULL)) < 0) {
+				FD_SET(comm_fd,&out_fdset);
+			do
+				sv = select(fd_width,&in_fdset,&out_fdset,NULL,NULL);
+			while (sv < 0 && errno == EINTR);
+			if (sv < 0) {
 				error("select failed");
 				quit(-1);
 			}
-			if (FD_ISSET(comm_fd, &in_fdset))
-				break;
 
-			if (FD_ISSET(comm_fd, &out_fdset)) {
+			if (FD_ISSET(comm_fd,&out_fdset)) {
 				count = send_count < 100 ? send_count : 100;
-				count = write(comm_fd, send_nxt, count);
+				count = write(comm_fd,send_nxt,count);
 				if (count < 0) {
 					error("failed to write to command");
 					quit(-1);
@@ -516,29 +496,24 @@ get_com_char(flags)
 				send_count -= count;
 				send_nxt += count;
 			}
+
+			if (FD_ISSET(comm_fd,&in_fdset))
+				break;
 		}
-		if (FD_ISSET(comm_fd, &in_fdset))
+		if (FD_ISSET(comm_fd,&in_fdset))
 			break;
-		XNextEvent(display, &event);
+		XNextEvent(display,&event);
 		if (event.type == KeyPress) {
-			s = lookup_key(&event, &count);
-			if (count != 0) {
-				if (write(comm_fd, s, count) <= 0) {
-					if (errno == EWOULDBLOCK)
-						XBell(display, 0);
-					else {
-						error("write to pty failed");
-						quit(1);
-					}
-				}
-			}
+			s = lookup_key(&event,&count);
+			if (count != 0)
+				send_string(s,count);
 		} else if (event.type == ClientMessage) {
 			if (event.xclient.format == 32 && event.xclient.data.l[0] == wm_del_win)
 				quit(0);
 		} else if (event.type == MappingNotify) {
 			XRefreshKeyboardMapping(&event.xmapping);
 		} else if (event.type == SelectionRequest) {
-			xe = (struct xeventst *) cmalloc(sizeof(struct xeventst));
+			xe = (struct xeventst *)cmalloc(sizeof(struct xeventst));
 			xe->xe_type = event.type;
 			xe->xe_window = event.xselectionrequest.owner;
 			xe->xe_time = event.xselectionrequest.time;
@@ -547,44 +522,39 @@ get_com_char(flags)
 			xe->xe_property = event.xselectionrequest.property;
 			push_xevent(xe);
 			if (flags & GET_XEVENTS)
-				return (GCC_NULL);
+				return(GCC_NULL);
 		} else if (event.type == SelectionNotify) {
-			xe = (struct xeventst *) cmalloc(sizeof(struct xeventst));
+			xe = (struct xeventst *)cmalloc(sizeof(struct xeventst));
 			xe->xe_type = event.type;
 			xe->xe_time = event.xselection.time;
 			xe->xe_requestor = event.xselection.requestor;
 			xe->xe_property = event.xselection.property;
 			push_xevent(xe);
 			if (flags & GET_XEVENTS)
-				return (GCC_NULL);
+				return(GCC_NULL);
 		} else if (event.type == FocusIn || event.type == FocusOut) {
 			if (event.xfocus.mode != NotifyNormal)
 				continue;
 			switch (event.xfocus.detail) {
-			case NotifyAncestor:
-			case NotifyInferior:
-			case NotifyNonlinear:
+			    case NotifyAncestor :
+			    case NotifyInferior :
+			    case NotifyNonlinear :
 				break;
-			default:
+			    default :
 				continue;
 			}
-			xe = (struct xeventst *) cmalloc(sizeof(struct xeventst));
+			xe = (struct xeventst *)cmalloc(sizeof(struct xeventst));
 			xe->xe_type = event.type;
 			xe->xe_time = event.xselection.time;
 			xe->xe_detail = event.xfocus.detail;
 			push_xevent(xe);
 			if (flags & GET_XEVENTS)
-				return (GCC_NULL);
-		} else if ((event.type == Expose || event.type == GraphicsExpose) &&
-		    event.xexpose.count != 0)
-			continue;
-		else {
-			xe = (struct xeventst *) cmalloc(sizeof(struct xeventst));
+				return(GCC_NULL);
+		} else {
+			xe = (struct xeventst *)cmalloc(sizeof(struct xeventst));
 			xe->xe_type = event.type;
 			xe->xe_window = event.xany.window;
 			if (event.type == Expose || event.type == GraphicsExpose) {
-				if (event.xexpose.count != 0)
-					continue;
 				xe->xe_x = event.xexpose.x;
 				xe->xe_y = event.xexpose.y;
 				xe->xe_width = event.xexpose.width;
@@ -598,35 +568,42 @@ get_com_char(flags)
 			}
 			push_xevent(xe);
 			if (flags & GET_XEVENTS)
-				return (GCC_NULL);
+				return(GCC_NULL);
 		}
 	}
 
-	count = read(comm_fd, com_buf, COM_BUF_SIZE);
-	if (count <= 0)
-		return (EOF);
+	count = read(comm_fd,com_buf,COM_BUF_SIZE);
+	if (count <= 0) {
+		if (errno == EWOULDBLOCK) {
+			return(GCC_NULL);
+		} else {
+			return(EOF);
+		}
+	}
 	com_buf_next = com_buf;
 	com_buf_top = com_buf + count;
-	return (*com_buf_next++ & 0177);
+	return(*com_buf_next++ & mask);
 }
+
 /*  Push an input character back into the input queue.
  */
 static void
 push_com_char(c)
-	int c;
+int c;
 {
 	if (com_stack_top < com_stack + COM_PUSH_MAX)
 		*com_stack_top++ = c;
 }
+
 /*  Send count characters directly to the command.
  */
 void
-send_string(buf, count)
-	char *buf;
-	int count;
+send_string(buf,count)
+unsigned char *buf;
+int count;
 {
-	char *s;
-	register char *s1, *s2;
+	unsigned char *s;
+	register unsigned char *s1, *s2;
 	register int i;
 
 	if (count == 0)
@@ -637,48 +614,60 @@ send_string(buf, count)
 			free(send_buf);
 			send_buf = NULL;
 		}
-		send_buf = (char *) cmalloc(count);
+		send_buf = (unsigned char *)cmalloc(count);
 		s2 = send_buf;
 		s1 = buf;
 		for (i = 0; i < count; i++, s1++, s2++)
-			*s2 = *s1 == '\n' ? '\r' : *s1;
+			*s2 = *s1;
 		send_nxt = send_buf;
 		send_count = count;
 	} else {
-		s = (char *) cmalloc(send_count + count);
-		memcpy(s, send_nxt, send_count);
+		s = (unsigned char *)cmalloc(send_count + count);
+		memcpy(s,send_nxt,send_count);
 		s2 = s + send_count;
 		s1 = buf;
 		for (i = 0; i < count; i++, s1++, s2++)
-			*s2 = *s1 == '\n' ? '\r' : *s1;
+			*s2 = *s1;
 		free(send_buf);
 		send_buf = send_nxt = s;
 		send_count += count;
 	}
 }
 
-/*  Send printf formatted output to the command.  Only used for small amounts
+/*  Send printf formatted output to the command.  Only used for small ammounts
  *  of data.
  */
 /*VARARGS1*/
 void
-cprintf(const char *fmt, ...)
+#ifdef __STDC__
+cprintf(char *fmt,...)
 {
 	va_list args;
-	static char buf[1024];
+	static unsigned char buf[1024];
 
-	va_start(args, fmt);
+	va_start(args,fmt);
+#else
+cprintf(va_alist)
+va_dcl
+{
+	char *fmt;
+	va_list args;
+	static unsigned char buf[1024];
 
-	vsprintf(buf, fmt, args);
+	va_start(args);
+	fmt = va_arg(args,char *);
+#endif
+
+	vsprintf((char *)buf,fmt,args);
 	va_end(args);
-	send_string(buf, strlen(buf));
+	send_string(buf,strlen((char *)buf));
 }
 
 /*  Return an input token
  */
 void
 get_token(tk)
-	struct tokenst *tk;
+struct tokenst *tk;
 {
 	int c, i, n;
 	struct xeventst *xe;
@@ -697,29 +686,29 @@ get_token(tk)
 		else
 			tk->tk_region = -1;
 		switch (xe->xe_type) {
-		case EnterNotify:
+		    case EnterNotify :
 			tk->tk_type = TK_ENTRY;
 			tk->tk_arg[0] = 1;
 			tk->tk_nargs = 1;
 			break;
-		case LeaveNotify:
+		    case LeaveNotify :
 			tk->tk_type = TK_ENTRY;
 			tk->tk_arg[0] = 0;
 			tk->tk_nargs = 1;
 			break;
-		case FocusIn:
+		    case FocusIn :
 			tk->tk_type = TK_FOCUS;
 			tk->tk_arg[0] = 1;
 			tk->tk_arg[1] = xe->xe_detail;
 			tk->tk_nargs = 2;
 			break;
-		case FocusOut:
+		    case FocusOut :
 			tk->tk_type = TK_FOCUS;
 			tk->tk_arg[0] = 0;
 			tk->tk_arg[1] = xe->xe_detail;
 			tk->tk_nargs = 2;
 			break;
-		case Expose:
+		    case Expose :
 			tk->tk_type = TK_EXPOSE;
 			tk->tk_arg[0] = xe->xe_x;
 			tk->tk_arg[1] = xe->xe_y;
@@ -727,23 +716,23 @@ get_token(tk)
 			tk->tk_arg[3] = xe->xe_height;
 			tk->tk_nargs = 4;
 			break;
-		case ConfigureNotify:
+		    case ConfigureNotify :
 			tk->tk_type = TK_RESIZE;
 			tk->tk_nargs = 0;
 			break;
-		case SelectionClear:
+		    case SelectionClear :
 			tk->tk_type = TK_SELCLEAR;
 			tk->tk_arg[0] = xe->xe_time;
 			tk->tk_nargs = 1;
 			break;
-		case SelectionNotify:
+		    case SelectionNotify :
 			tk->tk_type = TK_SELNOTIFY;
 			tk->tk_arg[0] = xe->xe_time;
 			tk->tk_arg[1] = xe->xe_requestor;
 			tk->tk_arg[2] = xe->xe_property;
 			tk->tk_nargs = 3;
 			break;
-		case SelectionRequest:
+		    case SelectionRequest :
 			tk->tk_type = TK_SELREQUEST;
 			tk->tk_arg[0] = xe->xe_time;
 			tk->tk_arg[1] = xe->xe_requestor;
@@ -751,29 +740,15 @@ get_token(tk)
 			tk->tk_arg[3] = xe->xe_property;
 			tk->tk_nargs = 4;
 			break;
-		case ButtonPress:
-			if (xe->xe_state == ControlMask) {
+		    case ButtonPress :
+			if (xe->xe_window == vt_win && xe->xe_state == ControlMask) {
 				tk->tk_type = TK_SBSWITCH;
 				tk->tk_nargs = 0;
 				break;
 			}
-			if (xe->xe_state == Mod5Mask) {
+			if (xe->xe_window == vt_win && (xe->xe_state & ControlMask) == 0) {
 				switch (xe->xe_button) {
-				case Button1:
-					tk->tk_type = TK_SBUP;
-					tk->tk_arg[0] = 300;
-					tk->tk_nargs = 1;
-					break;
-				case Button3:
-					tk->tk_type = TK_SBDOWN;
-					tk->tk_arg[0] = 300;
-					tk->tk_nargs = 1;
-					break;
-				}
-			}
-			if (xe->xe_window == vt_win && xe->xe_state == 0) {
-				switch (xe->xe_button) {
-				case Button1:
+				    case Button1 :
 					if (xe->xe_time - time2 < MP_INTERVAL) {
 						time1 = 0;
 						time2 = 0;
@@ -786,10 +761,10 @@ get_token(tk)
 						tk->tk_type = TK_SELSTART;
 					}
 					break;
-				case Button2:
+				    case Button2 :
 					tk->tk_type = TK_NULL;
 					break;
-				case Button3:
+				    case Button3 :
 					tk->tk_type = TK_SELEXTND;
 					break;
 				}
@@ -806,29 +781,30 @@ get_token(tk)
 				}
 			}
 			break;
-		case ButtonRelease:
+		    case ButtonRelease :
 			if (xe->xe_window == sb_win) {
 				switch (xe->xe_button) {
-				case Button1:
+				    case Button1 :
 					tk->tk_type = TK_SBUP;
 					tk->tk_arg[0] = xe->xe_y;
 					tk->tk_nargs = 1;
 					break;
-				case Button3:
+				    case Button3 :
 					tk->tk_type = TK_SBDOWN;
 					tk->tk_arg[0] = xe->xe_y;
 					tk->tk_nargs = 1;
 					break;
 				}
-			} else if ((xe->xe_state & ControlMask) == 0) {
+			} else if (xe->xe_window == vt_win &&
+						(xe->xe_state & ControlMask) == 0) {
 				switch (xe->xe_button) {
-				case Button1:
-				case Button3:
+				    case Button1 :
+				    case Button3 :
 					tk->tk_type = TK_SELECT;
 					tk->tk_arg[0] = xe->xe_time;
 					tk->tk_nargs = 1;
 					break;
-				case Button2:
+				    case Button2 :
 					tk->tk_type = TK_SELINSRT;
 					tk->tk_arg[0] = xe->xe_time;
 					tk->tk_arg[1] = xe->xe_x;
@@ -838,14 +814,14 @@ get_token(tk)
 				}
 			}
 			break;
-		case MotionNotify:
+		    case MotionNotify :
 			if (xe->xe_window == sb_win && (xe->xe_state & Button2Mask)) {
 				Window root, child;
 				int root_x, root_y, x, y;
 				unsigned int mods;
 
-				XQueryPointer(display, sb_win, &root, &child,
-				    &root_x, &root_y, &x, &y, &mods);
+				XQueryPointer(display,sb_win,&root,&child,
+					&root_x,&root_y,&x,&y,&mods);
 				if (mods & Button2Mask) {
 					tk->tk_type = TK_SBGOTO;
 					tk->tk_arg[0] = y;
@@ -853,7 +829,8 @@ get_token(tk)
 				}
 				break;
 			}
-			if (xe->xe_window == vt_win && (xe->xe_state == Button1Mask)) {
+			if (xe->xe_window == vt_win && (xe->xe_state & Button1Mask) &&
+						       !(xe->xe_state & ControlMask)) {
 				tk->tk_type = TK_SELDRAG;
 				tk->tk_arg[0] = xe->xe_x;
 				tk->tk_arg[1] = xe->xe_y;
@@ -861,20 +838,21 @@ get_token(tk)
 				break;
 			}
 			break;
-
+				
 		}
-		free((char *) xe);
+		free((void *)xe);
 		return;
 	}
 	if ((c = get_com_char(GET_XEVENTS)) == GCC_NULL) {
 		tk->tk_type = TK_NULL;
 		return;
 	}
+
 	if (c == EOF) {
 		tk->tk_type = TK_EOF;
 		return;
 	}
-	if (c >= ' ' || c == '\n' || c == '\r' || c == '\t') {
+	if (is_string_char(c)) {
 		i = 0;
 		tk->tk_nlcount = 0;
 		do {
@@ -884,8 +862,7 @@ get_token(tk)
 				tk->tk_nlcount--;
 				break;
 			}
-		} while (!(c & ~0177) &&
-		    (c >= ' ' || c == '\n' || c == '\r' || c == '\t') && i < TKS_MAX);
+		} while (is_string_char(c) && i < TKS_MAX);
 		tk->tk_length = i;
 		tk->tk_string[i] = 0;
 		tk->tk_type = TK_STRING;
@@ -899,7 +876,9 @@ get_token(tk)
 				tk->tk_private = c;
 				c = get_com_char(0);
 			}
-			/* read any numerical arguments */
+
+			/*  read any numerical arguments
+			 */
 			i = 0;
 			do {
 				n = 0;
@@ -933,7 +912,7 @@ get_token(tk)
 			tk->tk_nargs = 1;
 			c = get_com_char(0);
 			i = 0;
-			while (!(c & ~0177) && c != 7 && i < TKS_MAX) {
+			while ((c & 0177) >= ' ' && i < TKS_MAX) {
 				if (c >= ' ')
 					tk->tk_string[i++] = c;
 				c = get_com_char(0);
@@ -951,28 +930,28 @@ get_token(tk)
 			tk->tk_nargs = 0;
 		} else {
 			switch (c) {
-			case 'D':
+			    case 'D' :
 				tk->tk_type = TK_IND;
 				break;
-			case 'E':
+			    case 'E' :
 				tk->tk_type = TK_NEL;
 				break;
-			case 'H':
+			    case 'H' :
 				tk->tk_type = TK_HTS;
 				break;
-			case 'M':
+			    case 'M' :
 				tk->tk_type = TK_RI;
 				break;
-			case 'N':
+			    case 'N' :
 				tk->tk_type = TK_SS2;
 				break;
-			case 'O':
+			    case 'O' :
 				tk->tk_type = TK_SS3;
 				break;
-			case 'Z':
+			    case 'Z' :
 				tk->tk_type = TK_DECID;
 				break;
-			default:
+			    default :
 				return;
 			}
 		}
@@ -981,287 +960,293 @@ get_token(tk)
 		tk->tk_char = c;
 	}
 }
+
+#ifdef DEBUG
 /*  Print out a token's numerical arguments. Just used by show_token()
  */
 static void
 show_token_args(tk)
-	struct tokenst *tk;
+struct tokenst *tk;
 {
 	int i;
 
 	for (i = 0; i < tk->tk_nargs; i++) {
 		if (i == 0)
-			printf(" (%d", tk->tk_arg[i]);
+			printf(" (%d",tk->tk_arg[i]);
 		else
-			printf(",%d", tk->tk_arg[i]);
+			printf(",%d",tk->tk_arg[i]);
 	}
 	if (tk->tk_nargs > 0)
 		printf(")");
-	if (tk->tk_private != 0)
+	if (tk->tk_private !=0)
 		putchar(tk->tk_private);
 }
+
 /*  Print out a token's numerical arguments in hex. Just used by show_token()
  */
 static void
 show_hex_token_args(tk)
-	struct tokenst *tk;
+struct tokenst *tk;
 {
 	int i;
 
 	for (i = 0; i < tk->tk_nargs; i++) {
 		if (i == 0)
-			printf(" (0x%x", tk->tk_arg[i]);
+			printf(" (0x%x",tk->tk_arg[i]);
 		else
-			printf(",0x%x", tk->tk_arg[i]);
+			printf(",0x%x",tk->tk_arg[i]);
 	}
 	if (tk->tk_nargs > 0)
 		printf(")");
-	if (tk->tk_private != 0)
+	if (tk->tk_private !=0)
 		putchar(tk->tk_private);
 }
+
 /*  Print out the contents of an input token - used for debugging.
  */
 void
 show_token(tk)
-	struct tokenst *tk;
+struct tokenst *tk;
 {
 
-	/* Screen out token types that are not currently of interest. */
+	/*  Screen out token types that are not currently of interest.
+	 */
 	switch (tk->tk_type) {
-	case TK_SELDRAG:
-		return;
+		case TK_SELDRAG :
+			return;
 	}
 
 	switch (tk->tk_type) {
-	case TK_STRING:
-		printf("token(TK_STRING)");
-		printf(" \"%s\"", tk->tk_string);
-		break;
-	case TK_TXTPAR:
-		printf("token(TK_TXTPAR)");
-		printf(" (%d) \"%s\"", tk->tk_arg[0], tk->tk_string);
-		break;
-	case TK_CHAR:
-		printf("token(TK_CHAR)");
-		printf(" <%o>", tk->tk_char);
-		break;
-	case TK_EOF:
-		printf("token(TK_EOF)");
-		show_token_args(tk);
-		break;
-	case TK_FOCUS:
-		printf("token(TK_FOCUS)");
-		printf(" <%d>", tk->tk_region);
-		show_token_args(tk);
-		break;
-	case TK_ENTRY:
-		printf("token(TK_ENTRY)");
-		printf(" <%d>", tk->tk_region);
-		show_token_args(tk);
-		break;
-	case TK_SBSWITCH:
-		printf("token(TK_SBSWITCH)");
-		show_token_args(tk);
-		break;
-	case TK_SBGOTO:
-		printf("token(TK_SBGOTO)");
-		show_token_args(tk);
-		break;
-	case TK_SBUP:
-		printf("token(TK_SBUP)");
-		show_token_args(tk);
-		break;
-	case TK_SBDOWN:
-		printf("token(TK_SBDOWN)");
-		show_token_args(tk);
-		break;
-	case TK_EXPOSE:
-		printf("token(TK_EXPOSE)");
-		printf("(%d)", tk->tk_region);
-		show_token_args(tk);
-		break;
-	case TK_RESIZE:
-		printf("token(TK_RESIZE)");
-		show_token_args(tk);
-		break;
-	case TK_SELSTART:
-		printf("token(TK_SELSTART)");
-		show_token_args(tk);
-		break;
-	case TK_SELEXTND:
-		printf("token(TK_SELEXTND)");
-		show_token_args(tk);
-		break;
-	case TK_SELDRAG:
-		printf("token(TK_SELDRAG)");
-		show_token_args(tk);
-		break;
-	case TK_SELINSRT:
-		printf("token(TK_SELINSRT)");
-		show_token_args(tk);
-		break;
-	case TK_SELECT:
-		printf("token(TK_SELECT)");
-		show_token_args(tk);
-		break;
-	case TK_SELWORD:
-		printf("token(TK_SELWORD)");
-		show_token_args(tk);
-		break;
-	case TK_SELLINE:
-		printf("token(TK_SELLINE)");
-		show_token_args(tk);
-		break;
-	case TK_SELCLEAR:
-		printf("token(TK_SELCLEAR)");
-		show_token_args(tk);
-		break;
-	case TK_SELNOTIFY:
-		printf("token(TK_SELNOTIFY)");
-		show_hex_token_args(tk);
-		break;
-	case TK_SELREQUEST:
-		printf("token(TK_SELREQUEST)");
-		show_hex_token_args(tk);
-		break;
-	case TK_CUU:
-		printf("token(TK_CUU)");
-		show_token_args(tk);
-		break;
-	case TK_CUD:
-		printf("token(TK_CUD)");
-		show_token_args(tk);
-		break;
-	case TK_CUF:
-		printf("token(TK_CUF)");
-		show_token_args(tk);
-		break;
-	case TK_CUB:
-		printf("token(TK_CUB)");
-		show_token_args(tk);
-		break;
-	case TK_CUP:
-		printf("token(TK_CUP)");
-		show_token_args(tk);
-		break;
-	case TK_ED:
-		printf("token(TK_ED)");
-		show_token_args(tk);
-		break;
-	case TK_EL:
-		printf("token(TK_EL)");
-		show_token_args(tk);
-		break;
-	case TK_IL:
-		printf("token(TK_IL)");
-		show_token_args(tk);
-		break;
-	case TK_DL:
-		printf("token(TK_DL)");
-		show_token_args(tk);
-		break;
-	case TK_DCH:
-		printf("token(TK_DCH)");
-		show_token_args(tk);
-		break;
-	case TK_ICH:
-		printf("token(TK_ICH)");
-		show_token_args(tk);
-		break;
-	case TK_DA:
-		printf("token(TK_DA)");
-		show_token_args(tk);
-		break;
-	case TK_HVP:
-		printf("token(TK_HVP)");
-		show_token_args(tk);
-		break;
-	case TK_TBC:
-		printf("token(TK_TBC)");
-		show_token_args(tk);
-		break;
-	case TK_SET:
-		printf("token(TK_SET)");
-		show_token_args(tk);
-		break;
-	case TK_RESET:
-		printf("token(TK_RESET)");
-		show_token_args(tk);
-		break;
-	case TK_SGR:
-		printf("token(TK_SGR)");
-		show_token_args(tk);
-		break;
-	case TK_DSR:
-		printf("token(TK_DSR)");
-		show_token_args(tk);
-		break;
-	case TK_DECSTBM:
-		printf("token(TK_DECSTBM)");
-		show_token_args(tk);
-		break;
-	case TK_DECSWH:
-		printf("token(TK_DECSWH)");
-		show_token_args(tk);
-		break;
-	case TK_SCS0:
-		printf("token(TK_SCS0)");
-		show_token_args(tk);
-		break;
-	case TK_SCS1:
-		printf("token(TK_SCS1)");
-		show_token_args(tk);
-		break;
-	case TK_DECSC:
-		printf("token(TK_DECSC)");
-		show_token_args(tk);
-		break;
-	case TK_DECRC:
-		printf("token(TK_DECRC)");
-		show_token_args(tk);
-		break;
-	case TK_DECPAM:
-		printf("token(TK_DECPAM)");
-		show_token_args(tk);
-		break;
-	case TK_DECPNM:
-		printf("token(TK_DECPNM)");
-		show_token_args(tk);
-		break;
-	case TK_IND:
-		printf("token(TK_IND)");
-		show_token_args(tk);
-		break;
-	case TK_NEL:
-		printf("token(TK_NEL)");
-		show_token_args(tk);
-		break;
-	case TK_HTS:
-		printf("token(TK_HTS)");
-		show_token_args(tk);
-		break;
-	case TK_RI:
-		printf("token(TK_RI)");
-		show_token_args(tk);
-		break;
-	case TK_SS2:
-		printf("token(TK_SS2)");
-		show_token_args(tk);
-		break;
-	case TK_SS3:
-		printf("token(TK_SS3)");
-		show_token_args(tk);
-		break;
-	case TK_DECID:
-		printf("token(TK_DECID)");
-		show_token_args(tk);
-		break;
-	case TK_NULL:
-		return;
-	default:
-		printf("unknown token <%o>", tk->tk_type);
-		show_token_args(tk);
-		break;
+		case TK_STRING :
+			printf("token(TK_STRING)");
+			printf(" \"%s\"",tk->tk_string);
+			break;
+		case TK_TXTPAR :
+			printf("token(TK_TXTPAR)");
+			printf(" (%d) \"%s\"",tk->tk_arg[0],tk->tk_string);
+			break;
+		case TK_CHAR :
+			printf("token(TK_CHAR)");
+			printf(" <%o>",tk->tk_char);
+			break;
+		case TK_EOF :
+			printf("token(TK_EOF)");
+			show_token_args(tk);
+			break;
+		case TK_FOCUS :
+			printf("token(TK_FOCUS)");
+			printf(" <%d>",tk->tk_region);
+			show_token_args(tk);
+			break;
+		case TK_ENTRY :
+			printf("token(TK_ENTRY)");
+			printf(" <%d>",tk->tk_region);
+			show_token_args(tk);
+			break;
+		case TK_SBSWITCH :
+			printf("token(TK_SBSWITCH)");
+			show_token_args(tk);
+			break;
+		case TK_SBGOTO :
+			printf("token(TK_SBGOTO)");
+			show_token_args(tk);
+			break;
+		case TK_SBUP :
+			printf("token(TK_SBUP)");
+			show_token_args(tk);
+			break;
+		case TK_SBDOWN :
+			printf("token(TK_SBDOWN)");
+			show_token_args(tk);
+			break;
+		case TK_EXPOSE :
+			printf("token(TK_EXPOSE)");
+			printf("(%d)",tk->tk_region);
+			show_token_args(tk);
+			break;
+		case TK_RESIZE :
+			printf("token(TK_RESIZE)");
+			show_token_args(tk);
+			break;
+		case TK_SELSTART :
+			printf("token(TK_SELSTART)");
+			show_token_args(tk);
+			break;
+		case TK_SELEXTND :
+			printf("token(TK_SELEXTND)");
+			show_token_args(tk);
+			break;
+		case TK_SELDRAG :
+			printf("token(TK_SELDRAG)");
+			show_token_args(tk);
+			break;
+		case TK_SELINSRT :
+			printf("token(TK_SELINSRT)");
+			show_token_args(tk);
+			break;
+		case TK_SELECT :
+			printf("token(TK_SELECT)");
+			show_token_args(tk);
+			break;
+		case TK_SELWORD :
+			printf("token(TK_SELWORD)");
+			show_token_args(tk);
+			break;
+		case TK_SELLINE :
+			printf("token(TK_SELLINE)");
+			show_token_args(tk);
+			break;
+		case TK_SELCLEAR :
+			printf("token(TK_SELCLEAR)");
+			show_token_args(tk);
+			break;
+		case TK_SELNOTIFY :
+			printf("token(TK_SELNOTIFY)");
+			show_hex_token_args(tk);
+			break;
+		case TK_SELREQUEST :
+			printf("token(TK_SELREQUEST)");
+			show_hex_token_args(tk);
+			break;
+		case TK_CUU :
+			printf("token(TK_CUU)");
+			show_token_args(tk);
+			break;
+		case TK_CUD :
+			printf("token(TK_CUD)");
+			show_token_args(tk);
+			break;
+		case TK_CUF :
+			printf("token(TK_CUF)");
+			show_token_args(tk);
+			break;
+		case TK_CUB :
+			printf("token(TK_CUB)");
+			show_token_args(tk);
+			break;
+		case TK_CUP :
+			printf("token(TK_CUP)");
+			show_token_args(tk);
+			break;
+		case TK_ED :
+			printf("token(TK_ED)");
+			show_token_args(tk);
+			break;
+		case TK_EL :
+			printf("token(TK_EL)");
+			show_token_args(tk);
+			break;
+		case TK_IL :
+			printf("token(TK_IL)");
+			show_token_args(tk);
+			break;
+		case TK_DL :
+			printf("token(TK_DL)");
+			show_token_args(tk);
+			break;
+		case TK_DCH :
+			printf("token(TK_DCH)");
+			show_token_args(tk);
+			break;
+		case TK_ICH :
+			printf("token(TK_ICH)");
+			show_token_args(tk);
+			break;
+		case TK_DA :
+			printf("token(TK_DA)");
+			show_token_args(tk);
+			break;
+		case TK_HVP :
+			printf("token(TK_HVP)");
+			show_token_args(tk);
+			break;
+		case TK_TBC :
+			printf("token(TK_TBC)");
+			show_token_args(tk);
+			break;
+		case TK_SET :
+			printf("token(TK_SET)");
+			show_token_args(tk);
+			break;
+		case TK_RESET :
+			printf("token(TK_RESET)");
+			show_token_args(tk);
+			break;
+		case TK_SGR :
+			printf("token(TK_SGR)");
+			show_token_args(tk);
+			break;
+		case TK_DSR :
+			printf("token(TK_DSR)");
+			show_token_args(tk);
+			break;
+		case TK_DECSTBM :
+			printf("token(TK_DECSTBM)");
+			show_token_args(tk);
+			break;
+		case TK_DECSWH :
+			printf("token(TK_DECSWH)");
+			show_token_args(tk);
+			break;
+		case TK_SCS0 :
+			printf("token(TK_SCS0)");
+			show_token_args(tk);
+			break;
+		case TK_SCS1 :
+			printf("token(TK_SCS1)");
+			show_token_args(tk);
+			break;
+		case TK_DECSC :
+			printf("token(TK_DECSC)");
+			show_token_args(tk);
+			break;
+		case TK_DECRC :
+			printf("token(TK_DECRC)");
+			show_token_args(tk);
+			break;
+		case TK_DECPAM :
+			printf("token(TK_DECPAM)");
+			show_token_args(tk);
+			break;
+		case TK_DECPNM :
+			printf("token(TK_DECPNM)");
+			show_token_args(tk);
+			break;
+		case TK_IND :
+			printf("token(TK_IND)");
+			show_token_args(tk);
+			break;
+		case TK_NEL :
+			printf("token(TK_NEL)");
+			show_token_args(tk);
+			break;
+		case TK_HTS :
+			printf("token(TK_HTS)");
+			show_token_args(tk);
+			break;
+		case TK_RI :
+			printf("token(TK_RI)");
+			show_token_args(tk);
+			break;
+		case TK_SS2 :
+			printf("token(TK_SS2)");
+			show_token_args(tk);
+			break;
+		case TK_SS3 :
+			printf("token(TK_SS3)");
+			show_token_args(tk);
+			break;
+		case TK_DECID :
+			printf("token(TK_DECID)");
+			show_token_args(tk);
+			break;
+		case TK_NULL :
+			return;
+		default :
+			printf("unknown token <%o>",tk->tk_type);
+			show_token_args(tk);
+			break;
 	}
 	printf("\n");
 }
+#endif /* DEBUG */

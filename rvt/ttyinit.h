@@ -1,4 +1,4 @@
-/*  Copyright 1992, 1994 John Bovey, University of Kent at Canterbury.
+/*  Copyright 1992 John Bovey, University of Kent at Canterbury.
  *
  *  Redistribution and use in source code and/or executable forms, with
  *  or without modification, are permitted provided that the following
@@ -23,34 +23,14 @@
  *  you wish with it.
  */
 
-/* @(#)xsetup.h	1.3 11/1/94 (UKC) */
+/* @(#)ttyinit.h	1.1 16/11/93 (UKC) */
 
 #ifdef __STDC__
-void fix_environment(void);
-void init_display(int,char **,int,char **,char *);
-int resize_window(void);
-void switch_scrollbar(void);
-void change_window_name(unsigned char *);
-void change_icon_name(unsigned char *);
-void error(char *,...);
-void send_auth(void);
-void map_window(void);
-int is_logshell(void);
-int is_eightbit(void);
-int is_console(void);
-void usage(int);
+void quit(int);
+void tty_set_size(int,int);
+int run_command(char *, char **);
 #else /* __STDC__ */
-void fix_environment();
-void init_display();
-int resize_window();
-void switch_scrollbar();
-void change_window_name();
-void change_icon_name();
-void error();
-void send_auth();
-void map_window();
-int is_logshell();
-int is_eightbit();
-int is_console();
-void usage();
+void quit();
+void tty_set_size();
+int run_command();
 #endif /* __STDC__ */
