@@ -1,14 +1,16 @@
-# $Id: Makefile,v 1.2 1998/10/20 07:26:33 garbled Exp $
+# $Id: Makefile,v 1.3 1998/10/20 07:27:14 garbled Exp $
 # barrier Makefile: Tim Rightnour
 
-CC=		/usr/local/bin/gcc
+# Some options need to be uncommented for Solaris
+
+#CC=		/usr/local/bin/gcc
 CFLAGS?=	-Wall -O2
 PROGS= 		barrierd barrier
-LIBS=		-lsocket -lnsl
+#LIBS=		-lsocket -lnsl
 #
 BSRCS=		barrier.c
 DSRCS=		barrierd.c
-DSRCS+=		strsep.c
+#DSRCS+=		strsep.c
 
 MAN= barrierd.1 barrier.1
 
