@@ -1,0 +1,45 @@
+diff -r -Bub clusterit-2.0.orig/dsh/Makefile clusterit-2.0/dsh/Makefile
+--- clusterit-2.0.orig/dsh/Makefile	Tue Aug 14 04:21:38 2001
++++ clusterit-2.0/dsh/Makefile	Sun Oct 21 22:47:41 2001
+@@ -9,14 +9,14 @@
+ CFLAGS+=	-DCLUSTERS
+ LINTFLAGS+=	-DCLUSTERS
+ #CFLAGS=		-DCLUSTERS
+-PROGS=		dsh seq run
++PROGS=		dsh rseq run
+ 
+-OBJS= dsh.o seq.o run.o
++OBJS= dsh.o rseq.o run.o
+ #SSRCS= ../common/netbsd.o ../common/common.o
+ SSRCS= ../common/common.o
+ #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+ 
+-MAN= dsh.1 seq.1 run.1
++MAN= dsh.1 rseq.1 run.1
+ 
+ all: ${OBJS} ${SSRCS} ../common/common.h
+ 	@for prog in ${PROGS} ; do \
+diff -r -Bub clusterit-2.0.orig/rvt/Makefile clusterit-2.0/rvt/Makefile
+--- clusterit-2.0.orig/rvt/Makefile	Tue Aug 14 04:21:30 2001
++++ clusterit-2.0/rvt/Makefile	Thu Oct 18 18:59:26 2001
+@@ -8,7 +8,7 @@
+ CFLAGS?=	-O2 -Wall #-DDEBUG -g
+ CFLAGS+=	-I/usr/X11R6/include
+ LINTFLAGS+=	-I/usr/X11R6/include
+-#CFLAGS=		-O2 -DCLUSTERS -DNEED_PTY
++CFLAGS+=		 -DCLUSTERS -DNEED_PTY
+ LDFLAGS=	-L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib
+ PROGS=		rvt
+ 
+diff -r -Bub clusterit-2.0.orig/tools/Makefile clusterit-2.0/tools/Makefile
+--- clusterit-2.0.orig/tools/Makefile	Tue Aug 14 04:21:29 2001
++++ clusterit-2.0/tools/Makefile	Sat Oct 20 20:35:46 2001
+@@ -12,7 +12,7 @@
+ scripts: ${SCRIPTS}
+ 
+ dshbak.sh: dshbak.src
+-	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $> > $@
++	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $< > $@
+ #	sed -e 's|@@@AWK@@@|/usr/xpg4/bin/awk|' < $> > $@
+ 
+ install: ${PROG} ${SCRIPTS}

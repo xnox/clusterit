@@ -1,195 +1,183 @@
-*** Makefile.orig	Fri May  7 11:20:09 1999
---- Makefile	Fri May  7 11:20:40 1999
-***************
-*** 2,8 ****
-  # Makefile for clusterit:  Tim Rightnour
-  
-  OPSYS!=		uname
-! #CC=		/usr/local/bin/gcc
-  CFLAGS=		-O2 -Wall
-  PREFIX?=	/usr/local
-  
---- 2,8 ----
-  # Makefile for clusterit:  Tim Rightnour
-  
-  OPSYS!=		uname
-! CC=		/usr/local/bin/gcc
-  CFLAGS=		-O2 -Wall
-  PREFIX?=	/usr/local
-  
-*** dsh/Makefile.orig	Fri May  7 11:20:48 1999
---- dsh/Makefile	Fri May  7 11:35:26 1999
-***************
-*** 3,15 ****
-  
-  # Some of the below needs to be uncommented for Solaris to work.
-  
-! #CC=		/usr/local/bin/gcc
-! CFLAGS=		-Wall -O2 #-DDEBUG -g
-  PROGS=		dsh seq run
-  
-  OBJS= dsh.o seq.o run.o
-! #SSRCS= strsep.o
-! SSRCS=
-  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
-  
-  MAN= dsh.1 seq.1 run.1
---- 3,15 ----
-  
-  # Some of the below needs to be uncommented for Solaris to work.
-  
-! CC=		/usr/local/bin/gcc
-! CFLAGS?=	-Wall -O2 #-DDEBUG -g
-  PROGS=		dsh seq run
-  
-  OBJS= dsh.o seq.o run.o
-! SSRCS= strsep.o
-! #SSRCS=
-  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
-  
-  MAN= dsh.1 seq.1 run.1
-***************
-*** 20,28 ****
-  		${CC} ${CFLAGS} -o $$prog $$prog.o ${SSRCS} ${LIBS}; \
-  	done
-  
-! install: ${PROGS} ${MAN}
-! 	/usr/bin/install -c -s -o bin -g bin -m 0755 ${PROGS} ${PREFIX}/bin
-! 	/usr/bin/install -c -o bin -g bin -m 0444 ${MAN} ${PREFIX}/man/man1
-  
-  clean:
-  	rm -f *.o ${PROGS}
---- 20,28 ----
-  		${CC} ${CFLAGS} -o $$prog $$prog.o ${SSRCS} ${LIBS}; \
-  	done
-  
-! install: ${PROGS} mans
-! 	/usr/ucb/install -c -s -o bin -g bin -m 0755 ${PROGS} ${PREFIX}/bin
-! #	/usr/bin/install -c -o bin -g bin -m 0444 ${MAN} ${PREFIX}/man/man1
-  
-  clean:
-  	rm -f *.o ${PROGS}
-*** pcp/Makefile.orig	Fri May  7 11:36:01 1999
---- pcp/Makefile	Fri May  7 11:37:32 1999
-***************
-*** 3,14 ****
-  
-  #Uncomment things for solaris.
-  
-! #CC= /usr/local/bin/gcc
-  PROG=		pcp
-  CFLAGS?=	-O2 -Wall
-  
-! #SRCS= pcp.c strsep.c
-! SRCS= pcp.c
-  
-  SCRIPTS=	prm pdf dshbak
-  MAN=		pcp.1 prm.1 pdf.1
---- 3,14 ----
-  
-  #Uncomment things for solaris.
-  
-! CC= /usr/local/bin/gcc
-  PROG=		pcp
-  CFLAGS?=	-O2 -Wall
-  
-! SRCS= pcp.c strsep.c
-! #SRCS= pcp.c
-  
-  SCRIPTS=	prm pdf dshbak
-  MAN=		pcp.1 prm.1 pdf.1
-***************
-*** 21,38 ****
-  scripts: ${SCRIPTS}
-  
-  dshbak.sh: dshbak.src
-! 	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $> > $@
-! #	sed -e 's|@@@AWK@@@|/usr/xpg4/bin/awk|' < $> > $@
-  
-  install: ${PROG} ${SCRIPTS}
-! 	/usr/bin/install -c -s -o bin -g bin -m 0755 pcp ${PREFIX}/bin
-! 	/usr/bin/install -c -o bin -g bin -m 0755 pdf ${PREFIX}/bin
-! 	/usr/bin/install -c -o bin -g bin -m 0755 prm ${PREFIX}/bin
-! 	/usr/bin/install -c -o bin -g bin -m 0755 dshbak ${PREFIX}/bin
-! 	/usr/bin/install -c -o bin -g bin -m 0444 pcp.1 ${PREFIX}/man/man1
-! 	/usr/bin/install -c -o bin -g bin -m 0444 pdf.1 ${PREFIX}/man/man1
-! 	/usr/bin/install -c -o bin -g bin -m 0444 prm.1 ${PREFIX}/man/man1
-! 	/usr/bin/install -c -o bin -g bin -m 0444 dshbak.1 ${PREFIX}/man/man1
-  
-  clean:
-  	rm -f ${PROG} ${SCRIPTS} *.o dshbak.sh
---- 21,38 ----
-  scripts: ${SCRIPTS}
-  
-  dshbak.sh: dshbak.src
-! #	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $> > $@
-! 	sed -e 's|@@@AWK@@@|/usr/xpg4/bin/awk|' < $> > $@
-  
-  install: ${PROG} ${SCRIPTS}
-! 	/usr/ucb/install -c -s -o bin -g bin -m 0755 pcp ${PREFIX}/bin
-! 	/usr/ucb/install -c -o bin -g bin -m 0755 pdf ${PREFIX}/bin
-! 	/usr/ucb/install -c -o bin -g bin -m 0755 prm ${PREFIX}/bin
-! 	/usr/ucb/install -c -o bin -g bin -m 0755 dshbak ${PREFIX}/bin
-! #	/usr/ucb/install -c -o bin -g bin -m 0444 pcp.1 ${PREFIX}/man/man1
-! #	/usr/ucb/install -c -o bin -g bin -m 0444 pdf.1 ${PREFIX}/man/man1
-! #	/usr/ucb/install -c -o bin -g bin -m 0444 prm.1 ${PREFIX}/man/man1
-! #	/usr/ucb/install -c -o bin -g bin -m 0444 dshbak.1 ${PREFIX}/man/man1
-  
-  clean:
-  	rm -f ${PROG} ${SCRIPTS} *.o dshbak.sh
-*** barrier/Makefile.orig	Fri May  7 11:37:52 1999
---- barrier/Makefile	Fri May  7 11:38:24 1999
-***************
-*** 3,16 ****
-  
-  # Some options need to be uncommented for Solaris
-  
-! #CC=		/usr/local/bin/gcc
-  CFLAGS?=	-Wall -O2
-  PROGS= 		barrierd barrier
-! #LIBS=		-lsocket -lnsl
-  #
-  BSRCS=		barrier.c
-  DSRCS=		barrierd.c
-! #DSRCS+=		strsep.c
-  
-  MAN= barrierd.1 barrier.1
-  
---- 3,16 ----
-  
-  # Some options need to be uncommented for Solaris
-  
-! CC=		/usr/local/bin/gcc
-  CFLAGS?=	-Wall -O2
-  PROGS= 		barrierd barrier
-! LIBS=		-lsocket -lnsl
-  #
-  BSRCS=		barrier.c
-  DSRCS=		barrierd.c
-! DSRCS+=		strsep.c
-  
-  MAN= barrierd.1 barrier.1
-  
-***************
-*** 23,32 ****
-  	${CC} ${CFLAGS} -o $@ ${DSRCS:.c=.o} ${LIBS}
-  
-  install: ${PROGS}
-! 	/usr/bin/install -c -s -o bin -g bin -m 0755 barrier ${PREFIX}/bin
-! 	/usr/bin/install -c -o bin -g bin -m 0444 barrier.1 ${PREFIX}/man/man1
-! 	/usr/bin/install -c -s -o bin -g bin -m 0755 barrierd ${PREFIX}/bin
-! 	/usr/bin/install -c -o bin -g bin -m 0444 barrierd.1 ${PREFIX}/man/man1
-  
-  clean:
-  	rm -f *.o ${PROGS}
---- 23,32 ----
-  	${CC} ${CFLAGS} -o $@ ${DSRCS:.c=.o} ${LIBS}
-  
-  install: ${PROGS}
-! 	/usr/ucb/install -c -s -o bin -g bin -m 0755 barrier ${PREFIX}/bin
-! #	/usr/bin/install -c -o bin -g bin -m 0444 barrier.1 ${PREFIX}/man/man1
-! 	/usr/ucb/install -c -s -o bin -g bin -m 0755 barrierd ${PREFIX}/bin
-! #	/usr/bin/install -c -o bin -g bin -m 0444 barrierd.1 ${PREFIX}/man/man1
-  
-  clean:
-  	rm -f *.o ${PROGS}
+diff -ru clusterit-2.0/Makefile sol/Makefile
+--- clusterit-2.0/Makefile	Tue Aug 14 01:21:44 2001
++++ sol/Makefile	Sat Dec 15 16:32:35 2001
+@@ -2,10 +2,10 @@
+ # Makefile for clusterit:  Tim Rightnour
+ 
+ OPSYS!=		uname
+-#CC=		/usr/local/bin/gcc
++CC=		/usr/local/bin/gcc
+ #CC=		/usr/vac/bin/cc
+-PREFIX?=	/usr/local
+-INSTALL?=	/usr/bin/install
++PREFIX=		/usr/local
++INSTALL=	/usr/ucb/install
+ 
+ SUBDIR=		dsh pcp barrier jsd rvt dvt tools
+ 
+diff -ru clusterit-2.0/barrier/Makefile sol/barrier/Makefile
+--- clusterit-2.0/barrier/Makefile	Tue Aug 14 01:21:40 2001
++++ sol/barrier/Makefile	Sat Dec 15 13:40:51 2001
+@@ -3,17 +3,17 @@
+ 
+ # Some options need to be uncommented for Solaris
+ 
+-#CC=		/usr/local/bin/gcc
++CC=		/usr/local/bin/gcc
+ CFLAGS?=	-Wall -O2
+ PROGS= 		barrierd barrier
+-#LIBS=		-lsocket -lnsl
++LIBS=		-lsocket -lnsl
+ #
+-SSRCS=		../common/sockcommon.c ../common/common.c
++#SSRCS=		../common/sockcommon.c ../common/common.c
+ SOBJS=		common.o sockcommon.o
+ BSRCS=		barrier.c
+ DSRCS=		barrierd.c
+ OSRCS=		barrierd.c barrier.c
+-#DSRCS=		barrierd.c ${SSRCS} ../common/netbsd.c
++DSRCS=		barrierd.c ${SSRCS} ../common/netbsd.c
+ 
+ MAN= barrierd.1 barrier.1
+ 
+--- clusterit-2.0/dsh/Makefile	Tue Aug 14 01:21:38 2001
++++ sol/dsh/Makefile	Sat Dec 15 13:22:03 2001
+@@ -4,16 +4,16 @@
+ # Some of the below needs to be uncommented for Solaris to work.
+ 
+ #CC=		/usr/vac/bin/cc
+-#CC=		/usr/local/bin/gcc
++CC=		/usr/local/bin/gcc
+ CFLAGS?=	-O2 -Wall #-DDEBUG -g
+ CFLAGS+=	-DCLUSTERS
+ LINTFLAGS+=	-DCLUSTERS
+-#CFLAGS=		-DCLUSTERS
++CFLAGS=		-DCLUSTERS
+ PROGS=		dsh seq run
+ 
+ OBJS= dsh.o seq.o run.o
+-#SSRCS= ../common/netbsd.o ../common/common.o
+-SSRCS= ../common/common.o
++SSRCS= ../common/netbsd.o ../common/common.o
++#SSRCS= ../common/common.o
+ #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+ 
+ MAN= dsh.1 seq.1 run.1
+diff -ru clusterit-2.0/dvt/Makefile sol/dvt/Makefile
+--- clusterit-2.0/dvt/Makefile	Tue Aug 14 01:21:37 2001
++++ sol/dvt/Makefile	Sat Dec 15 13:21:51 2001
+@@ -4,18 +4,18 @@
+ # Some of the below needs to be uncommented for Solaris to work.
+ 
+ #CC=		/usr/vac/bin/cc
+-#CC=		/usr/local/bin/gcc
++CC=		/usr/local/bin/gcc
+ CFLAGS?=	-O2 -Wall #-DDEBUG -g
+ CFLAGS+=	-DCLUSTERS -DUSE_X11 -I/usr/X11R6/include
+ LINTFLAGS+=	-DCLUSTERS -DUSE_X11 -I/usr/X11R6/include
+-#CFLAGS=		-O2 -DCLUSTERS -DUSE_X11
++CFLAGS=		-O2 -DCLUSTERS -DUSE_X11
+ PROGS=		dvt
+ 
+ OBJS= dvt.o
+-#SSRCS= ../common/netbsd.o ../common/common.o
+-SSRCS= ../common/common.o
+-LIBS= -L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib -lX11
+-#LIBS= -lX11
++SSRCS= ../common/netbsd.o ../common/common.o
++#SSRCS= ../common/common.o
++#LIBS= -L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib -lX11
++LIBS= -lX11
+ 
+ MAN= dvt.1
+ 
+diff -ru clusterit-2.0/jsd/Makefile sol/jsd/Makefile
+--- clusterit-2.0/jsd/Makefile	Tue Aug 14 01:21:29 2001
++++ sol/jsd/Makefile	Sat Dec 15 13:43:41 2001
+@@ -4,16 +4,17 @@
+ # Some of the below needs to be uncommented for Solaris to work.
+ 
+ #CC=		/usr/vac/bin/cc
+-#CC=		/usr/local/bin/gcc
++CC=		/usr/local/bin/gcc
+ CFLAGS?=	-O2 -g #-DDEBUG -g
+-CFLAGS+=	-DCLUSTERS
++CFLAGS=	-O2 -DCLUSTERS -DNEED_PTY
+ LINTFLAGS+=	-DCLUSTERS
+ PROGS=		jsd jsh
+ 
+ OBJS= jsh.o jsd.o
+-#SSRCS= ../common/netbsd.o ../common/common.o ../common/sockcommon.o
+-SSRCS= ../common/common.o ../common/sockcommon.o
++SSRCS= ../common/netbsd.o ../common/common.o ../common/sockcommon.o
++#SSRCS= ../common/common.o ../common/sockcommon.o
+ #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
++LIBS= -lsocket -lnsl
+ 
+ MAN=	jsh.1 jsd.1
+ 
+diff -ru clusterit-2.0/pcp/Makefile sol/pcp/Makefile
+--- clusterit-2.0/pcp/Makefile	Tue Aug 14 01:21:33 2001
++++ sol/pcp/Makefile	Sat Dec 15 13:25:25 2001
+@@ -3,15 +3,15 @@
+ 
+ #Uncomment things for solaris.
+ 
+-#CC= /usr/local/bin/gcc
++CC= /usr/local/bin/gcc
+ #CC= /usr/vac/bin/cc
+ PROG=		pcp
+ CFLAGS?=	-O2 -Wall
+ CFLAGS+=	-DCLUSTERS
+-#CFLAGS=		-DCLUSTERS
++CFLAGS=		-DCLUSTERS -DNEED_PTY
+ 
+-#SRCS= pcp.c ../common/netbsd.c ../common/common.c
+-SRCS= pcp.c
++SRCS= pcp.c ../common/netbsd.c
++#SRCS= pcp.c
+ SOBJS= common.o
+ 
+ MAN=		pcp.1
+diff -ru clusterit-2.0/rvt/Makefile sol/rvt/Makefile
+--- clusterit-2.0/rvt/Makefile	Tue Aug 14 01:21:30 2001
++++ sol/rvt/Makefile	Sat Dec 15 13:45:22 2001
+@@ -4,17 +4,17 @@
+ # Some of the below needs to be uncommented for Solaris to work.
+ 
+ #CC=		/usr/vac/bin/cc
+-#CC=		/usr/local/bin/gcc
+-CFLAGS?=	-O2 -Wall #-DDEBUG -g
+-CFLAGS+=	-I/usr/X11R6/include
++CC=		/usr/local/bin/gcc
++#CFLAGS?=	-O2 -Wall #-DDEBUG -g
++#CFLAGS+=	-I/usr/X11R6/include
+ LINTFLAGS+=	-I/usr/X11R6/include
+-#CFLAGS=		-O2 -DCLUSTERS -DNEED_PTY
+-LDFLAGS=	-L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib
++CFLAGS=		-O2 -DCLUSTERS -DNEED_PTY
++#LDFLAGS=	-L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib
+ PROGS=		rvt
+ 
+ OBJS= command.o rvt.o sbar.o screen.o xsetup.o
+-#SSRCS= ../common/netbsd.o
+-LIBS= -lX11 -lXau -lutil
++SSRCS= ../common/netbsd.o
++LIBS= -lX11 -lXau -lsocket -lnsl #-lutil
+ #LIBS+= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+ 
+ MAN= rvt.1
+diff -ru clusterit-2.0/tools/Makefile sol/tools/Makefile
+--- clusterit-2.0/tools/Makefile	Tue Aug 14 01:21:29 2001
++++ sol/tools/Makefile	Sat Dec 15 13:45:59 2001
+@@ -12,8 +12,8 @@
+ scripts: ${SCRIPTS}
+ 
+ dshbak.sh: dshbak.src
+-	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $> > $@
+-#	sed -e 's|@@@AWK@@@|/usr/xpg4/bin/awk|' < $> > $@
++#	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $> > $@
++	sed -e 's|@@@AWK@@@|/usr/xpg4/bin/awk|' < dshbak.src > $@
+ 
+ install: ${PROG} ${SCRIPTS}
+ 	${INSTALL} -c -o bin -g bin -m 0755 clustersed ${PREFIX}/bin
