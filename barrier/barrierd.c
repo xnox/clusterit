@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.6 1999/10/14 17:07:56 garbled Exp $ */
+/* $Id: barrierd.c,v 1.7 1999/10/14 17:45:56 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: barrierd.c,v 1.6 1999/10/14 17:07:56 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.7 1999/10/14 17:45:56 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK	1933	/* default socket for barrier */
@@ -165,7 +165,11 @@ int sleeper(void)
 	char *key, *buf;
 	char *tokens[MAX_TOKENS];
 	int i, k, l, m, found, sock;
+#if (NetBSD > 199904)
+	socklen_t size;
+#else
 	size_t size;
+#endif
 	int sizes[MAX_TOKENS];
 	int connections[MAX_TOKENS];
 	int sockets[MAX_TOKENS][MAX_CLUSTER];
