@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.4 1998/10/20 07:27:51 garbled Exp $
+# $Id: Makefile,v 1.5 1998/10/20 07:39:04 garbled Exp $
 # Makefile for clusterit:  Tim Rightnour
 
 OPSYS!=		uname
-CC=		/usr/local/bin/gcc
+#CC=		/usr/local/bin/gcc
 CFLAGS=		-O2 -Wall
 PREFIX?=	/usr/local
 
