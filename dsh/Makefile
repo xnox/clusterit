@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 1998/10/15 20:54:57 garbled Exp $
+# $Id: Makefile,v 1.6 1998/10/16 00:50:24 garbled Exp $
 # dsh Makefile: Tim Rightnour
 
 #CC=		/usr/local/bin/gcc
@@ -7,16 +7,16 @@ PROGS=		dsh seq run
 OPSYS!=		uname
 
 .if ${OPSYS} != NetBSD
-SSRCS= strsep.o
+SSRCS= strsep.c
 .else
 SSRCS= 
 .endif
 
-MAN= dsh.1 seq.1 run.c
+MAN= dsh.1 seq.1 run.1
 
-all: ${PROGS}.o ${SSRCS}
+all: ${PROGS}.c ${SSRCS}
 	for prog in ${PROGS} ; do \
-		${CC} ${CFLAGS} -o $$prog $$prog.o ${SSRCS:.c=.o}; \
+		${CC} ${CFLAGS} -o $$prog $$prog.c ${SSRCS}; \
 	done
 
 install: ${PROGS}
