@@ -1,0 +1,61 @@
+$Id: README,v 1.1 1998/10/13 08:05:06 garbled Exp $
+
+Welcome to clusterit-1.0 !
+
+This is a collection of clustering tools, to turn your ordinary
+everyday pile of UNIX workstations into a speedy parallel beast.
+
+Initially this work was based on the work of IBM's PSSP, and copied
+heavily from the ideas there.  Its also lightly based on the work
+pioneered in GLUnix.  I've decided to simplify, and complexify it
+however:
+
+Glunix is a monstrosity.  It allows better control over the
+individual nodes, and much better load sharing.  However I'm convinced
+alot of the speed advantages of having a parallel cluster are lost with
+the incredible overhead of running the glunix master and daemon services
+on a host.
+
+PSSP is also a very powerful set of tools.  Not much more than a bunch
+of staples written in perl, they provide an incredible tool for tying
+an unwieldy number of UNIX machines into one fast demon of an MPP.
+
+The advantages of both systems are central control of a large number of
+machines.  Unfortunately, they all have dwarbacks.. as does my solution.
+
+What my solution provides:
+
+*Fast* parallel execution of remote commands.
+
+Heterogenous cluster makeup.
+	This makes it very easy to administer a large number of machines,
+of varying architectures, and operating systems.  The fact that my tools are
+completely architecture independent, make it possible to dsh commands out
+to machines that aren't even running the same OS!  This can be useful for a
+variety of mass administration tasks an admin may have to undertake.
+
+Choice of authentication.
+	IBM forces you to use kerberos 4 for authentication on the SP's.
+This is actually fine for a closed environment like an SP, but for something
+to be run on just a stack of otherwise useful boxes, you need more freedom.
+This suite allows you to do whatever you like.. ssh, kerberos, .rhosts.
+Whatever suits your security needs best.
+
+What my solution does not provide:
+
+A parallel programming API
+	Use MPI, or PVM, or whatever for that.. thats outside the scope of
+this suite.
+
+Barrier syncronization
+	Not really useful at this point, though parallel builds may someday
+require something of this nature.
+
+Things to do still:
+
+anynode
+	Run a program on "any old node" on the cluster.
+
+supper
+	Mimic IBM's supper suite.. but do a better job of
+it than big blue did.  Yuck.
