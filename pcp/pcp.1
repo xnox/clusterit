@@ -1,0 +1,148 @@
+.\"	$Id: pcp.1,v 1.1 1998/10/13 06:58:51 garbled Exp $
+.\"
+.\" Copyright (c) 1998
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour for
+.\"	The NetBSD Foundation, Inc.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd October 6, 1998
+.Dt PCP 1
+.Os NetBSD 1.4
+.Sh NAME
+.Nm pcp
+.Nd copy a file to a cluster of machines
+.Sh SYNOPSIS
+.Nm
+.Op Ar -r
+.Op Ar -p
+.Op Ar -w node1,...,nodeN
+.Ar source_file
+.Op destination file
+.Sh DESCRIPTION
+The 
+.Nm
+utility can be used to copy a file, or directory to a group of machines.
+The group of machines can be listed on the command line, or default to
+the environment setting
+.Ev CLUSTER
+.
+The following options are available:
+.Bl -tag -width www
+.It Fl p
+The
+.Fl p
+option causes
+.Nm
+to attempt to preserve (duplicate) in its copies the modification
+times and modes of the source files, ignoring the
+.Ar umask  .
+By default, the mode and owner of
+.Ar file2
+are preserved if it already existed; otherwise the mode of the source file
+modified by the
+.Xr umask  2
+on the destination host is used.
+.It Fl r
+If any of the source files are directories,
+.Nm
+copies each subtree rooted at that name; in this case
+the destination must be a directory.
+.It Fl w
+If the
+.Fl w
+option is specified, followed by a comma delimited list of machine names,
+the
+.Ar command
+will be run on each node in the list.  Without this flag,
+.Nm
+runs on the nodes listed in the file pointed to by the
+.Ev CLUSTER
+environment variable.
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "RCP_CMD"
+.It Ev CLUSTER
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+.It Ev RCP_CMD
+Command to use to copy files to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+.Ic rcp
+.\" .Sh FILES
+.Sh EXAMPLES
+The command:
+.Pp
+pcp file
+.Pp
+will copy the file 'file' to the home directory of the current user on
+all machines listed in the file pointed to by the
+.Ev CLUSTER
+environment setting.
+.Pp
+.Pp
+The command:
+.Pp
+pcp -w hadar,rigel file
+.Pp
+will copy the file 'file' to the home directory of the current user
+on the machines 'hadar' and 'rigel'.
+.Pp
+.Pp
+The command:
+.Pp
+pcp -w hadar,rigel /usr/bin/foo /usr/local/bin/foo
+.Pp
+will copy the file '/usr/bin/foo' to '/usr/local/bin/foo' on the
+machines 'hadar' and 'rigel'.
+.Pp
+.Pp
+.Sh DIAGNOSTICS
+Exit status is 0 on success, 1 if an error occurs.
+.Sh SEE ALSO
+.Xr cp 1 ,
+.Xr dsh 1 ,
+.Xr rcp 1 ,
+.Xr kerberos 3 ,
+.Xr hosts.equiv 5 ,
+.Xr rhosts 5
+.Sh HISTORY
+The
+.Nm
+command appeared in
+.Nx
+1.4. It is based on the
+.Nm
+command in IBM PSSP.
+.Sh AUTHOR
+.Nm Pcp
+was written by Tim Rightnour for The NetBSD Foundation, Inc.
+.Sh BUGS
+Error handling could use some work.

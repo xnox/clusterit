@@ -1,0 +1,148 @@
+.\" Copyright (c) 1998
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd October 6, 1998
+.Dt DSH 1
+.Sh NAME
+.Nm dsh
+.Nd run a command on a cluster of machines
+.Sh SYNOPSIS
+.Nm
+.Fl eiq
+.Op Ar -f fanout
+.Op Ar -l username
+.Op Ar -w node1,...,nodeN
+.Op Ar command ...
+.Sh DESCRIPTION
+The 
+.Nm
+utility can be used to run a command, or group of commands on a cluster of 
+machines.  All commands are run in parallel, on the cluster.
+The following options are available:
+.Bl -tag -width www
+.It Fl e
+Unless the
+.Fl e
+option is specified, stderr will not be reported to the user, from the remote commands.
+.If Fl i
+The
+.Fl i
+option will list information about the current cluster, and command groupings.  It will
+print out the current value of the fanout, and how many groups of machines there are within
+the cluster. It will also show you which command you are about to run, and your username if
+specified with the
+.Fl l
+flag.
+.It Fl q
+The
+.Fl q
+option does not issue any commands, but displays information about the cluster, and the
+fanout groupings.
+.It Fl w
+If the
+.Fl w
+option is specified, followed by a comma delimited list of machine names,
+the
+.Ar command
+will be run on each node in the list.  Without this flag,
+.Nm
+runs on the nodes listed in the file pointed to by the
+.Ev CLUSTER
+environment variable.
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "RCMD_CMD"
+.It Ev CLUSTER
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+.It Ev RCMD_CMD
+Command to use to connect to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+.Ic rsh
+.It Ev FANOUT
+When set, limits the maximum number of concurrent commands sent at once.  This can be
+used to keep from overloading a small host when sending out commands in parallel.  Defaults to
+64.  This environment setting can be overridden by the
+.Fl f
+flag.
+.\" .Sh FILES
+.Sh EXAMPLES
+The command:
+.Bd -literal -offset indent
+dsh hostname
+.Ed
+.Pp
+will display:
+.Bd -literal -offset indent
+pollux:	pollux
+castor:	castor
+.Ed
+.Pp
+if the file pointed to by
+.Ev CLUSTER
+contains:
+.Bd -literal -offset indent
+pollux
+castor
+.Ed
+.Pp
+The command:
+.Bd -literal -offset indent
+dsh -w hadar,rigel hostname
+.Ed
+.Pp
+will display:
+.Bd -literal -offset indent
+hadar:	hadar
+rigel:	rigel
+.Sh DIAGNOSTICS
+Exit status is 0 on success, 1 if an error occurs.
+.Sh SEE ALSO
+.Xr pcp 1 ,
+.Xr prm 1 ,
+.Xr rsh 1 ,
+.Xr kerberos 3 ,
+.Xr hosts.equiv 5 ,
+.Xr rhosts 5
+.Sh HISTORY
+The
+.Nm
+command appeared in
+.Nx
+1.4. It is based on the
+.Nm
+command in IBM PSSP.
+.Sh AUTHOR
+.Nm Dsh
+was written by Tim Rightnour for The NetBSD Foundation, Inc.
+.Sh BUGS
+Error handling could use some work.

@@ -1,0 +1,124 @@
+.\"	$Id: prm.1,v 1.1 1998/10/13 06:58:51 garbled Exp $
+.\"
+.\" Copyright (c) 1998
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour for
+.\"	The NetBSD Foundation, Inc.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd October 6, 1998
+.Dt PRM 1
+.Os NetBSD 1.4
+.Sh NAME
+.Nm prm
+.Nd delete a file or files on a cluster of machines
+.Sh SYNOPSIS
+.Nm
+.Op Fl dfrPRW
+.Op Ar -w node1,...,nodeN
+.Ar file ...
+.Sh DESCRIPTION
+The 
+.Nm
+utility can be used to delete files or directories on a cluster of 
+machines.
+The following options are available:
+.Bl -tag -width www
+.It Fl w
+If the
+.Fl w
+option is specified, followed by a comma delimited list of machine names,
+the
+.Ar command
+will be run on each node in the list.  Without this flag,
+.Nm
+runs on the nodes listed in the file pointed to by the
+.Ev CLUSTER
+environment variable.
+.It Fl d
+Attempt to remove directories as well as other types of files.
+.It Fl f
+Attempt to remove the files without prompting for confirmation,
+regardless of the file's permissions.
+If the file does not exist, do not display a diagnostic message or modify
+the exit status to reflect an error.
+.It Fl P
+Overwrite regular files before deleting them.
+Files are overwritten three times, first with the byte pattern 0xff,
+then 0x00, and then 0xff again, before they are deleted.
+.It Fl R
+Attempt to remove the file hierarchy rooted in each file argument.
+The 
+.Fl R
+option implies the
+.Fl d
+option.
+.It Fl r
+Equivalent to
+.Fl R .
+.It Fl W
+Attempts to undelete the named files.
+Currently, this option can only be used to recover
+files covered by whiteouts.
+.El
+.Pp
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "RCMD_CMD"
+.It Ev CLUSTER
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+.It Ev RCMD_CMD
+Command to use to connect to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+.Ic rsh
+.\" .Sh FILES
+.Sh DIAGNOSTICS
+Exit status is 0 on success, 1 if an error occurs.
+.Sh SEE ALSO
+.Xr dsh 1 ,
+.Xr rm 1 ,
+.Xr rsh 1 ,
+.Xr kerberos 3 ,
+.Xr hosts.equiv 5 ,
+.Xr rhosts 5
+.Sh HISTORY
+The
+.Nm
+command appeared in
+.Nx
+1.4. It is based on the
+.Nm
+command in IBM PSSP.
+.Sh AUTHOR
+.Nm Prm
+was written by Tim Rightnour for The NetBSD Foundation, Inc.
+.Sh BUGS
+Error handling could use some work.
