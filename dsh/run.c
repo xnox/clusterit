@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.1 1998/10/15 20:54:58 garbled Exp $ */
+/* $Id: run.c,v 1.2 1998/10/15 21:49:43 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: run.c,v 1.1 1998/10/15 20:54:58 garbled Exp $");
+__RCSID("$Id: run.c,v 1.2 1998/10/15 21:49:43 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
@@ -73,7 +73,7 @@ char *grouplist[MAX_CLUSTER];
 char *rungroup;
 
 /* 
- *  seq is a cluster management tool derrived from the IBM tool of the
+ *  run is a cluster management tool derrived from the IBM tool of the
  *  same name.  It allows a user, or system administrator to issue
  *  commands in paralell on a group of machines.
  */
@@ -103,6 +103,8 @@ void main(argc, argv)
 	username = NULL;
 	group = NULL;
 	rungroup = NULL;
+
+	srand48(getpid()); /* seed the random number generator */
 
 	while ((ch = getopt(argc, argv, "?aeiqg:l:w:x:")) != -1)
 		switch (ch) {
@@ -146,7 +148,7 @@ void main(argc, argv)
 			break;
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
-			    "usage: seq [-aeiq] [-g rungroup] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] [command ...]\n");
+			    "usage: run [-aeiq] [-g rungroup] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] [command ...]\n");
 			exit(EXIT_FAILURE);
 			break;
 		default:
@@ -242,7 +244,6 @@ int check_rand(char *nodelist[])
 {
 	int i, g, n;
 
-	srand48(getpid());
 	if (rungroup == NULL) {
 		for (n=0; nodelist[n] != NULL && test_node(n) == 0; n++)
 			;
@@ -300,7 +301,7 @@ void do_command(argv, nodelist, allrun, username)
 	if (strcmp(command,"") == 0) {
 		piping = 1;
 		if (isatty(STDIN_FILENO) && piping)		/* are we a terminal?  then go interactive! */
-			printf("seq>");
+			printf("run>");
 		in = fdopen(STDIN_FILENO, "r");
 		command = fgets(buf, sizeof(buf), in);	/* start reading stuff from stdin and process */
 		if (command != NULL)
@@ -358,7 +359,7 @@ void do_command(argv, nodelist, allrun, username)
 		(void)wait(&status);
 		if (piping) {
 			if (isatty(STDIN_FILENO) && piping) /* yes, this is code repetition, no need to adjust your monitor */
-				printf("seq>");
+				printf("run>");
 			command = fgets(buf, sizeof(buf), in);
 			if (command != NULL)
 				if (strcmp(command,"\n") == 0)
