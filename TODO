@@ -1,4 +1,4 @@
-# $Id: TODO,v 1.5 2000/02/17 08:16:21 garbled Exp $
+# $Id: TODO,v 1.6 2001/08/14 04:50:43 garbled Exp $
 # no particular order:
 
 Port interrupt handling to seq and run.
@@ -15,9 +15,6 @@ servers.
 make dshbak more useful.  The IBM format is nasty.
 
 pdf could probably use a little work.
-
-supper  <groan>
-
 
 COMPLETED
 ---------
