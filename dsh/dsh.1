@@ -1,4 +1,4 @@
-.\" $Id: dsh.1,v 1.10 1999/05/05 09:05:16 garbled Exp $
+.\" $Id: dsh.1,v 1.11 1999/05/05 09:32:37 garbled Exp $
 .\" Copyright (c) 1998
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -30,7 +30,7 @@
 .\" SUCH DAMAGE.
 .\"
 .\" The following requests are required for all man pages.
-.Dd December 14, 1998
+.Dd May 5, 1999
 .Dt DSH 1
 .Sh NAME
 .Nm dsh
@@ -48,7 +48,9 @@
 The 
 .Nm
 utility can be used to run a command, or group of commands on a cluster of 
-machines.  All commands are run in parallel, on the cluster.
+machines.  All commands are run in parallel, on the cluster.  Interrupt
+signals will be sent to the remote host that is currently being displayed
+to the user.
 The following options are available:
 .Bl -tag -width www
 .It Fl e
