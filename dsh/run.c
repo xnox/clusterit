@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.2 1998/10/15 21:49:43 garbled Exp $ */
+/* $Id: run.c,v 1.3 1998/10/20 07:28:44 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -38,18 +38,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef lint
+#if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998\n\
         Tim Rightnour.  All rights reserved\n");
 #endif /* not lint */
 
-#ifndef lint
-__RCSID("$Id: run.c,v 1.2 1998/10/15 21:49:43 garbled Exp $");
+#if !defined(lint) && defined(__NetBSD__)
+__RCSID("$Id: run.c,v 1.3 1998/10/20 07:28:44 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
 #define DEFAULT_FANOUT 64
+#define MAX_GROUPS 32
 
 extern int errno;
 #ifdef __NetBSD__
@@ -70,7 +71,7 @@ int check_rand(char *nodelist[]);
 int debug;
 int errorflag;
 char *grouplist[MAX_CLUSTER];
-char *rungroup;
+char *rungroup[MAX_GROUPS];
 
 /* 
  *  run is a cluster management tool derrived from the IBM tool of the
@@ -102,8 +103,8 @@ void main(argc, argv)
 	allflag = 0;
 	username = NULL;
 	group = NULL;
-	rungroup = NULL;
-
+	for (i=0; i < MAX_GROUPS; i++)
+		rungroup[i] = NULL;
 	srand48(getpid()); /* seed the random number generator */
 
 	while ((ch = getopt(argc, argv, "?aeiqg:l:w:x:")) != -1)
@@ -124,12 +125,19 @@ void main(argc, argv)
 			showflag = 1;
 			break;
 		case 'g':		/* pick a group to run on */
-			rungroup = strdup(optarg);
+			i = 0;
+			for (p = optarg; p != NULL && i < MAX_GROUPS - 1; ) {
+				group = (char *)strsep(&p, ",");
+				if (group != NULL)
+					rungroup[i++] = strdup(group);
+			}
+			rungroup[i] = '\0';
+			group = NULL;
 			break;			
 		case 'x':		/* exclude nodes, w overrides this */
 			exclusion = 1;
 			i = 0;
-			for (p = optarg; p != NULL; ) {
+			for (p = optarg; p != NULL && i < MAX_CLUSTER - 1; ) {
 				nodename = (char *)strsep(&p, ",");
 				if (nodename != NULL)
 					exclude[i++] = strdup(nodename);
@@ -139,7 +147,7 @@ void main(argc, argv)
 		case 'w':		/* perform operation on these nodes */
 			someflag = 1;
 			i = 0;
-			for (p = optarg; p != NULL; ) {
+			for (p = optarg; p != NULL && i < MAX_CLUSTER - 1; ) {
 				nodename = (char *)strsep(&p, ",");
 				if (nodename != NULL)
 					nodelist[i++] = strdup(nodename);
@@ -148,7 +156,7 @@ void main(argc, argv)
 			break;
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
-			    "usage: run [-aeiq] [-g rungroup] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] [command ...]\n");
+			    "usage: run [-aeiq] [-g rungroup1,...,rungroupN] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] [command ...]\n");
 			exit(EXIT_FAILURE);
 			break;
 		default:
@@ -157,7 +165,7 @@ void main(argc, argv)
 	if (!someflag) { /* if -w wasn't specified, we need to parse the cluster file */
 		clusterfile = getenv("CLUSTER");
 		if (clusterfile == NULL) {
-			fprintf(stderr, "must use -w flag without CLUSTER environment setting.\n");
+			(void)fprintf(stderr, "must use -w flag without CLUSTER environment setting.\n");
 			exit(EXIT_FAILURE);
 		}
 		fd = fopen(clusterfile, "r");
@@ -168,7 +176,7 @@ void main(argc, argv)
 				if (exclusion) {		/* this handles the -x option */
 					fail = 0;
 					for (j = 0; exclude[j] != NULL; j++)
-						if (strcmp(p,exclude[j]) == 0)
+						if (strcmp(p, exclude[j]) == 0)
 							fail = 1;
 					if (!fail) {
 						if (strstr(p, "GROUP") != NULL) {
@@ -206,6 +214,7 @@ void main(argc, argv)
 		exit(EXIT_SUCCESS);
 	}
 	do_command(argv, nodelist, allflag, username);
+	exit(EXIT_SUCCESS);
 }
 
 /*
@@ -221,30 +230,44 @@ void do_showcluster(nodelist)
 
 	l = 0;
 
-	if (rungroup != NULL)
-		(void)printf("Rungroup: %s\n", rungroup);
+	if (rungroup[0] != NULL) {
+		(void)printf("Rungroup:");
+		for (i=0; rungroup[i] != NULL; i++) {
+			if (!(i % 4) && i > 0)
+				(void)printf("\n");
+			(void)printf("\t%s", rungroup[i]);
+		}
+		if (i % 4)
+			(void)printf("\n");
+	}
 
 	if (getenv("CLUSTER"))
 		(void)printf("Cluster file: %s\n", getenv("CLUSTER"));
 	for (i=0; nodelist[i] != NULL; i++) {
-		if (rungroup != NULL) {
+		if (rungroup[0] != NULL) {
 			if (test_node(i)) {
 				l++;
-				printf("Node: %3d Rungroup: %s Host: %s\n", l, grouplist[i], nodelist[i]);
+				if (grouplist[i] == NULL)
+					(void)printf("Node: %3d\tRungroup: None\tHost: %s\n", l, nodelist[i]);
+				else
+					(void)printf("Node: %3d\tRungroup: %s\tHost: %s\n", l, grouplist[i], nodelist[i]);
 			}
 		} else {
 			l++;
-			printf("Node: %3d Rungroup: %s Host: %s\n", l, grouplist[i], nodelist[i]);
+			if (grouplist[i] == NULL)
+				(void)printf("Node: %3d\tRungroup: None\tHost: %s\n", l, nodelist[i]);
+			else
+				(void)printf("Node: %3d\tRungroup: %s\tHost: %s\n", l, grouplist[i], nodelist[i]);
 		}
 	}
-	printf("Command would run on node: %s\n", nodelist[check_rand(nodelist)]);
+	(void)printf("Command would run on node: %s\n", nodelist[check_rand(nodelist)]);
 }
 
 int check_rand(char *nodelist[])
 {
 	int i, g, n;
 
-	if (rungroup == NULL) {
+	if (rungroup[0] != NULL) {
 		for (n=0; nodelist[n] != NULL && test_node(n) == 0; n++)
 			;
 		for (i=n; nodelist[i] != NULL && test_node(i) == 1; i++)
@@ -285,8 +308,8 @@ void do_command(argv, nodelist, allrun, username)
 
 	if (debug) {
 		if (username != NULL)
-			printf("As User: %s\n",username);
-		printf("On node: %s", nodelist[check_rand(nodelist)]);
+			(void)printf("As User: %s\n", username);
+		(void)printf("On node: %s", nodelist[check_rand(nodelist)]);
 	} 
 
 	buf[0] = '\0';
@@ -296,12 +319,12 @@ void do_command(argv, nodelist, allrun, username)
 		strcat(command, " ");
 	}
 	if (debug) {
-		printf("\nDo Command: %s\n", command);
+		(void)printf("\nDo Command: %s\n", command);
 	}
 	if (strcmp(command,"") == 0) {
 		piping = 1;
 		if (isatty(STDIN_FILENO) && piping)		/* are we a terminal?  then go interactive! */
-			printf("run>");
+			(void)printf("run>");
 		in = fdopen(STDIN_FILENO, "r");
 		command = fgets(buf, sizeof(buf), in);	/* start reading stuff from stdin and process */
 		if (command != NULL)
@@ -349,17 +372,17 @@ void do_command(argv, nodelist, allrun, username)
 			bailout(__LINE__);
 		fd = fdopen(out[0], "r"); /* stdout */
 		while ((p = fgets(buf, sizeof(buf), fd)))
-			printf("%s:\t%s", nodelist[i], p);
+			(void)printf("%s:\t%s", nodelist[i], p);
 		fclose(fd);
 		fd = fdopen(err[0], "r"); /* stderr */
 		while ((p = fgets(buf, sizeof(buf), fd)))
 			if (errorflag)
-				printf("%s:\t%s", nodelist[i], p);
+				(void)printf("%s:\t%s", nodelist[i], p);
 		fclose(fd);
 		(void)wait(&status);
 		if (piping) {
 			if (isatty(STDIN_FILENO) && piping) /* yes, this is code repetition, no need to adjust your monitor */
-				printf("run>");
+				(void)printf("run>");
 			command = fgets(buf, sizeof(buf), in);
 			if (command != NULL)
 				if (strcmp(command,"\n") == 0)
@@ -377,12 +400,15 @@ void do_command(argv, nodelist, allrun, username)
 
 int test_node(int count)
 {
-	if (rungroup == NULL)
+	int i;
+
+	if (rungroup[0] == NULL)
 		return(1);
 	else
 		if (grouplist[count] != NULL)
-			if (strcmp(rungroup,grouplist[count]) == 0)
-				return(1);
+			for (i=0; rungroup[i] != NULL; i++)
+				if (strcmp(rungroup[i], grouplist[count]) == 0)
+					return(1);
 	return(0);
 }
 
