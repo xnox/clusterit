@@ -1,4 +1,4 @@
-$Id: make.aix.gcc,v 1.5 2000/02/20 20:59:28 garbled Exp $
+$Id: make.aix.gcc,v 1.6 2000/02/25 21:47:11 garbled Exp $
 diff -r -C 3 ../src/Makefile ./Makefile
 *** ../src/Makefile	Sun Feb 20 11:11:55 2000
 --- ./Makefile	Sun Feb 20 13:27:02 2000
@@ -10,7 +10,7 @@ diff -r -C 3 ../src/Makefile ./Makefile
 ! #CC=		/usr/local/bin/gcc
 ! PREFIX?=	/usr/local
   
-  SUBDIR=		dsh pcp barrier jsd
+  SUBDIR=		dsh pcp barrier jsd tools
   
 --- 2,9 ----
   # Makefile for clusterit:  Tim Rightnour
@@ -19,7 +19,7 @@ diff -r -C 3 ../src/Makefile ./Makefile
 ! CC=		/usr/local/bin/gcc
 ! PREFIX=		/usr/local
   
-  SUBDIR=		dsh pcp barrier jsd
+  SUBDIR=		dsh pcp barrier jsd tools
   
 Only in .: Makefile.orig
 diff -r -C 3 ../src/barrier/Makefile ./barrier/Makefile
@@ -134,8 +134,8 @@ diff -r -C 3 ../src/pcp/Makefile ./pcp/Makefile
 ! #SRCS= pcp.c ../common/strsep.c ../common/common.c
 ! SRCS= pcp.c ../common/common.c
   
-  SCRIPTS=	prm pdf dshbak
-  MAN=		pcp.1 prm.1 pdf.1
+  MAN=		pcp.1
+
 --- 5,14 ----
   
   #CC= /usr/local/bin/gcc
@@ -145,6 +145,5 @@ diff -r -C 3 ../src/pcp/Makefile ./pcp/Makefile
 ! SRCS= pcp.c ../common/strsep.c ../common/common.c
 ! #SRCS= pcp.c ../common/common.c
   
-  SCRIPTS=	prm pdf dshbak
-  MAN=		pcp.1 prm.1 pdf.1
-Only in ./pcp: Makefile.orig
+  MAN=		pcp.1
+

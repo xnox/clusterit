@@ -1,11 +1,12 @@
-# $Id: Makefile,v 1.9 2000/02/20 18:11:55 garbled Exp $
+# $Id: Makefile,v 1.10 2000/02/25 21:47:11 garbled Exp $
 # Makefile for clusterit:  Tim Rightnour
 
+INSTALL=	/usr/bin/install
 OPSYS!=		uname
 #CC=		/usr/local/bin/gcc
 PREFIX?=	/usr/local
 
-SUBDIR=		dsh pcp barrier jsd
+SUBDIR=		dsh pcp barrier jsd tools
 
 all:
 	@for dir in ${SUBDIR} ; do \
@@ -20,7 +21,8 @@ clean:
 
 install:
 	@for dir in ${SUBDIR} ; do \
-		(cd $$dir && make install OPSYS=${OPSYS} PREFIX=${PREFIX}) ;\
+		(cd $$dir && make install INSTALL=${INSTALL} OPSYS=${OPSYS} \
+		 PREFIX=${PREFIX}) ;\
 	done
 
 catmans:
