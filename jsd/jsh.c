@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.5 2000/02/20 04:46:12 garbled Exp $ */
+/* $Id: jsh.c,v 1.6 2001/08/13 21:28:37 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -31,6 +31,7 @@
  * SUCH DAMAGE.
  */
 
+#include <errno.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -41,14 +42,12 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.5 2000/02/20 04:46:12 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.6 2001/08/13 21:28:37 garbled Exp $");
 #endif
 
 #ifndef __P
 #define __P(protos) protos
 #endif
-
-extern int errno;
 
 void do_command __P((char **, int, char *));
 char *check_node __P((void));
@@ -70,16 +69,12 @@ node_t *nodelink;
  */
 
 int
-main(argc, argv) 
-	int argc;
-	char *argv[];
+main(int argc, char *argv[])
 {
 	int someflag, ch, allflag, showflag;
 	char *p, *q, *group, *nodename, *username;
 	node_t *nodeptr;
 
-	extern int debug;
-	extern int errorflag;
 	extern char *optarg;
 	extern int optind;
 
@@ -162,8 +157,10 @@ main(argc, argv)
 		if (getenv("JSD_HOST"))
 			jsd_host = strdup(getenv("JSD_HOST"));
 		else
-			jsd_host = "localhost";
+			jsd_host = strdup("localhost");
 	}
+	if (jsd_host == NULL)
+		bailout(__LINE__);
 
 	do_command(argv, allflag, username);
 	exit(EXIT_SUCCESS);
@@ -262,8 +259,6 @@ do_command(argv, allrun, username)
 	pipe_t out, err;
 	pid_t childpid;
 
-	extern int debug;
-
 	i = 0;
 	piping = 0;
 	in = NULL;
@@ -331,7 +326,9 @@ do_command(argv, allrun, username)
 					bailout(__LINE__);
 				rsh = getenv("RCMD_CMD");
 				if (rsh == NULL)
-					rsh = "rsh";
+					rsh = strdup("rsh");
+				if (rsh == NULL)
+					bailout(__LINE__);
 				if (debug)
 					printf("%s %s %s\n", rsh, nodename, command);
 				if (username != NULL)
