@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2000/02/25 21:48:14 garbled Exp $
+# $Id: Makefile,v 1.3 2001/08/13 22:38:52 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
 PROG=		#empty
@@ -26,4 +26,4 @@ install: ${PROG} ${SCRIPTS}
 	${INSTALL} -c -o bin -g bin -m 0444 dshbak.1 ${PREFIX}/man/man1
 
 clean:
-	rm -f ${PROG} ${SCRIPTS} *.o dshbak.sh ../common/*.o
+	rm -f ${PROG} ${SCRIPTS} *.o *.core core *~ dshbak.sh ../common/*.o
