@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.6 2001/08/13 21:28:37 garbled Exp $ */
+/* $Id: jsh.c,v 1.7 2001/08/14 04:43:47 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.6 2001/08/13 21:28:37 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.7 2001/08/14 04:43:47 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -291,6 +291,8 @@ do_command(argv, allrun, username)
 				command = NULL;
 	} else {
 		close(STDIN_FILENO);
+		if (open("/dev/null", O_RDONLY, NULL) != 0)
+			bailout(__LINE__);
 	}
 	if (allrun)
 		nodename = check_node();
