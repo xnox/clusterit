@@ -65,7 +65,7 @@ int reverse_wrap = 0;		/* enable reverse wrapround */
 int debugging = 0;		/* enable debugging output */
 int messages = 0;		/* flag to enable messages */
 char *username;			/* name to run as */
-char *rcmd;				/* remtoe command */
+char *remotecmd;		/* remote command */
 char *nodename;			/* nodename */
 
 
