@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.5 1998/12/14 17:59:57 garbled Exp $ */
+/* $Id: pcp.c,v 1.6 1999/05/04 20:03:57 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -49,7 +49,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: pcp.c,v 1.5 1998/12/14 17:59:57 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.6 1999/05/04 20:03:57 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
@@ -159,7 +159,9 @@ main(argc, argv)
 			nodelist[i] = '\0';
 			break;
 		case '?':
-			(void)fprintf(stderr, "usage: pcp [-cepr] [-f fanout] [-g rungroup1,...,rungroupN] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] source_file [desitination_file]\n");
+			(void)fprintf(stderr, "usage: pcp [-cepr] [-f fanout] [-g rungroup1,...,rungroupN]"
+				" [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] source_file1"
+				" [source_file2 ... source_fileN] [desitination_file]\n");
 			exit(EXIT_FAILURE);
 			break;
 		default:
@@ -234,8 +236,9 @@ void do_copy(argv, nodelist, recurse, preserve, username)
 	int recurse, preserve;
 	char *username;
 {
+	int numsource;
 	char args[64];
-	char *cargs, *source_file, *destination_file, *rcp;
+	char *cargs, *source_file, *destination_file, *tempstore, *rcp;
 
 #ifdef DEBUG
 	int i;
@@ -248,11 +251,21 @@ void do_copy(argv, nodelist, recurse, preserve, username)
 		(void)fprintf(stderr, "Must specify at least one file to copy\n");
 		exit(EXIT_FAILURE);
 	}
+	tempstore = NULL;
 	source_file = strdup(*argv);
-	if (*++argv != NULL) {
-		destination_file = strdup(*argv);
-	} else 
+	numsource = 1;
+	while (*++argv != NULL) {
+		numsource++;
+		if (tempstore != NULL) {
+			source_file = strcat(source_file, " ");
+			source_file = strdup(strcat(source_file, tempstore));
+		}
+		tempstore = strdup(*argv);
+	}
+	if (numsource == 1)
 		destination_file = strdup(source_file);
+	else
+		destination_file = strdup(tempstore);
 
 #ifdef DEBUG
 	printf("\nDo Copy: %s %s\n", source_file, destination_file);
@@ -287,12 +300,21 @@ void
 paralell_copy(rcp, args, nodelist, source_file, destination_file)
 	char *rcp, *args, *nodelist[], *source_file, *destination_file;
 {
+  	typedef struct { int fds[2]; } pipe_t;
+  
 	int i, j, n, g, status;
 	char buf[512], pipebuf[2048], *cd, *p;
 	FILE *fd, *in;
-	int out[fanout+1][2];
-	int err[fanout+1][2];
+	pipe_t *out;
+	pipe_t *err;
 	char *argz[51], **aps;
+
+	out = malloc((fanout+1)*sizeof(pipe_t));
+	err = malloc((fanout+1)*sizeof(pipe_t));
+	if (err==NULL || out==NULL) {
+		fprintf(stderr, "Out of memory");
+		exit(1);
+	}
 
 	j = i = 0;
 	in = NULL;
@@ -314,17 +336,17 @@ paralell_copy(rcp, args, nodelist, source_file, destination_file)
  * children, inherit the open file descriptors, and cause the pipes to remain open
  * forever.
  */
-				if (pipe(out[g]) != 0)
+				if (pipe(out[g].fds) != 0)
 					bailout(__LINE__);
-				if (pipe(err[g]) != 0)
+				if (pipe(err[g].fds) != 0)
 					bailout(__LINE__);
-				if (fcntl(out[g][0], F_SETFD, 1) == -1)
+				if (fcntl(out[g].fds[0], F_SETFD, 1) == -1)
 					bailout(__LINE__);
-				if (fcntl(out[g][1], F_SETFD, 1) == -1)
+				if (fcntl(out[g].fds[1], F_SETFD, 1) == -1)
 					bailout(__LINE__);
-				if (fcntl(err[g][0], F_SETFD, 1) == -1)
+				if (fcntl(err[g].fds[0], F_SETFD, 1) == -1)
 					bailout(__LINE__);
-				if (fcntl(err[g][1], F_SETFD, 1) == -1)
+				if (fcntl(err[g].fds[1], F_SETFD, 1) == -1)
 					bailout(__LINE__);
 #ifdef DEBUG
 				printf("%s %s %s %s %s:%s\n", rcp, args, source_file, nodelist[i], destination_file);
@@ -334,13 +356,13 @@ paralell_copy(rcp, args, nodelist, source_file, destination_file)
 						bailout(__LINE__);
 						break;
 					case 0:
-						if (dup2(out[g][1], STDOUT_FILENO) != STDOUT_FILENO)
+						if (dup2(out[g].fds[1], STDOUT_FILENO) != STDOUT_FILENO)
 							bailout(__LINE__);
-						if (dup2(err[g][1], STDERR_FILENO) != STDERR_FILENO)
+						if (dup2(err[g].fds[1], STDERR_FILENO) != STDERR_FILENO)
 							bailout(__LINE__);
-						if (close(out[g][0]) != 0)
+						if (close(out[g].fds[0]) != 0)
 							bailout(__LINE__);
-						if (close(err[g][0]) != 0)
+						if (close(err[g].fds[0]) != 0)
 							bailout(__LINE__);
 						(void)sprintf(buf, "%s %s %s %s:%s", rcp, args, source_file, nodelist[i], destination_file);
 						p = strdup(buf);
@@ -357,17 +379,17 @@ paralell_copy(rcp, args, nodelist, source_file, destination_file)
 		for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
 			if (test_node(i)) {
 				g = i - n * fanout;
-				if (close(out[g][1]) != 0)  /* now close off the useless stuff, and read the goodies */
+				if (close(out[g].fds[1]) != 0)  /* now close off the useless stuff, and read the goodies */
 					bailout(__LINE__);
-				if (close(err[g][1]) != 0)
+				if (close(err[g].fds[1]) != 0)
 					bailout(__LINE__);
-				fd = fdopen(out[g][0], "r"); /* stdout */
+				fd = fdopen(out[g].fds[0], "r"); /* stdout */
 					if (fd == NULL)
 				while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
 					if (cd != NULL && !quiet)
 						(void)printf("%-12s: %s", nodelist[i], cd);
 				fclose(fd);
-				fd = fdopen(err[g][0], "r"); /* stderr */
+				fd = fdopen(err[g].fds[0], "r"); /* stderr */
 				if (fd == NULL)
 					bailout(__LINE__);
 				while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
