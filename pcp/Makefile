@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.11 2001/08/13 22:36:26 garbled Exp $
+# $Id: Makefile,v 1.12 2001/08/13 23:04:13 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
 #Uncomment things for solaris.
@@ -29,7 +29,7 @@ ${SRCS:.c=.ln}: ${SRCS}
 lint: ${SRCS:.c=.ln}
 	${LINT} ${LINTFLAGS} ${SRCS:.o=.ln}
 		
-install: ${PROG}
+install: ${PROG} ${MAN}
 	${INSTALL} -c -s -o bin -g bin -m 0755 pcp ${PREFIX}/bin
 	${INSTALL} -c -o bin -g bin -m 0444 pcp.1 ${PREFIX}/man/man1
 clean:
