@@ -1,4 +1,4 @@
-$Id: README,v 1.5 1999/10/14 16:58:14 garbled Exp $
+$Id: README,v 1.6 2000/01/14 22:48:14 garbled Exp $
 
 Welcome to clusterit-1.3 !
 
@@ -43,7 +43,7 @@ Choice of authentication.
 This is actually fine for a closed environment like an SP, but for something
 to be run on just a stack of otherwise useful boxes, you need more freedom.
 This suite allows you to do whatever you like.. ssh, kerberos, .rhosts.
-Whatever suits your security needs best.
+Whatever suits your security and speed requirements best.
 
 Sequential node, and random node execution
 	The idea here is that these dsh-like programs allow you to do something
@@ -64,10 +64,10 @@ do something
 barrier -h host -k token -s 5
 do something else
 
-then you would dsh the execution of this script to your hosts.  The barrier makes
-sure that all hosts have completed the first "something" before the continue on to
-the next something.  The -s, is the level of paralellism for the script, ie: how
-many processes to wait for before continuing.
+Then, you would dsh the execution of this script to your hosts.  The barrier
+makes sure that all hosts have completed the first "something" before the
+continue on to the next something.  The -s, is the level of paralellism for
+the script, ie: how many processes to wait for before continuing.
 
 What my solution does not provide:
 

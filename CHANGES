@@ -1,4 +1,31 @@
-$Id: CHANGES,v 1.4 1999/10/14 16:58:14 garbled Exp $
+$Id: CHANGES,v 1.5 2000/01/14 22:48:14 garbled Exp $
+
+Add <netinet/if_ether.h> to barrierd.c to shut AIX C up.
+
+Lots of minor bugfixes, mostly dealing with failures to open files, opening
+0 byte clusters, etc etc..
+
+Pcp was still using it's own code to parse strings and groups.  Fully rewrote
+the back-end internals to use the new linked-list stuff, and utilize common.c.
+Pcp's code is now virtually identical to dsh, whereas before it had diverged
+significantly.
+
+Error handling has finally graduated to where I no longer feel that it
+"needs work".
+
+Fix a place where malloced data was strcatted to without being bzeroed.
+
+Group, exclusion and -w nodes are now dynamicly generated arrays.  Removes
+the MAX_GROUPS restrictions.
+
+The nodelist and grouplists are no longer maintained in any way similar to
+the original setup.  Nodes are not stored in a flat array of nodes, with a
+corresponding flat array of group names.  Nodes are now stores in a linked
+list of machines to run on.  Nodes which are not to be run on, are not
+included in this list, so the back-end routines only need to execute code
+on every node they are handed in the linked list.  This is all handled in
+common.c now.  This removes the all compile time restrictions on MAXNODES,
+allowing the program to scale much more efficiently.
 
 # changes since 1.3
 * Release 1.3 *
@@ -7,7 +34,7 @@ Break dsh, run and seq's common code into a common.c and common.h file,
 so I don't forget to add options to run and seq when fixing dsh.  Also, fix
 some locations where run and seq were out of sync slightly.
 
-Fix a bug in pcp where if the -m option was used, filesystems at 100%
+Fix a bug in pdf where if the -m option was used, filesystems at 100%
 would not be displayed.
 
 Handle ^C's correctly.  If a remote process is hung, and it is the current
@@ -33,7 +60,7 @@ dump core when transitioning fangroups.
 
 Added the rungroup, and exclusion commands to all the programs.
 
-Fix pdf to work on a heterogenous cluster.
+Fix pdf to work on a heterogeneous cluster.
 
 Add concurrency to pcp, to eliminate startup latency lossage.
 

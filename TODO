@@ -1,10 +1,14 @@
-# $Id: TODO,v 1.2 1999/05/05 09:35:42 garbled Exp $
+# $Id: TODO,v 1.3 2000/01/14 22:48:14 garbled Exp $
 # no particular order:
 
-Port interrupt handling to seq and run.
+LUMPS, which would be groups of GROUPS, to allow a sort of virtual group.
+ie: you could have functions in groups, like mail, www, etc.. and have machine
+type lumps, for example, all NetBSD, all hpux, for other types of
+machine-specific administration.
 
-Fix handling of g in loops.  If you have a massive cluster, and pick
-two sparse groups in it.. it will run twice, rather than once..
+jsd, jsh
+
+Port interrupt handling to seq and run.
 
 Break apart do_command in dsh.c to something sane.
 
@@ -25,11 +29,19 @@ pdf could probably use a little work.
 
 supper  <groan>
 
-make bailout() able to provide real data about failures.  Move into common, or
-perhaps make it a macro.
 
-Remove #ifdef DEBUG and use a -d for a switchable debugging flag.
+COMPLETED
+---------
 
-Make a common header file of some sort.
+Fixed post 1.3
+	Fix handling of g in loops.  If you have a massive cluster, and pick
+	two sparse groups in it.. it will run twice, rather than once..
 
-could alignstring be a macro?
+	make bailout() able to provide real data about failures.  Move into
+	common, or perhaps make it a macro.
+
+	Remove #ifdef DEBUG and use a -d for a switchable debugging flag.
+
+	Make a common header file of some sort.
+
+	could alignstring be a macro?
