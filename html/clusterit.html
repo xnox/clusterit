@@ -1,7 +1,7 @@
 <HTML>
 <head><title>ClusterIt</title></head>
 <body bgcolor="#ffffff">
-<!-- $Id: clusterit.html,v 1.1 1998/10/26 18:38:14 garbled Exp $ -->
+<!-- $Id: clusterit.html,v 1.2 1998/10/26 18:42:01 garbled Exp $ -->
 
 <center><h2>Welcome to clusterit-1.1 !</center></h2>
 
@@ -17,7 +17,7 @@ however:
 individual nodes, and much better load sharing.  However I'm convinced
 alot of the speed advantages of having a parallel cluster are lost with
 the incredible overhead of running the glunix master and daemon services
-on a host.  Glunix does however offer a real paralell programming
+on a host.  Glunix does however offer a real parallel programming
 environment.  Something which is totally beyond the scope of this package.
 
 <p>PSSP is also a very powerful set of tools.  Not much more than a bunch
@@ -33,7 +33,7 @@ What my solution provides:
 <dt>*Fast* parallel execution of remote commands.</DT>
 <dd>C vs. Perl.  You do the math.</DD>
 
-<dt>Heterogenous cluster makeup.</dt>
+<dt>Heterogeneous cluster makeup.</dt>
 <dd>This makes it very easy to administer a large number of machines,
 of varying architectures, and operating systems.  The fact that my tools are
 completely architecture independent, make it possible to dsh commands out
@@ -52,9 +52,9 @@ Whatever suits your security needs best.</dd>
 akin to load balanced scripting.  For example one could set up an NFS shared
 build directory, and issue the command:<DD>
 <pre>make -j4 CC="seq 'cd /usr/src/foo ; gcc'"</pre><br>
-Which would execute a build in paralell, on 4 nodes in your cluster, assigning
-processes to each node in sequence.   The run command is equivilent to saying:
-"I dont care where you run, just run and tell me how things turned out."  Generally speaking, the run command will achieve better results as the size of the
+Which would execute a build in parallel, on 4 nodes in your cluster, assigning
+processes to each node in sequence.   The run command is equivalent to saying:
+"I don't care where you run, just run and tell me how things turned out."  Generally speaking, the run command will achieve better results as the size of the
 cluster increases.  If you have only three nodes, the odds of getting the same
 node over and over are fairly good.
 
@@ -70,7 +70,7 @@ do something else
 </pre>
 <p>then you would dsh the execution of this script to your hosts.  The barrier makes
 sure that all hosts have completed the first "something" before the continue on to
-the next something.  The -s, is the level of paralellism for the script, ie: how
+the next something.  The -s, is the level of parallelism for the script, ie: how
 many processes to wait for before continuing.
 </DL>
 <HR>
@@ -96,7 +96,7 @@ it than big blue did.  Yuck.</dd>
 <li><a href="ftp://ftp.netbsd.org/pub/NetBSD/packages/pkgsrc/parallel/clusterit/README.html">Latest ClusterIt package for NetBSD</a>
 </ul>
 <p>ClusterIt is known to work on NetBSD 1.3 and later, and Solaris 2.51.  Reports of other sucesses (and any patches needed) would be greatly appreciated.
-<p>ClusterIt is Free software, with a standard BSD-style Liscence.  You are encouraged to download this, work with it, enchance it, or whatever suits your needs.  Redistribution can take place if the liscence stays intact.
+<p>ClusterIt is Free software, with a standard BSD-style License.  You are encouraged to download this, work with it, enhance it, or whatever suits your needs.  Redistribution can take place if the license stays intact.
 <p>Please send any bug reports, enhancements, bricks to: <a href="mailto:root@garbled.net">Tim Rightnour</a>
 <br><br>
 </body></html>
