@@ -1,6 +1,18 @@
-$Id: CHANGES,v 1.1 1998/12/14 17:45:48 garbled Exp $
+$Id: CHANGES,v 1.2 1999/05/04 19:37:20 garbled Exp $
 
-# Started at 1.1 (sorry)
+Handle ^C's correctly.  If a remote process is hung, and it is the current
+process being read, you may ^C it, and the interrupt will be sent to the
+remote process.  This would be just like hitting ^C on the remote end, 
+and will only affect the process you are currently reading from.
+
+Added ability to pcp multiple files and wildcards to remote hosts.
+
+Made pcp and dsh compile on an ANSI compiler (IBM C, SUN C)
+
+Make output from dsh look nicer, and format well.
+
+# changes since 1.2
+* Release 1.2 *
 
 Bug fixes in dsh to deal with the start of a fangroup, and
 a race condition, where large output would cause it to hang
@@ -22,4 +34,5 @@ Fix seq, and run to actually work.  Use a semi-atomic test and set
 to create the seq file, so it actually runs through the nodes, rather
 than execute on the same one over and over.
 
-* Release 1.2 *
+* Release 1.1 *
+#no data previous to 1.1.  Sorry.
