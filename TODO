@@ -1,5 +1,7 @@
-# $Id: TODO,v 1.1 1999/05/04 19:49:51 garbled Exp $
+# $Id: TODO,v 1.2 1999/05/05 09:35:42 garbled Exp $
 # no particular order:
+
+Port interrupt handling to seq and run.
 
 Fix handling of g in loops.  If you have a massive cluster, and pick
 two sparse groups in it.. it will run twice, rather than once..
