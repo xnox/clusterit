@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.8 1998/12/14 17:59:43 garbled Exp $ */
+/* $Id: dsh.c,v 1.9 1999/05/04 19:20:43 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -36,7 +36,9 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 
+#include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -49,32 +51,36 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: dsh.c,v 1.8 1998/12/14 17:59:43 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.9 1999/05/04 19:20:43 garbled Exp $");
 #endif
 
-#define MAX_CLUSTER 512
-#define DEFAULT_FANOUT 64
-#define MAX_GROUPS 32
-#define MAXBUF 1024
+enum {
+	MAX_CLUSTER = 512,
+	DEFAULT_FANOUT = 64,
+	MAX_GROUPS = 32,
+	MAXBUF = 1024
+};
 
 extern int errno;
-#ifdef __NetBSD__
-void bailout __P((int));
-void do_command __P((char **argv, char *nodelist[], int fanout, char *username));
-void do_showcluster __P((char *nodelist[], int fanout));
-int test_node __P((int count));
-#else
-void bailout(int);
-void do_command(char **argv, char *nodelist[], int fanout, char *username);
-char * strsep(char **stringp, const char *delim);
-void do_showcluster(char *nodelist[], int fanout);
-int test_node(int count);
+#ifndef __P
+#define __P(protos) protos
 #endif
 
-int debug;
-int errorflag;
+void bailout __P((int));
+void do_command __P((char **, char *[], int, char *));
+void do_showcluster __P((char *[], int));
+int test_node __P((int));
+char *alignstring __P((char *, size_t));
+void sig_handler __P((int));
+
+#ifndef __NetBSD__
+char * strsep(char **stringp, const char *delim);
+#endif
+
+int debug, errorflag, gotsigint, gotsigterm;
 char *grouplist[MAX_CLUSTER];
 char *rungroup[MAX_GROUPS];
+pid_t currentchild;
 
 /* 
  *  dsh is a cluster management tool derrived from the IBM tool of the
@@ -87,18 +93,17 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	extern char *optarg;
-	extern int optind;
+	extern char	*optarg;
+	extern int	optind;
 
-	FILE *fd;
+	FILE	*fd;
 	int someflag, ch, i, fanout, showflag, exclusion, j, fail, fanflag;
-	char *p, *group, *nodelist[MAX_CLUSTER], *nodename, *clusterfile, *username;
-	char *exclude[MAX_CLUSTER];
-	char buf[256];
-	struct rlimit limit;
+	char *p, *group, *nodelist[MAX_CLUSTER];
+	char *nodename, *clusterfile, *username, *exclude[MAX_CLUSTER];
+	char	buf[256];
+	struct rlimit	limit;
 
-	extern int debug;
-	extern int errorflag;
+	extern int debug, errorflag, gotsigterm, gotsigint;
 
 	someflag = 0;
 	showflag = 0;
@@ -106,6 +111,8 @@ main(argc, argv)
 	exclusion = 0;
 	debug = 0;
 	errorflag = 0;
+	gotsigint = 0;
+	gotsigterm = 0;
 	fanout = DEFAULT_FANOUT;
 	username = NULL;
 	group = NULL;
@@ -162,20 +169,25 @@ main(argc, argv)
 			break;
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
-			    "usage: dsh [-eiq] [-f fanout] [-g rungroup1,...,rungroupN] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] [command ...]\n");
+			    "usage: dsh [-eiq] [-f fanout] [-g rungroup1,...,rungroupN] "
+			    "[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
+			    "[command ...]\n");
 			return(EXIT_FAILURE);
 			/*NOTREACHED*/
 			break;
 		default:
 			break;
 	}
-	if (!fanflag)	/* check for a fanout var, and use it if the fanout isn't on the commandline. */
+	if (!fanflag)
+/* check for a fanout var, and use it if the fanout isn't on the commandline */
 		if (getenv("FANOUT"))
 			fanout = atoi(getenv("FANOUT"));
-	if (!someflag) { /* if -w wasn't specified, we need to parse the cluster file */
+	if (!someflag) {
+/* if -w wasn't specified, we need to parse the cluster file */
 		clusterfile = getenv("CLUSTER");
 		if (clusterfile == NULL) {
-			(void)fprintf(stderr, "must use -w flag without CLUSTER environment setting.\n");
+			(void)fprintf(stderr,
+			    "must use -w flag without CLUSTER environment setting.\n");
 			return(EXIT_FAILURE);
 		}
 		fd = fopen(clusterfile, "r");
@@ -240,9 +252,9 @@ main(argc, argv)
 }
 
 /*
- * This routine just rips open the various arrays and prints out information about
- * what the command would have done, and the topology of your cluster.  Invoked via
- * the -q switch.
+ * This routine just rips open the various arrays and prints out information
+ * about what the command would have done, and the topology of your cluster.
+ * Invoked via the -q switch.
  */
 
 void
@@ -255,8 +267,8 @@ do_showcluster(nodelist, fanout)
 	i = l = 0;
 	for (i=0; nodelist[i] != NULL; i++)		/* just count the nodes */
 		;
-
-	j = i / fanout;		/* how many times do I have to run in order to reach them all */
+	j = i / fanout;
+      /* how many times do I have to run in order to reach them all */
 	if (i % fanout)
 		j++;
 
@@ -275,23 +287,30 @@ do_showcluster(nodelist, fanout)
 		(void)printf("Cluster file: %s\n", getenv("CLUSTER"));
 	(void)printf("Fanout size: %d\n", fanout);
 	for (n=0; n <= j; n++) {
-		for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
+		for (i=n * fanout;
+		    ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
 			if (rungroup[0] != NULL) {
 				if (test_node(i)) {
 					l++;
 					if (grouplist[i] == NULL)
-						(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None             Host: %s\n", l, n + 1, nodelist[i]);
+						(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None"
+						    "             Host: %s\n", l, n + 1, nodelist[i]);
 					else
-						(void)printf("Node: %3d  Fangroup: %3d  Rungroup: %-15s  Host: %-15s\n", l, n + 1, grouplist[i], nodelist[i]);
+						(void)printf("Node: %3d  Fangroup: %3d  Rungroup: "
+						    "%-15s  Host: %-15s\n", l, n + 1, grouplist[i],
+							nodelist[i]);
 				}
 			} else {
 				l++;
 				if (grouplist[i] == NULL)
-					(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None            Host: %-15s\n", l, n + 1, nodelist[i]);
+					(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None"
+					    "            Host: %-15s\n", l, n + 1, nodelist[i]);
 				else
-					(void)printf("Node: %3d  Fangroup: %3d  Rungroup: %-15s  Host: %-15s\n", l, n + 1, grouplist[i], nodelist[i]);
+					(void)printf("Node: %3d  Fangroup: %3d  Rungroup: %-15s"
+					    "  Host: %-15s\n", l, n + 1, grouplist[i],
+						nodelist[i]);
 			}
-		} 
+		}
 	}
 }
 
@@ -307,16 +326,31 @@ do_command(argv, nodelist, fanout, username)
 	char *username;
 	int fanout;
 {
+	typedef struct { int fds[2]; } pipe_t;
+	struct sigaction signaler;
+
 	FILE *fd, *in;
-	int out[fanout+1][2];
-	int err[fanout+1][2];
+	pipe_t *out;
+	pipe_t *err;
+	pid_t *childpid;
 	char buf[MAXBUF];
 	char pipebuf[2048];
 	int status, i, j, n, g, piping;
+	size_t maxnodelen;
 	char *p, *command, *rsh, *cd;
 
-	extern int debug;
+	extern int debug, gotsigterm, gotsigint;
 
+	out = malloc((fanout+1)*sizeof(pipe_t));
+	err = malloc((fanout+1)*sizeof(pipe_t));
+	childpid = malloc((fanout+1)*sizeof(pid_t));
+
+	if (err == NULL || out == NULL || childpid == NULL) {
+		fprintf(stderr, "Out of memory");
+		exit(EXIT_FAILURE);
+	}
+
+	maxnodelen = 0;
 	j = i = 0;
 	piping = 0;
 	in = NULL;
@@ -341,7 +375,9 @@ do_command(argv, nodelist, fanout, username)
 		}
 	}
 	for (i=0; nodelist[i] != NULL; i++)		/* just count the nodes */
-		;
+		if (strlen(nodelist[i]) > maxnodelen)
+			maxnodelen = strlen(nodelist[i]); /* compute max hostname len */
+	
 	j = i / fanout;
 	if (i % fanout)
 		j++;
@@ -358,97 +394,132 @@ do_command(argv, nodelist, fanout, username)
 	}
 	if (strcmp(command,"") == 0) {
 		piping = 1;
-		if (isatty(STDIN_FILENO) && piping)		/* are we a terminal?  then go interactive! */
+		/* are we a terminal?  then go interactive! */
+		if (isatty(STDIN_FILENO) && piping)
 			(void)printf("dsh>");
 		in = fdopen(STDIN_FILENO, "r");
-		command = fgets(buf, sizeof(buf), in);	/* start reading stuff from stdin and process */
+		/* start reading stuff from stdin and process */
+		command = fgets(buf, sizeof(buf), in);
 		if (command != NULL)
 			if (strcmp(command,"\n") == 0)
 				command = NULL;
 	}
 
+	signaler.sa_handler = sig_handler;
+	signaler.sa_flags |= SA_RESTART;
+	sigaction(SIGTERM, &signaler, NULL);
+	sigaction(SIGINT, &signaler, NULL);
+
 	while (command != NULL) {
 		for (n=0; n <= j; n++) {
-			for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
+			if (gotsigterm || gotsigint)
+				exit(EXIT_FAILURE);
+			for (i=n * fanout;
+			    ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
+				if (gotsigterm)
+					exit(EXIT_FAILURE);
 				if (test_node(i)) {
 					g = i - n * fanout;
 #ifdef DEBUG
-					(void)printf("Working node: %d, group %d, fanout part: %d\n", i, n, g);
+					(void)printf("Working node: %d, group %d, fanout part: "
+					    "%d\n", i, n, g);
 #endif
 /*
  * we set up pipes for each node, to prepare for the oncoming barrage of data.
  * Close on exec must be set here, otherwise children spawned after other
- * children, inherit the open file descriptors, and cause the pipes to remain open
- * forever.
+ * children, inherit the open file descriptors, and cause the pipes to remain
+ * open forever.
  */
-					if (pipe(out[g]) != 0)
+					if (pipe(out[g].fds) != 0)
 						bailout(__LINE__);
-					if (pipe(err[g]) != 0)
+					if (pipe(err[g].fds) != 0)
 						bailout(__LINE__);
-					if (fcntl(out[g][0], F_SETFD, 1) == -1)
+					if (fcntl(out[g].fds[0], F_SETFD, 1) == -1)
 						bailout(__LINE__);
-					if (fcntl(out[g][1], F_SETFD, 1) == -1)
+					if (fcntl(out[g].fds[1], F_SETFD, 1) == -1)
 						bailout(__LINE__);
-					if (fcntl(err[g][0], F_SETFD, 1) == -1)
+					if (fcntl(err[g].fds[0], F_SETFD, 1) == -1)
 						bailout(__LINE__);
-					if (fcntl(err[g][1], F_SETFD, 1) == -1)
+					if (fcntl(err[g].fds[1], F_SETFD, 1) == -1)
 						bailout(__LINE__);
-					switch (fork()) {  /* its the ol fork and switch routine eh? */
+					childpid[g] = fork();
+					switch (childpid[g]) {
+					  /* its the ol fork and switch routine eh? */
 						case -1:
 							bailout(__LINE__);
 							break;
-						case 0: 
-							if (dup2(out[g][1], STDOUT_FILENO) != STDOUT_FILENO) /* stupid unix tricks vol 1 */
+						case 0:
+							/* remove from parent group to avoid kernel
+							 * passing signals to children.
+							 */
+							(void)setsid();
+							if (dup2(out[g].fds[1], STDOUT_FILENO)
+							    != STDOUT_FILENO) 
 								bailout(__LINE__);
-							if (dup2(err[g][1], STDERR_FILENO) != STDERR_FILENO)
+							if (dup2(err[g].fds[1], STDERR_FILENO)
+							    != STDERR_FILENO)
 								bailout(__LINE__);
-							if (close(out[g][0]) != 0)
+							if (close(out[g].fds[0]) != 0)
 								bailout(__LINE__);
-							if (close(err[g][0]) != 0)
+							if (close(err[g].fds[0]) != 0)
 								bailout(__LINE__);
 							rsh = getenv("RCMD_CMD");
 							if (rsh == NULL)
 								rsh = "rsh";
 #ifdef DEBUG
-							(void)printf("%s %s %s\n", rsh, nodelist[i], command);
+							(void)printf("%s %s %s\n", rsh, nodelist[i],
+							    command);
 #endif
-							if (username != NULL)  /* interestingly enough, this -l thing works great with ssh */
-								execlp(rsh, rsh, "-l", username, nodelist[i], command, (char *)0);
+							if (username != NULL)
+/* interestingly enough, this -l thing works great with ssh */
+								execlp(rsh, rsh, "-l", username, nodelist[i],
+								    command, (char *)0);
 							else
-								execlp(rsh, rsh, nodelist[i], command, (char *)0);
+								execlp(rsh, rsh, nodelist[i], command,
+								    (char *)0);
 							bailout(__LINE__);
 						default:
 							break;
 						} /* switch */
 				} /* test_node */
 			} /* for i */
-			for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
+			for (i=n * fanout;
+			    ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
 				if (test_node(i)) {
 					g = i - n * fanout;
-					if (close(out[g][1]) != 0)  /* now close off the useless stuff, and read the goodies */
+					if (gotsigterm)
+						exit(EXIT_FAILURE);
+					currentchild = childpid[g];
+					/* now close off the useless stuff, and read the goodies */
+					if (close(out[g].fds[1]) != 0)
 						bailout(__LINE__);
-					if (close(err[g][1]) != 0)
+					if (close(err[g].fds[1]) != 0)
 						bailout(__LINE__);
-					fd = fdopen(out[g][0], "r"); /* stdout */
+					fd = fdopen(out[g].fds[0], "r"); /* stdout */
 					if (fd == NULL)
 						bailout(__LINE__);
-					while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
+					while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
 						if (cd != NULL)
-							(void)printf("%-12s: %s", nodelist[i], cd);
+							(void)printf("%s: %s",
+							    alignstring(nodelist[i], maxnodelen), cd);
+					}
 					fclose(fd);
-					fd = fdopen(err[g][0], "r"); /* stderr */
+					fd = fdopen(err[g].fds[0], "r"); /* stderr */
 					if (fd == NULL)
 						bailout(__LINE__);
-					while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
+					while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
 						if (errorflag && cd != NULL)
-							(void)printf("%-12s: %s", nodelist[i], cd);
+							(void)printf("%s: %s",
+								alignstring(nodelist[i], maxnodelen), cd);
+					}
 					fclose(fd);
 					(void)wait(&status);
 				} /* test_node */
 			} /* for pipe read */
 		} /* for n */
 		if (piping) {
-			if (isatty(STDIN_FILENO) && piping) /* yes, this is code repetition, no need to adjust your monitor */
+/* yes, this is code repetition, no need to adjust your monitor */
+			if (isatty(STDIN_FILENO) && piping)
 				(void)printf("dsh>");
 			command = fgets(buf, sizeof(buf), in);
 			if (command != NULL)
@@ -481,7 +552,28 @@ test_node(count)
 	return(0);
 }
 
-/* Simple error handling routine, needs severe work.  Its almost totally useless. */
+/* return a string, followed by n - strlen spaces */
+
+char *
+alignstring(string, n)
+	char *string;
+	size_t n;
+{
+	size_t i;
+	char *newstring;
+
+	newstring = strdup(string);
+	for (i=1; i <= n - strlen(string); i++)
+		newstring = strcat(newstring, " ");
+
+	return(newstring);
+}
+
+
+/* 
+ * Simple error handling routine, needs severe work.
+ * Its almost totally useless.
+ */
 
 void
 bailout(line) 
@@ -496,4 +588,25 @@ extern int errno;
 	(void)fprintf(stderr, "Internal error, aborting: %s\n", strerror(errno));
 #endif
 	_exit(EXIT_FAILURE);
+}
+
+void
+sig_handler(i)
+	int i;
+{
+	extern int gotsigterm;
+	extern pid_t currentchild;
+
+	switch (i) {
+		case SIGINT:
+			killpg(currentchild, SIGINT);
+			break;
+	    case SIGTERM:
+			gotsigterm = 1;
+			break;
+		default:
+			(void)fprintf(stderr, "Recieved unknown signal in sig_handler\n");
+			_exit(EXIT_FAILURE);
+			break;
+	}
 }
