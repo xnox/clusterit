@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.14 2000/01/17 04:00:51 garbled Exp $ */
+/* $Id: dsh.c,v 1.15 2000/02/17 07:57:08 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,13 +40,14 @@
 #include <fcntl.h>
 #include <signal.h>
 
-#include "common.h"
+#define CLUSTERS
+#include "../common/common.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.14 2000/01/17 04:00:51 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.15 2000/02/17 07:57:08 garbled Exp $");
 #endif /* not lint */
 
 extern int errno;
@@ -60,8 +61,9 @@ void sig_handler __P((int));
 /* globals */
 int debug, errorflag, gotsigint, gotsigterm, exclusion, grouping;
 node_t *nodelink;
-char **grouplist;
+group_t *grouplist;
 char **rungroup;
+char **lumplist;
 pid_t currentchild;
 char *progname;
 
@@ -82,7 +84,7 @@ main(argc, argv)
 
 	int someflag, ch, i, fanout, showflag, fanflag;
 	char *p, *q, *group, *nodename, *username;
-	char **grouptemp, **exclude;
+	char **exclude, **grouptemp;
 	struct rlimit	limit;
 	node_t *nodeptr;
 

@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.8 2000/01/14 23:29:32 garbled Exp $ */
+/* $Id: rseq.c,v 1.9 2000/02/17 07:57:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -33,13 +33,15 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "common.h"
+
+#define CLUSTERS
+#include "../common/common.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.8 2000/01/14 23:29:32 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.9 2000/02/17 07:57:09 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -56,9 +58,10 @@ node_t * check_seq __P((void));
 
 int debug, errorflag, exclusion, grouping;
 int seqnumber;
-char **grouplist;
 char **rungroup;
+char **lumplist;
 node_t *nodelink;
+group_t *grouplist;
 char *progname;
 
 /* 
