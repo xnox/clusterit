@@ -1,4 +1,3 @@
-
 BARRIER(1)                  NetBSD Reference Manual                 BARRIER(1)
 
 NNAAMMEE
@@ -12,7 +11,7 @@ DDEESSCCRRIIPPTTIIOONN
      mands.  When a barrier is set, it is not released until all the nodes or
      processes have met the barrier condition.  This can be a handy way to
      make sure slower machines, perform certain tasks before doing something
-     on faster machines that relies on them.  The following options are avail-
+     on faster machines that relies on them. The following options are avail-
      able:
 
      --qq   Turns quiet off, so barrier notifications are sent to the user.

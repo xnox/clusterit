@@ -1,4 +1,3 @@
-
 PRM(1)                      NetBSD Reference Manual                     PRM(1)
 
 NNAAMMEE
@@ -73,10 +72,8 @@ AAUUTTHHOORR
      PPrrmm was written by Tim Rightnour.
 
 BBUUGGSS
-     Error handling could use some work.
-
      Some of the more advanced options, like the --PP option, may not be avail-
      able in some versions of rm(1).  Consult the rm(1) manpage on the remote
      host if you have problems.
 
-                                  May 5, 1999                                2
+                               January 14, 2000                              2

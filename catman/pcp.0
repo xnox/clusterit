@@ -1,4 +1,3 @@
-
 PCP(1)                      NetBSD Reference Manual                     PCP(1)
 
 NNAAMMEE
@@ -84,7 +83,7 @@ EEXXAAMMPPLLEESS
 
      pcp file
 
-     will copy the file 'file' to the home directory of the current user on
+     will copy the file `file' to the home directory of the current user on
      all machines listed in the file pointed to by the CLUSTER environment
      setting.
 
@@ -92,15 +91,15 @@ EEXXAAMMPPLLEESS
 
      pcp -w hadar,rigel file
 
-     will copy the file 'file' to the home directory of the current user on
-     the machines 'hadar' and 'rigel'.
+     will copy the file `file' to the home directory of the current user on
+     the machines `hadar' and `rigel'.
 
      The command:
 
      pcp -w hadar,rigel /usr/bin/foo /usr/local/bin/foo
 
-     will copy the file '/usr/bin/foo' to '/usr/local/bin/foo' on the machines
-     'hadar' and 'rigel'.
+     will copy the file `/usr/bin/foo' to `/usr/local/bin/foo' on the machines
+     `hadar' and `rigel'.
 
 DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
@@ -115,7 +114,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      PPccpp was written by Tim Rightnour.
 
-BBUUGGSS
-     Error handling could use some work.
-
-                                  May 5, 1999                                2
+                               January 14, 2000                              2

@@ -1,4 +1,3 @@
-
 PDF(1)                      NetBSD Reference Manual                     PDF(1)
 
 NNAAMMEE
@@ -27,7 +26,7 @@ DDEESSCCRRIIPPTTIIOONN
           ning without the --gg option will run the command on the same node as
           many times as it appears in the file specified by the CLUSTER envi-
           ronment variable.  This option is silently ignored if used with the
-          -w option.
+          --ww option.
 
      --xx   The --xx option can be used to exclude specific nodes from the clus-
           ter.  The format is the same as the --ww option, a comma delimited
@@ -85,8 +84,8 @@ AAUUTTHHOORR
 
 BBUUGGSS
      Output is formatted for 80 columns.  This means that mount points and
-     filesystems with long names ( > 20 characters ) will be truncated.  In
-     addition, numbers longer than 9 digits will be truncated as well.
+     filesystems with long names (> 20 characters) will be truncated.  In ad-
+     dition, numbers longer than 9 digits will be truncated as well.
 
      ppddff will only work on nodes that produce the df(1) output that it ex-
      pects.  It has been made to work on HP-UX, Solaris, and AIX, along with

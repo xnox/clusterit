@@ -1,4 +1,3 @@
-
 SEQ(1)                      NetBSD Reference Manual                     SEQ(1)
 
 NNAAMMEE
@@ -63,9 +62,9 @@ EENNVVIIRROONNMMEENNTT
 
      SEQ_FILE  Specifies a specific sequence file.  This is a temporary file,
                which saves the number of the last node run on.  It defaults to
-               /tmp/[pid].seq.  Where [pid] is the pid of the parent process
-               of seq.  It may be useful to wire the SEQ_FILE to a particular
-               file, in order to keep proper sequence when invoking seq from
+               _/_t_m_p_/ [pid .seq]. Where [pid] is the pid of the parent process
+               of . It may be useful to wire the SEQ_FILE to a particular
+               file, in order to keep proper sequence when invoking sseeqq from
                subshells or scripts.
 
 DDIIAAGGNNOOSSTTIICCSS
@@ -81,11 +80,6 @@ AAUUTTHHOORR
      SSeeqq was written by Tim Rightnour.
 
 BBUUGGSS
-     Error handling could use some work.
-
-     The maximum number of nodes in a cluster is hardwired to 512.  This can
-     be modified by recompiling the program.
-
      The sseeqq command works fine when used with the --ww and --xx flags.  However
      the user may find that if the arguments are changed, or the flags are
      omitted on a subsequent run, the next node picked may not be predictable.
@@ -93,4 +87,4 @@ BBUUGGSS
      numbers recorded in the temporary file may not match up to a new sequence
      placed on the command line.
 
-                                  May 5, 1999                                2
+                               January 14, 2000                              2
