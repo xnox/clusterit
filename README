@@ -1,6 +1,6 @@
-$Id: README,v 1.1 1998/10/13 08:05:06 garbled Exp $
+$Id: README,v 1.2 1998/10/14 07:34:05 garbled Exp $
 
-Welcome to clusterit-1.0 !
+Welcome to clusterit-1.1 !
 
 This is a collection of clustering tools, to turn your ordinary
 everyday pile of UNIX workstations into a speedy parallel beast.
@@ -26,6 +26,7 @@ machines.  Unfortunately, they all have dwarbacks.. as does my solution.
 What my solution provides:
 
 *Fast* parallel execution of remote commands.
+	C vs. Perl.  You do the math.
 
 Heterogenous cluster makeup.
 	This makes it very easy to administer a large number of machines,
@@ -41,15 +42,26 @@ to be run on just a stack of otherwise useful boxes, you need more freedom.
 This suite allows you to do whatever you like.. ssh, kerberos, .rhosts.
 Whatever suits your security needs best.
 
+Barrier sync for shell scripting.
+	This is a new idea.  The barrier mechanism consists of a daemon run on
+a host, and a client which can be used to barrier sync with.  An example of use
+would be:
+
+#!/bin/sh
+do something
+barrier -h host -k token -s 5
+do something else
+
+then you would dsh the execution of this script to your hosts.  The barrier makes
+sure that all hosts have completed the first "something" before the continue on to
+the next something.  The -s, is the level of paralellism for the script, ie: how
+many processes to wait for before continuing.
+
 What my solution does not provide:
 
 A parallel programming API
 	Use MPI, or PVM, or whatever for that.. thats outside the scope of
 this suite.
-
-Barrier syncronization
-	Not really useful at this point, though parallel builds may someday
-require something of this nature.
 
 Things to do still:
 
