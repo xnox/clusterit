@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.2 1998/10/14 09:58:43 garbled Exp $ */
+/* $Id: barrierd.c,v 1.3 1998/10/14 20:43:51 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: barrierd.c,v 1.2 1998/10/14 09:58:43 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.3 1998/10/14 20:43:51 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK	1933	/* default socket for barrier */
@@ -248,6 +248,7 @@ int sleeper(void)
 									if (connections[k] == sizes[k]) {
 										l = connections[k];
 										for (m=0; m < l; m++) {
+											write_to_client(sockets[k][m],"passed");
 											close(sockets[k][m]);
 											FD_CLR (sockets[k][m], &active_fd_set);
 											sockets[k][m] = 0;

@@ -1,4 +1,4 @@
-.\" $Id: barrier.1,v 1.1 1998/10/14 09:23:14 garbled Exp $
+.\" $Id: barrier.1,v 1.2 1998/10/14 20:43:50 garbled Exp $
 .\" Copyright (c) 1998
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -81,7 +81,8 @@ Sets the default remote port to connect to.
 Sets the default remote host to connect to.
 .\" .Sh FILES
 .Sh DIAGNOSTICS
-Exit status is 0 on success, 1 if an error occurs.
+Exit status is 0 on successful syncronization.  Exit status will be set to 1 if
+the connection is lost, or the server rejects your connection.
 .Sh SEE ALSO
 .Xr barrierd 1 ,
 .Xr dsh 1 ,
