@@ -1,4 +1,4 @@
-/* $Id: sockcommon.h,v 1.1 2000/02/17 07:32:42 garbled Exp $ */
+/* $Id: sockcommon.h,v 1.2 2000/02/17 07:55:07 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -37,13 +37,17 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <arpa/inet.h>
+#include <unistd.h>
+#include <string.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <net/if.h>
 #include <netinet/if_ether.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/resource.h>
-#include <sys/socket.h>
+#include <sys/uio.h>
 
 #ifndef __P
 #define __P(protos) protos
@@ -57,3 +61,4 @@
 int make_socket __P((int));
 int write_to_client __P((int, char *));
 int read_from_client __P((int, char **));
+extern void log_bailout __P((int));

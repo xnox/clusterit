@@ -1,4 +1,4 @@
-/* $Id: sockcommon.c,v 1.1 2000/02/17 07:32:42 garbled Exp $ */
+/* $Id: sockcommon.c,v 1.2 2000/02/17 07:55:07 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: sockcommon.c,v 1.1 2000/02/17 07:32:42 garbled Exp $");
+__RCSID("$Id: sockcommon.c,v 1.2 2000/02/17 07:55:07 garbled Exp $");
 #endif
 
 
@@ -102,4 +102,5 @@ int read_from_client(filedes, j)
 		return(nbytes);
 	}
 	/*NOTREACHED*/
+	return(0);
 }
