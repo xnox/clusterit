@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.15 2000/02/17 07:57:08 garbled Exp $ */
+/* $Id: dsh.c,v 1.16 2000/02/17 07:59:23 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,14 +40,13 @@
 #include <fcntl.h>
 #include <signal.h>
 
-#define CLUSTERS
 #include "../common/common.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.15 2000/02/17 07:57:08 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.16 2000/02/17 07:59:23 garbled Exp $");
 #endif /* not lint */
 
 extern int errno;
