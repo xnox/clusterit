@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.6 1998/10/27 03:55:29 garbled Exp $ */
+/* $Id: dsh.c,v 1.7 1998/12/14 16:31:28 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -31,14 +31,16 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/resource.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/time.h>
-#include <sys/resource.h>
+
+#include <fcntl.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
@@ -47,12 +49,13 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: dsh.c,v 1.6 1998/10/27 03:55:29 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.7 1998/12/14 16:31:28 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
 #define DEFAULT_FANOUT 64
 #define MAX_GROUPS 32
+#define MAXBUF 1024
 
 extern int errno;
 #ifdef __NetBSD__
@@ -79,7 +82,8 @@ char *rungroup[MAX_GROUPS];
  *  commands in paralell on a group of machines.
  */
 
-void main(argc, argv) 
+int
+main(argc, argv) 
 	int argc;
 	char *argv[];
 {
@@ -159,7 +163,8 @@ void main(argc, argv)
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
 			    "usage: dsh [-eiq] [-f fanout] [-g rungroup1,...,rungroupN] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] [command ...]\n");
-			exit(EXIT_FAILURE);
+			return(EXIT_FAILURE);
+			/*NOTREACHED*/
 			break;
 		default:
 			break;
@@ -171,13 +176,13 @@ void main(argc, argv)
 		clusterfile = getenv("CLUSTER");
 		if (clusterfile == NULL) {
 			(void)fprintf(stderr, "must use -w flag without CLUSTER environment setting.\n");
-			exit(EXIT_FAILURE);
+			return(EXIT_FAILURE);
 		}
 		fd = fopen(clusterfile, "r");
 		i = 0;
 		while ((nodename = fgets(buf, sizeof(buf), fd))) {
 			p = (char *)strsep(&nodename, "\n");
-			if (strcmp(p, "") != 0) 
+			if (strcmp(p, "") != 0) {
 				if (exclusion) {		/* this handles the -x option */
 					fail = 0;
 					for (j = 0; exclude[j] != NULL; j++)
@@ -206,8 +211,9 @@ void main(argc, argv)
 							grouplist[i] = (char *)strdup(group);
 						nodelist[i++] = (char *)strdup(p);
 					}
-				}
-		}
+				} /* exlusion */
+			} /* strcmp */
+		} /* while nodename */
 		nodelist[i] = '\0';
 		grouplist[i] = '\0';
 		fclose(fd);
@@ -216,7 +222,7 @@ void main(argc, argv)
 	argv += optind;
 	if (showflag) {
 		do_showcluster(nodelist, fanout);
-		exit(EXIT_SUCCESS);
+		return(EXIT_SUCCESS);
 	}
 
 	/*
@@ -230,7 +236,7 @@ void main(argc, argv)
 		bailout(__LINE__);
 
 	do_command(argv, nodelist, fanout, username);
-	exit(EXIT_SUCCESS);
+	return(EXIT_SUCCESS);
 }
 
 /*
@@ -239,7 +245,8 @@ void main(argc, argv)
  * the -q switch.
  */
 
-void do_showcluster(nodelist, fanout)
+void
+do_showcluster(nodelist, fanout)
 	char *nodelist[];
 	int fanout;
 {
@@ -284,7 +291,7 @@ void do_showcluster(nodelist, fanout)
 				else
 					(void)printf("Node: %3d  Fangroup: %3d  Rungroup: %-15s  Host: %-15s\n", l, n + 1, grouplist[i], nodelist[i]);
 			}
-		}
+		} 
 	}
 }
 
@@ -293,7 +300,8 @@ void do_showcluster(nodelist, fanout)
  * have all been parsed out.
  */
 
-void do_command(argv, nodelist, fanout, username)
+void
+do_command(argv, nodelist, fanout, username)
 	char **argv;
 	char *nodelist[];
 	char *username;
@@ -302,7 +310,7 @@ void do_command(argv, nodelist, fanout, username)
 	FILE *fd, *in;
 	int out[fanout+1][2];
 	int err[fanout+1][2];
-	char buf[1024];
+	char buf[MAXBUF];
 	char pipebuf[2048];
 	int status, i, j, n, g, piping;
 	char *p, *command, *rsh, *cd;
@@ -338,8 +346,8 @@ void do_command(argv, nodelist, fanout, username)
 	if (i % fanout)
 		j++;
 
-	buf[0] = '\0';
-	command = strdup(buf);	/* construct the command from the remains of argv */
+	/* construct the command from the remains of argv */
+	command = (char *)malloc(MAXBUF * sizeof(char));
 	for (p = *argv; p != NULL; p = *++argv ) {
 		strcat(command, p);
 		strcat(command, " ");
@@ -367,10 +375,23 @@ void do_command(argv, nodelist, fanout, username)
 #ifdef DEBUG
 					(void)printf("Working node: %d, group %d, fanout part: %d\n", i, n, g);
 #endif
-		/* we set up pipes for each node, to prepare for the oncoming barrage of data */
+/*
+ * we set up pipes for each node, to prepare for the oncoming barrage of data.
+ * Close on exec must be set here, otherwise children spawned after other
+ * children, inherit the open file descriptors, and cause the pipes to remain open
+ * forever.
+ */
 					if (pipe(out[g]) != 0)
 						bailout(__LINE__);
 					if (pipe(err[g]) != 0)
+						bailout(__LINE__);
+					if (fcntl(out[g][0], F_SETFD, 1) == -1)
+						bailout(__LINE__);
+					if (fcntl(out[g][1], F_SETFD, 1) == -1)
+						bailout(__LINE__);
+					if (fcntl(err[g][0], F_SETFD, 1) == -1)
+						bailout(__LINE__);
+					if (fcntl(err[g][1], F_SETFD, 1) == -1)
 						bailout(__LINE__);
 					switch (fork()) {  /* its the ol fork and switch routine eh? */
 						case -1:
@@ -396,7 +417,9 @@ void do_command(argv, nodelist, fanout, username)
 							else
 								execlp(rsh, rsh, nodelist[i], command, (char *)0);
 							bailout(__LINE__);
-						}
+						default:
+							break;
+						} /* switch */
 				} /* test_node */
 			} /* for i */
 			for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
@@ -410,13 +433,14 @@ void do_command(argv, nodelist, fanout, username)
 					if (fd == NULL)
 						bailout(__LINE__);
 					while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
-						(void)printf("%-12s: %s", nodelist[i], cd);
+						if (cd != NULL)
+							(void)printf("%-12s: %s", nodelist[i], cd);
 					fclose(fd);
 					fd = fdopen(err[g][0], "r"); /* stderr */
 					if (fd == NULL)
 						bailout(__LINE__);
 					while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
-						if (errorflag)
+						if (errorflag && cd != NULL)
 							(void)printf("%-12s: %s", nodelist[i], cd);
 					fclose(fd);
 					(void)wait(&status);
@@ -441,7 +465,9 @@ void do_command(argv, nodelist, fanout, username)
 
 /* test routine, saves a ton of repetive code */
 
-int test_node(int count)
+int
+test_node(count)
+	int count;
 {
 	int i;
 
@@ -457,16 +483,17 @@ int test_node(int count)
 
 /* Simple error handling routine, needs severe work.  Its almost totally useless. */
 
-void bailout(line) 
+void
+bailout(line) 
 	int line;
 {
-
+/*ARGSUSED*/
 extern int errno;
 
 #ifdef DEBUG
-	(void)fprintf(stderr, "Failed on line %d: %s\n", line, strerror(errno));
+	(void)fprintf(stderr, "Failed on line %d: %s %d\n", line, strerror(errno), errno);
 #else
 	(void)fprintf(stderr, "Internal error, aborting: %s\n", strerror(errno));
 #endif
-	exit(EXIT_FAILURE);
+	_exit(EXIT_FAILURE);
 }

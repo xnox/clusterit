@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.5 1998/10/20 09:29:32 garbled Exp $ */
+/* $Id: rseq.c,v 1.6 1998/12/14 16:31:29 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -45,12 +45,13 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: rseq.c,v 1.5 1998/10/20 09:29:32 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.6 1998/12/14 16:31:29 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
 #define DEFAULT_FANOUT 64
 #define MAX_GROUPS 32
+#define MAXBUF 1024
 
 extern int errno;
 #ifdef __NetBSD__
@@ -80,7 +81,7 @@ char *rungroup[MAX_GROUPS];
  *  commands in paralell on a group of machines.
  */
 
-void main(argc, argv) 
+int main(argc, argv) 
 	int argc;
 	char *argv[];
 {
@@ -173,7 +174,7 @@ void main(argc, argv)
 		i = 0;
 		while ((nodename = fgets(buf, sizeof(buf), fd))) {
 			p = (char *)strsep(&nodename, "\n");
-			if (strcmp(p, "") != 0) 
+			if (strcmp(p, "") != 0) {
 				if (exclusion) {		/* this handles the -x option */
 					fail = 0;
 					for (j = 0; exclude[j] != NULL; j++)
@@ -203,6 +204,7 @@ void main(argc, argv)
 						nodelist[i++] = (char *)strdup(p);
 					}
 				}
+			} /* if strcmp */
 		}
 		nodelist[i] = '\0';
 		grouplist[i] = '\0';
@@ -347,7 +349,7 @@ void do_command(argv, nodelist, allrun, username)
 	FILE *fd, *in;
 	int out[2];
 	int err[2];
-	char buf[1024];
+	char buf[MAXBUF];
 	int status, i, piping;
 	char *p, *command, *rsh;
 
@@ -362,8 +364,8 @@ void do_command(argv, nodelist, allrun, username)
 			(void)printf("As User: %s\n", username);
 	} 
 
-	buf[0] = '\0';
-	command = strdup(buf);	/* construct the command from the remains of argv */
+	/* construct the command from the remains of argv */
+	command = (char *)malloc(MAXBUF * sizeof(char));
 	for (p = *argv; p != NULL; p = *++argv ) {
 		strcat(command, p);
 		strcat(command, " ");
