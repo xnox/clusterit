@@ -1,6 +1,6 @@
-/* $Id: rseq.c,v 1.7 1999/10/14 16:50:52 garbled Exp $ */
+/* $Id: rseq.c,v 1.8 2000/01/14 23:29:32 garbled Exp $ */
 /*
- * Copyright (c) 1998
+ * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,12 +37,9 @@
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
-"@(#) Copyright (c) 1998\n\
+"@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-#endif /* not lint */
-
-#if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: rseq.c,v 1.7 1999/10/14 16:50:52 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.8 2000/01/14 23:29:32 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -52,15 +49,17 @@ __RCSID("$Id: rseq.c,v 1.7 1999/10/14 16:50:52 garbled Exp $");
 /* externs */
 extern int errno;
 
-void do_command __P((char **, char *[], int, char *));
-int check_seq __P((char *[]));
+void do_command __P((char **, int, char *));
+node_t * check_seq __P((void));
 
 /* globals */
 
-int debug, errorflag, exclusion;
+int debug, errorflag, exclusion, grouping;
 int seqnumber;
-char *grouplist[MAX_CLUSTER];
-char *rungroup[MAX_GROUPS];
+char **grouplist;
+char **rungroup;
+node_t *nodelink;
+char *progname;
 
 /* 
  *  seq is a cluster management tool based upon the IBM tool dsh.
@@ -76,8 +75,8 @@ int main(argc, argv)
 	extern int optind;
 
 	int someflag, ch, i, allflag, showflag, exclusion;
-	char *p, *group, *nodelist[MAX_CLUSTER], *nodename, *username;
-	char *exclude[MAX_CLUSTER];
+	char *p, *group, *nodename, *username, *q;
+	char **exclude, **grouptemp;
 
 	extern int debug;
 	extern int errorflag;
@@ -89,11 +88,24 @@ int main(argc, argv)
 	debug = 0;
 	errorflag = 0;
 	allflag = 0;
+	grouping = 0;
 	username = NULL;
 	nodename = NULL;
 	group = NULL;
-	for (i=0; i < MAX_GROUPS; i++)
-		rungroup[i] = NULL;
+
+	rungroup = malloc(sizeof(char **) * GROUP_MALLOC);
+	if (rungroup == NULL)
+		bailout(__LINE__);
+	exclude = malloc(sizeof(char **) * GROUP_MALLOC);
+	if (exclude == NULL)
+		bailout(__LINE__);
+
+	progname = p = q = argv[0];
+	while (progname != NULL) {
+		q = progname;
+		progname = (char *)strsep(&p, "/");
+	}
+	progname = strdup(q);
 
 	while ((ch = getopt(argc, argv, "?adeiqg:l:w:x:")) != -1)
 		switch (ch) {
@@ -117,73 +129,95 @@ int main(argc, argv)
 			break;
 		case 'g':		/* pick a group to run on */
 			i = 0;
-			for (p = optarg; p != NULL && i < MAX_GROUPS - 1; ) {
+			grouping = 1;
+			for (p = optarg; p != NULL; ) {
 				group = (char *)strsep(&p, ",");
-				if (group != NULL)
-					rungroup[i++] = strdup(group);
+				if (group != NULL) {
+					if (((i+1) % GROUP_MALLOC) != 0) {
+						rungroup[i++] = strdup(group);
+					} else {
+						grouptemp = realloc(rungroup,
+							i*sizeof(char **) +
+							GROUP_MALLOC*sizeof(char *));
+						if (grouptemp != NULL)
+							rungroup = grouptemp;
+						else
+							bailout(__LINE__);
+						rungroup[i++] = strdup(group);
+					}
+				}
 			}
-			rungroup[i] = '\0';
 			group = NULL;
 			break;			
 		case 'x':		/* exclude nodes, w overrides this */
 			exclusion = 1;
 			i = 0;
-			for (p = optarg; p != NULL && i < MAX_CLUSTER - 1; ) {
+			for (p = optarg; p != NULL; ) {
 				nodename = (char *)strsep(&p, ",");
-				if (nodename != NULL)
-					exclude[i++] = strdup(nodename);
+				if (nodename != NULL) {
+					if (((i+1) % GROUP_MALLOC) != 0) {
+						exclude[i++] = strdup(nodename);
+					} else {
+						grouptemp = realloc(exclude,
+							i*sizeof(char **) +
+							GROUP_MALLOC*sizeof(char *));
+						if (grouptemp != NULL)
+							exclude = grouptemp;
+						else
+							bailout(__LINE__);
+						exclude[i++] = strdup(nodename);
+					}
+				}
 			}
-			exclude[i] = '\0';
 			break;
 		case 'w':		/* perform operation on these nodes */
 			someflag = 1;
 			i = 0;
-			for (p = optarg; p != NULL && i < MAX_CLUSTER - 1; ) {
+			for (p = optarg; p != NULL; ) {
 				nodename = (char *)strsep(&p, ",");
 				if (nodename != NULL)
-					nodelist[i++] = strdup(nodename);
+					(void)nodealloc(nodename);
 			}
-			nodelist[i] = '\0';
 			break;
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
-			    "usage: seq [-aeiq] [-g rungroup1,...,rungroupN] "
+			    "usage: %s [-aeiq] [-g rungroup1,...,rungroupN] "
 				"[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
-				"[command ...]\n");
+				"[command ...]\n", progname);
 			exit(EXIT_FAILURE);
 			break;
 		default:
 			break;
 	}
 	if (!someflag)
-		parse_cluster(nodename, exclude, nodelist);	
+		parse_cluster(exclude);	
 	argc -= optind;
 	argv += optind;
 	if (showflag) {
-		do_showcluster(nodelist, DEFAULT_FANOUT);
+		do_showcluster(DEFAULT_FANOUT);
 		exit(EXIT_SUCCESS);
 	}
-	do_command(argv, nodelist, allflag, username);
+	do_command(argv, allflag, username);
 	exit(EXIT_SUCCESS);
 }
 
 /* this should be atomic, but *hello* this is *userland* */
 
 void
-test_and_set(nodelist)
-	char *nodelist[];
+test_and_set()
 {
 	int i;
 	char *p, *seqfile;
-	char buf[256];
+	char buf[MAXBUF];
 	FILE *sd;
+	node_t *nodeptr, *nodex;
 
 	p = buf;
 	i = 0;
 
 	seqfile = getenv("SEQ_FILE");
 	if (seqfile == NULL) {
-		(void)sprintf(buf, "/tmp/%d.seq", (int)getppid());
+		(void)sprintf(buf, "/tmp/%d.%s", (int)getppid(), progname);
 		seqfile = strdup(buf);
 	}
 	sd = fopen(seqfile, "r");
@@ -197,8 +231,8 @@ test_and_set(nodelist)
 	}
 	if (sd == NULL)
 		bailout(__LINE__);
-	i = check_seq(nodelist);
-	if (i == -1)
+	nodeptr = check_seq();
+	for (nodex = nodelink; nodex != nodeptr; nodex = nodex->next)
 		i++;
 	(void)fprintf(sd, "%d", i);
 	fclose(sd);
@@ -207,39 +241,23 @@ test_and_set(nodelist)
 
 /* return the node number of the next node in the seqence. */
 
-int 
-check_seq(nodelist)
-	char *nodelist[];
+node_t *
+check_seq()
 {
 	int i, g;
+	node_t *nodeptr;
 
-	if (rungroup[0] == NULL)
-		if (seqnumber == -1)
-			return(0);
-		else {
-			g = seqnumber;
-			if (nodelist[g+1] == NULL) {
-				for (i=0; nodelist[i] != NULL && test_node(i) == 0; i++)
-					;
-				return(i);
-			} else
-				return(g+1);
-		}
-	else {
-		if (seqnumber == -1) {
-			for (i=0; nodelist[i] != NULL && test_node(i) == 0; i++)
-				;
-			return(i);
-		} else {
-			g = seqnumber;
-			for (i=g+1; nodelist[i] != NULL && test_node(i) == 0; i++)
-				;
-			if (nodelist[i] == NULL)
-				for (i=0; nodelist[i] != NULL && test_node(i) == 0; i++)
-					;
-			return(i);
-		}
-	} /* else */
+	if (seqnumber == -1)
+		return(nodelink);
+
+	g = seqnumber;
+	i = 0;
+	for (nodeptr = nodelink; (nodeptr && i < g);
+		 nodeptr = nodeptr->next)
+		i++;
+	if (nodeptr->next == NULL)
+		return(nodelink);
+	return(nodeptr->next);
 }
 
 
@@ -249,18 +267,16 @@ check_seq(nodelist)
  */
 
 void 
-do_command(argv, nodelist, allrun, username)
+do_command(argv, allrun, username)
 	char **argv;
-	char *nodelist[];
 	char *username;
 	int allrun;
 {
 	FILE *fd, *in;
-	int out[2];
-	int err[2];
 	char buf[MAXBUF];
 	int status, i, piping;
 	char *p, *command, *rsh;
+	node_t *nodeptr;
 
 	extern int debug;
 
@@ -275,6 +291,7 @@ do_command(argv, nodelist, allrun, username)
 
 	/* construct the command from the remains of argv */
 	command = (char *)malloc(MAXBUF * sizeof(char));
+	memcpy(command, "\0", MAXBUF * sizeof(char));
 	for (p = *argv; p != NULL; p = *++argv ) {
 		strcat(command, p);
 		strcat(command, " ");
@@ -286,7 +303,7 @@ do_command(argv, nodelist, allrun, username)
 		piping = 1;
 		if (isatty(STDIN_FILENO) && piping)
 /* are we a terminal?  then go interactive! */
-			(void)printf("seq>");
+			(void)printf("%s>", progname);
 		in = fdopen(STDIN_FILENO, "r");
 		command = fgets(buf, sizeof(buf), in);
 /* start reading stuff from stdin and process */
@@ -295,62 +312,63 @@ do_command(argv, nodelist, allrun, username)
 				command = NULL;
 	}
 	if (allrun)
-		test_and_set(nodelist);
+		test_and_set();
 	while (command != NULL) {
 		if (!allrun)
-			test_and_set(nodelist);
+			test_and_set();
 		i = seqnumber;
+		nodeptr = check_seq();
 		if (debug)
-			(void)printf("On node: %s\n", nodelist[check_seq(nodelist)]);
-		pipe(out);
+			(void)printf("On node: %s\n", nodeptr->name);
+		pipe(nodeptr->out.fds);
 /* we set up pipes for each node, to prepare for the
  * oncoming barrage of data */
-		pipe(err);
+		pipe(nodeptr->err.fds);
 		switch (fork()) {  /* its the ol fork and switch routine eh? */
 			case -1:
 				bailout(__LINE__);
 				break;
 			case 0: 
-				if (dup2(out[1], STDOUT_FILENO) != STDOUT_FILENO)
+				if (dup2(nodeptr->out.fds[1], STDOUT_FILENO) != STDOUT_FILENO)
 					bailout(__LINE__);
-				if (dup2(err[1], STDERR_FILENO) != STDERR_FILENO)
+				if (dup2(nodeptr->err.fds[1], STDERR_FILENO) != STDERR_FILENO)
 					bailout(__LINE__);
-				if (close(out[0]) != 0)
+				if (close(nodeptr->out.fds[0]) != 0)
 					bailout(__LINE__);
-				if (close(err[0]) != 0)
+				if (close(nodeptr->err.fds[0]) != 0)
 					bailout(__LINE__);
 				rsh = getenv("RCMD_CMD");
 				if (rsh == NULL)
 					rsh = "rsh";
 				if (debug)
-					printf("%s %s %s\n", rsh, nodelist[i], command);
+					printf("%s %s %s\n", rsh, nodeptr->name, command);
 				if (username != NULL)
 /* interestingly enough, this -l thing works great with ssh */
-					execlp(rsh, rsh, "-l", username, nodelist[i],
+					execlp(rsh, rsh, "-l", username, nodeptr->name,
 						command, (char *)0);
 				else
-					execlp(rsh, rsh, nodelist[i], command, (char *)0);
+					execlp(rsh, rsh, nodeptr->name, command, (char *)0);
 				bailout(__LINE__);
 		} /* end switch */
-		if (close(out[1]) != 0)
+		if (close(nodeptr->out.fds[1]) != 0)
 /* now close off the useless stuff, and read the goodies */
 			bailout(__LINE__);
-		if (close(err[1]) != 0)
+		if (close(nodeptr->err.fds[1]) != 0)
 			bailout(__LINE__);
-		fd = fdopen(out[0], "r"); /* stdout */
+		fd = fdopen(nodeptr->out.fds[0], "r"); /* stdout */
 		while ((p = fgets(buf, sizeof(buf), fd)))
-			(void)printf("%s:\t%s", nodelist[i], p);
+			(void)printf("%s:\t%s", nodeptr->name, p);
 		fclose(fd);
-		fd = fdopen(err[0], "r"); /* stderr */
+		fd = fdopen(nodeptr->err.fds[0], "r"); /* stderr */
 		while ((p = fgets(buf, sizeof(buf), fd)))
 			if (errorflag)
-				(void)printf("%s:\t%s", nodelist[i], p);
+				(void)printf("%s:\t%s", nodeptr->name, p);
 		fclose(fd);
 		(void)wait(&status);
 		if (piping) {
 			if (isatty(STDIN_FILENO) && piping)
 /* yes, this is code repetition, no need to adjust your monitor */
-				(void)printf("seq>");
+				(void)printf("%s>", progname);
 			command = fgets(buf, sizeof(buf), in);
 			if (command != NULL)
 				if (strcmp(command,"\n") == 0)

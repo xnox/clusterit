@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.1 1999/10/14 16:52:09 garbled Exp $ */
+/* $Id: jsd.c,v 1.2 2000/01/14 23:29:32 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -49,7 +49,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: jsd.c,v 1.1 1999/10/14 16:52:09 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.2 2000/01/14 23:29:32 garbled Exp $");
 #endif
 
 extern int errno;

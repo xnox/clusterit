@@ -1,6 +1,6 @@
-/* $Id: common.h,v 1.1 1999/10/14 16:52:09 garbled Exp $ */
+/* $Id: common.h,v 1.2 2000/01/14 23:29:31 garbled Exp $ */
 /*
- * Copyright (c) 1998
+ * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,8 @@
 #include <unistd.h>
 
 enum {
-	MAX_CLUSTER = 1024,
 	DEFAULT_FANOUT = 64,
-	MAX_GROUPS = 64,
+	GROUP_MALLOC = 16,
 	MAXBUF = 1024
 };
 
@@ -49,15 +48,28 @@ enum {
 #define __P(protos) protos
 #endif
 
+typedef struct { int fds[2]; } pipe_t;
+
+struct node_data {
+	char *name;					/* node name */
+	int group;					/* member of this group */
+	pipe_t err, out;			/* pipe structures */
+	pid_t childpid;				/* pid of the child */
+	struct node_data *next;		/* pointer to next node */
+};
+typedef struct node_data node_t;
+
 void bailout __P((int));
-void do_showcluster __P((char *[], int));
-int test_node __P((int));
+void do_showcluster __P((int));
 char *alignstring __P((char *, size_t));
-void parse_cluster __P((char *, char **, char **));
+int parse_cluster __P((char **));
+node_t *nodealloc __P((char *));
 #ifndef __NetBSD__
 char * strsep(char **stringp, const char *delim);
 #endif
 
-extern char *grouplist[MAX_CLUSTER];
-extern char *rungroup[MAX_GROUPS];
-extern int exclusion, debug;
+extern char **grouplist;
+extern char **rungroup;
+extern int exclusion, debug, grouping;
+extern node_t *nodelink;
+extern char *progname;
