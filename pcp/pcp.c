@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.7 2000/01/14 23:30:36 garbled Exp $ */
+/* $Id: pcp.c,v 1.8 2000/02/17 08:00:06 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -36,13 +36,13 @@
 #include <sys/types.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
-#include "../dsh/common.h"
+#include "../common/common.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.7 2000/01/14 23:30:36 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.8 2000/02/17 08:00:06 garbled Exp $");
 #endif
 
 extern int errno;
@@ -53,11 +53,12 @@ void paralell_copy __P((char *rcp, char *args, char *source_file,
 void serial_copy __P((char *rcp, char *args, char *source_file,
 	char *destination_file));
 
-char **grouplist;
+char **lumplist;
 char **rungroup;
 char *progname;
 int fanout, concurrent, quiet, debug, grouping, exclusion;
 node_t *nodelink;
+group_t *grouplist;
 
 /* 
  *  pcp is a cluster management tool based on the IBM tool of the

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 1999/05/05 07:50:24 garbled Exp $
+# $Id: Makefile,v 1.7 2000/02/17 08:00:06 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
 #Uncomment things for solaris.
@@ -7,8 +7,8 @@
 PROG=		pcp
 CFLAGS?=	-O2 -Wall
 
-#SRCS= pcp.c strsep.c
-SRCS= pcp.c
+SRCS= pcp.c ../common/strsep.c ../common/common.c
+#SRCS= pcp.c ../common/common.c
 
 SCRIPTS=	prm pdf dshbak
 MAN=		pcp.1 prm.1 pdf.1
@@ -17,6 +17,9 @@ all: ${PROG} scripts
 
 ${PROG}: ${SRCS:.c=.o}
 	${CC} ${CFLAGS} -o $@ ${SRCS:.c=.o}
+
+${SRCS:.c=.o}: ${SRCS}
+	${CC} ${CFLAGS} -c $*.c -o $*.o
 
 scripts: ${SCRIPTS}
 
