@@ -1,0 +1,94 @@
+.\" $Id: barrier.1,v 1.1 1998/10/14 09:23:14 garbled Exp $
+.\" Copyright (c) 1998
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd October 14, 1998
+.Dt BARRIER 1
+.Sh NAME
+.Nm barrier
+.Nd syncronize a process on a number of machines.
+.Sh SYNOPSIS
+.Nm
+.Op Fl q
+.Op Ar -h barrier_host
+.Op Ar -k key
+.Op Ar -p port
+.Ar -s cluster_size
+.Sh DESCRIPTION
+The 
+.Nm
+command can be used to syncronize execution of various commands.  When a barrier
+is set, it is not released until all the nodes or processes have met the barrier
+condition.  This can be a handy way to make sure slower machines, perform certain
+tasks before doing something on faster machines that relies on them.
+The following options are available:
+.Bl -tag -width www
+.It Fl q
+Turns quiet off, so barrier notifications are sent to the user.
+.It Fl h
+Specifies a host, which is running barrierd, to connect to for
+barrier syncronization.  Overrides the
+.Ev BARRIER_HOST
+environment variable.
+.It Fl k
+Specifies a unique key to syncronize with.  A barrier will only
+synchronize with other barriers that share the same key.  Defaults to
+the string 'barrier'.
+.It Fl p
+Specifies a port number of a remote barrier daemon to connect to.  Defaults
+to 1933, and overrides the
+.Ev BARRIER_PORT
+environment variable.
+.It Fl s
+Sets the size of the cluster.  A barrier condition is met, when the number of
+barrier clients connected to the remote daemon, sharing the same unique key, is
+equal to this number.
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "BARRIER_PORT"
+.It Ev BARRIER_SOCK
+Sets the default remote port to connect to.
+.It Ev BARRIER_HOST
+Sets the default remote host to connect to.
+.\" .Sh FILES
+.Sh DIAGNOSTICS
+Exit status is 0 on success, 1 if an error occurs.
+.Sh SEE ALSO
+.Xr barrierd 1 ,
+.Xr dsh 1 ,
+.Sh HISTORY
+The
+.Nm
+command appeared in clusterit 1.1. 
+.Sh AUTHOR
+.Nm Barrier
+was written by Tim Rightnour.

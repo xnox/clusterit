@@ -1,0 +1,78 @@
+.\" $Id: barrierd.1,v 1.1 1998/10/14 09:23:15 garbled Exp $
+.\" Copyright (c) 1998
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd October 14, 1998
+.Dt BARRIERD 1
+.Sh NAME
+.Nm barrierd
+.Nd syncronize a process on a number of machines.
+.Sh SYNOPSIS
+.Nm
+.Op Ar -p port
+.Sh DESCRIPTION
+The 
+.Nm
+daemon runs on a host, and accepts barrier connections from the client
+program barrier.  It handles the connections and syncronization of 
+various barriers being set up and taken down across the cluster.
+.Bl -tag -width www
+.It Fl p
+Specifies a port number for the
+.Nm
+daemon to listen on.  Defaults
+to 1933, and overrides the
+.Ev BARRIER_PORT
+environment variable.
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "BARRIER_PORT"
+.It Ev BARRIER_HOST
+Sets the default remote host to connect to.
+.\" .Sh FILES
+.Sh DIAGNOSTICS
+Exit status is 0 on success, 1 if an error occurs.
+.Sh SEE ALSO
+.Xr barrier 1 ,
+.Xr dsh 1 ,
+.Sh HISTORY
+The
+.Nm
+command appeared in clusterit 1.1. 
+.Sh AUTHOR
+.Nm Barrierd
+was written by Tim Rightnour.
+.Sh BUGS
+.Nm Barrierd
+can only handle up to 10 unique barrier tokens at any one
+time.  In addition, it can only handle a barrier size of up to 512
+nodes.  These values can be modified by recompiling the program.
