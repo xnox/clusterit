@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: pdf.sh,v 1.5 1999/05/05 08:37:43 garbled Exp $
+# $Id: pdf.sh,v 1.6 1999/10/14 17:02:48 garbled Exp $
 args=`getopt lng:m:t:w:x: $*`
 if test $? != 0
 then
@@ -39,10 +39,10 @@ fi
 
 (
 dsh $dshargs 'sh -c "if [ `uname` = "AIX" ]; then df -kI '$flag $*'; elif [ `uname` = "HP-UX" ]; then bdf '$flag $*'; else df -k '$flag $*'; fi"'
-)| grep -v Filesystem | awk '{print $1 " " $3 " " $4 " " $5 " " $6 " " $7 " " $8}' |(
+)| grep -v Filesystem | sed -e 's/://' | awk '{print $1 " " $2 " " $3 " " $4 " " $5 " " $6 " " $7}' |(
 echo 'Node      Filesystem            1K-Blks     Used    Avail  Cap Mounted On'
 while read node fs blocks used avail capacity mount; do \
-	capacity=`echo "$capacity" | sed -e 's/\%//'`
+	capacity=`echo "$capacity" | sed -e 's/\%//'`;
 	if [ "$capacity" -gt "$marg" -a 'test -n "$marg"' ]; then \
 		printf "%-8s: %-19.19s %9d%9d%9d %3.3s%% %-17.17s\n" $node $fs $blocks $used $avail $capacity $mount; \
 	fi \
