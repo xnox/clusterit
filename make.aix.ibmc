@@ -1,4 +1,4 @@
-$Id: make.aix.ibmc,v 1.3 2000/02/20 21:04:28 garbled Exp $
+$Id: make.aix.ibmc,v 1.4 2000/02/20 21:33:23 garbled Exp $
 diff -r -C 3 ../osrc/Makefile ./Makefile
 *** ./Makefile	Sun Feb 20 13:11:55 2000
 --- ./Makefile	Sun Feb 20 15:52:14 2000
@@ -44,7 +44,7 @@ diff -r -C 3 ../osrc/barrier/Makefile ./barrier/Makefile
   # Some options need to be uncommented for Solaris
   
   #CC=		/usr/local/bin/gcc
-! CFLAGS=		-info=all -O2
+! CFLAGS=		-O2
   PROGS= 		barrierd barrier
   #LIBS=		-lsocket -lnsl
   #
@@ -76,7 +76,7 @@ diff -r -C 3 ../osrc/dsh/Makefile ./dsh/Makefile
   
   #CC=		/usr/vac/bin/cc
   #CC=		/usr/local/bin/gcc
-! CFLAGS=		-O2 -info=all -DCLUSTERS
+! CFLAGS=		-O2 -DCLUSTERS
   PROGS=		dsh seq run
   
   OBJS= dsh.o seq.o run.o
@@ -107,7 +107,7 @@ diff -r -C 3 ../osrc/jsd/Makefile ./jsd/Makefile
   
   #CC=		/usr/vac/bin/cc
   #CC=		/usr/local/bin/gcc
-! CFLAGS=		-O2 -info=all -DCLUSTERS
+! CFLAGS=		-O2 -DCLUSTERS
   PROGS=		jsd jsh
   
   OBJS= jsh.o jsd.o
@@ -136,7 +136,7 @@ diff -r -C 3 ../osrc/pcp/Makefile ./pcp/Makefile
   
   #CC= /usr/local/bin/gcc
   PROG=		pcp
-! CFLAGS=		-O2 -info=all -DCLUSTERS
+! CFLAGS=		-O2 -DCLUSTERS
   
 ! SRCS= pcp.c ../common/strsep.c ../common/common.c
 ! #SRCS= pcp.c ../common/common.c
