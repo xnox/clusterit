@@ -1,0 +1,80 @@
+JSH(1)                      NetBSD Reference Manual                     JSH(1)
+
+NNAAMMEE
+     jjsshh - run scheduled commands on remote machines
+
+SSYYNNOOPPSSIISS
+     jjsshh [--aaeeii] [--ll _u_s_e_r_n_a_m_e] [--pp _p_o_r_t] [--oo _p_o_r_t] [--hh _h_o_s_t_n_a_m_e] [_c_o_m_m_a_n_d _._._.]
+
+DDEESSCCRRIIPPTTIIOONN
+     The jjsshh program connects to a _j_s_d daemon, and requests a node for pro-
+     cessing.  It will then connect to that remote node and execute the com-
+     mand or commands given to it.  Once it has completed work on the remote
+     machine, it will return the node to the _j_s_d daemon for future use by oth-
+     er jjsshh processes.  The primary use of this is to ensure that no more than
+     one remote process is running on any single machine at a point in time.
+     This can be used to better facilitate bulk parallel compiling.
+
+     The following options are available:
+
+     --aa   The --aa option modifies the behavior of jjsshh when dealing with stdin.
+          Normally all commands from stdin are run on the same machine.  Spec-
+          ifying the --aa option causes each command to be run on the next node
+          in the seqence.
+
+     --ee   Unless the --ee option is specified, stderr from remote commands will
+          not be reported to the user.
+
+     --ii   The --ii option will list information about the current cluster, and
+          command groupings. It will also show you which command you are about
+          to run, and your username if specified with the --ll option.
+
+     --ll   If the --ll option is specified, followed by a username, the commands
+          will be run under that userid on the remote machines.  Consideration
+          must be taken for proper authentication, for this to work.
+
+     --pp   The --pp option can be used to set the port number which jsd will lis-
+          ten to replies from _j_s_h processes indicating completion of process-
+          ing on remote nodes.  This option overrides the JSD_IPORT environ-
+          ment variable.  The default listen port is 2001.
+
+     --oo   The --oo option can be used to set the port number which jsd will lis-
+          ten to requests from _j_s_h processes for remote nodes.  This option
+          overrides the JSD_OPORT environment variable.  The default listen
+          port is 2002.
+
+     --hh   The --hh option can be used to set the remote hostname where a _j_s_d
+          daemon is running.  jjsshh defaults to contacting a _j_s_d daemon on the
+          local machine, but can be set up to talk to a remote daemon.  The --hh
+          option will override the JSD_HOST environment variable.
+
+EENNVVIIRROONNMMEENNTT
+     jjsshh utilizes the following environment variables:
+
+     RCMD_CMD       Command to use to connect to remote machines.  The command
+                    chosen must be able to connect with no password to the re-
+                    mote host.  Defaults to rrsshh.
+
+     JSD_OPORT      When set, overrides the default port which jsd listens on
+                    for _j_s_h processes requesting nodes.  This environment set-
+                    ting can be overriden by the --oo option.
+
+     JSD_IPORT      When set, overrides the default port which jsd listens on
+                    for _j_s_h processes reporting back that it has completed
+                    processing on a node.  This environment setting can be
+                    overriden by the --pp option.
+
+     JSD_HOST       When set, contains the hostname of the remote machine that
+                    the _j_s_d daemon is listening on.  This environment setting
+                    can be overriden by the --hh option.
+
+SSEEEE AALLSSOO
+     dsh(1), rsh(1), kerberos(3), hosts.equiv(5), rhosts(5), jsd(1).
+
+HHIISSTTOORRYY
+     The jjsshh command first appeared in clusterit 2.0.
+
+AAUUTTHHOORR
+     JJsshh was written by Tim Rightnour.
+
+                               February 19, 2000                             2

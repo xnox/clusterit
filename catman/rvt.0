@@ -1,0 +1,231 @@
+RVT(1)                      NetBSD Reference Manual                     RVT(1)
+
+NNAAMMEE
+     rrvvtt - a specialized VT100 emulator for the X window system
+
+SSYYNNOOPPSSIISS
+     rrvvtt [--ll _u_s_e_r_n_a_m_e] [--ddiissppllaayy _d_i_s_p_l_a_y_-_n_a_m_e] [--ggeeoommeettrryy _w_i_n_d_o_w_-_g_e_o_m_e_t_r_y]
+     [--bbgg _c_o_l_o_r] [--ffgg _c_o_l_o_r] [--bbdd _c_o_l_o_r] [--bbww _n_u_m_b_e_r] [--ffoonntt _f_o_n_t_n_a_m_e] [--ffbb
+     _f_o_n_t_n_a_m_e] [--nnaammee _n_a_m_e] [--ssll _n_u_m_b_e_r] [--cccc _c_h_a_r_-_c_l_a_s_s] [--ssbb] [--rrww] [--mmssgg]
+     [--iiccoonniicc] _r_e_m_o_t_e_-_m_a_c_h_i_n_e
+
+DDEESSCCRRIIPPTTIIOONN
+     The rrvvtt program is a VT100 terminal emulator for X.  It is intended as a
+     partial replacement for xterm(1) for users who do not require the more
+     esoteric features of xterm(1).  Specifically rrvvtt does not implement the
+     Tektronix 4014 emulation, session logging and toolkit style configurabil-
+     ity. As a result, rrvvtt uses much less swap space than xterm(1), a signifi-
+     cant advantage on a machine serving many X sessions.
+
+     The rrvvtt program is based on the xvt(1) terminal emulator.  However, it
+     has been modified specificly for use with the dvt(1) program.  It may be
+     used as a stand-alone application, but it is not suggested that the user
+     do so. The following options are available:
+
+     --ll _u_s_e_r_n_a_m_e
+          If the program specified by the RLOGIN_CMD environment variable al-
+          lows the user to pass a username with a --ll option (Such as some
+          versions of rsh(1) or ssh(1)) then the rrvvtt program will pass the ap-
+          propriate flags to the remote-connection command to attempt to con-
+          nect to the remote machine as the username specified.
+
+     --ddiissppllaayy _d_i_s_p_l_a_y_-_n_a_m_e
+          Attempt to open the rrvvtt window on the named X display.  In the ab-
+          sence of this option, the display specified by the DISPLAY environ-
+          ment variable will be used.
+
+     --ggeeoommeettrryy _w_i_n_d_o_w_-_g_e_o_m_e_t_r_y
+          Create the window with the specified X window geometry.
+
+     --bbaacckkggrroouunndd _c_o_l_o_r
+          Use the specified color as the window's background color.
+
+     --bbgg _c_o_l_o_r
+          This option is a synonym for --bbaacckkggrroouunndd
+
+     --ffoorreeggrroouunndd _c_o_l_o_r
+          Use the specified color as the window's foreground color.
+
+     --ffgg _c_o_l_o_r
+          This option is a synonym for --ffoorreeggrroouunndd
+
+     --bbdd _c_o_l_o_r
+          Set the border color.  As with border width, this option will usual-
+          ly be disregarded with respect to the window's outer border.  It
+          does, however, set the color of the line separating the scroll bar
+          from the main part of the window.
+
+     --bbww _n_u_m_b_e_r
+          Set the window border width to _n_u_m_b_e_r pixels.  Many window managers
+          ignore existing window borders and contruct their own.  If you are
+          using such a window manager, this option will be ignored.
+
+     --ffoonntt _f_o_n_t_n_a_m_e
+          Set the main text font to be used by rrvvtt
+
+     --ffbb _f_o_n_t_n_a_m_e
+          Set the font used for the vt100 bold rendition style.  Unlike
+          xterm(1), the current version of rrvvtt will not try and create bold
+          text by displacing and or'ing an ordinary font.  Therefore if you
+          want bold highlighting to work, you need to use this option to spec-
+          ify a suitable bold font.
+
+     --nnaammee _n_a_m_e
+          Set the name that is used when looking up X resource values for this
+          instance of .
+
+     --ssll _n_u_m_b_e_r
+          Set an upper bound for the number of lines of text that will be
+          saved when they have scrolled off the top of the window.
+
+     --cccc _c_h_a_r_-_c_l_a_s_s
+          Input or modify the character classes that are used to determine
+          what is a word when a double-click is used to select a word of dis-
+          played text.  This is identical to the same option in xterm(1).  See
+          the xterm(1) manual page for a description of the syntax of _s_t_r_i_n_g.
+
+     --ssbb  Start up with the scrollbar visible.  The scrollbar can be displayed
+          or hidden at any time, simply by holding down the CONTROL key on the
+          keyboard and pressing any mouse button.  The visibility of the
+          scrollbar does not determine whether scrolled text is saved or not,
+          as with xterm(1), text scrolled off the top of the window is always
+          saved up to the current maximum number of lines.
+
+     --rrww  Enable reverse wrapping of the cursor, so that lines typed to a
+          shell that are longer than the width of the screen can be edited.
+          This is the same as the xterm(1) reverse wrap option.
+
+     --mmssgg
+          Enable messages to the terminal window from programs like write(1).
+          By default, rrvvtt windows have messages disabled.  Executing an rrvvtt
+          window with the --mmssgg option has the same effect as running it nor-
+          mally, and executing the command `mesg y' to enable messages.
+
+     --iiccoonniicc
+          Start up with the window already iconized.  _r_e_m_o_t_e_-_m_a_c_h_i_n_e The name
+          of a remote machine to connect to.  The connection attempt is made
+          via the program specified by the RLOGIN_CMD environment variable.
+
+XX RREESSOOUURRCCEESS
+     Most of the command line options have X resource counterparts and these
+     are listed in the following table.  Like xterm(1), rrvvtt uses the class
+     name XTerm, so resource options set for XTerm will work for both xterm(1)
+     and rrvvtt windows.
+
+   CCoommmmaanndd lliinnee ooppttiioonnss aanndd XX rreessoouurrcceess
+                    X resource
+     _C_o_m_m_a_n_d_l_i_n_e    _I_n_s_t_a_n_c_e       _C_l_a_s_s
+     --ll             -              -
+     --ddiissppllaayy       -              -
+     --ggeeoommeettrryy      geometry       Geometry
+     --bbgg            background     Background
+     --ffgg            foreground     Foreground
+     --bbdd            borderColor    BorderColor
+     --bbww            borderWidth    BorderWidth
+     --ffoonntt          font           Font
+     --ffbb            boldFont       BoldFont
+     --ssll            saveLines      SaveLines
+     --ssbb            scrollBar      ScrollBar
+     --rrww            reverseWrap    ReverseWrap
+     --cccc            charClass      CharClass
+     --mmssgg           messages       Messages
+     --iiccoonniicc        iconic         Iconic
+
+TTHHEE SSCCRROOLLLL BBAARR
+     Lines of text that scroll off the top of the rrvvtt window are saved auto-
+     matically (up to a preset maximum number) and can be viewed by scrolling
+     them back into the window with the scrollbar.  The scrollbar itself can
+     be displayed or hidden by clicking any mouse button in the window while
+     holding down the CONTROL key on the keyboard.  When using the scrollbar,
+     the left and right mouse buttons are used for scrolling by a few lines at
+     a time and the middle button is used for continuous scrolling.  To use
+     the middle button, press it in the scroll bar and hold it down. The cen-
+     tral shaded part of the scrollbar will then attach itself to the cursor
+     and can be slid up or down to show different parts of the sequence of
+     saved lines.  When scrolling with the left and right buttons, the left
+     button is used to scroll up and the right is used to scroll down. Assum-
+     ing that there are enough hidden lines, the distance scrolled with either
+     button is equal to the number of lines between the cursor and the top of
+     the window. Hence, pressing the left cursor opposite a line of text will
+     result in that line being moved to be the top of the window and pressing
+     the right button will cause the top line to be moved down so that it is
+     opposite the cursor.
+
+TTEEXXTT SSEELLEECCTTIIOONN AANNDD IINNSSEERRTTIIOONN
+     RRvvtt uses the same kind of text selection and insertion mechanism as
+     xterm(1).  Pressing and releasing the middle mouse button in an rrvvtt win-
+     dow causes the current text selection to be inserted as if it had been
+     typed on the keyboard. For the insertion to take place, both the button
+     press and the button release need to be done with the cursor in the rrvvtt
+     window.
+
+     The left and right mouse buttons are used to select text, with the left
+     button being used to start a selection and the right button being used to
+     modify an existing selection. Any continuous block of displayed text can
+     be selected. If both ends of the text block are visible in the window
+     then the easiest way to select it is to position the cursor at one end
+     and press the left mouse button, then drag the cursor to the other end
+     with the button held down before releasing the button. If the block is
+     larger than the window then you must first use the left mouse button to
+     select one end, then use the scroll bar to scroll the other end into view
+     and finally use the right mouse button to extend the selection. The ef-
+     fect of pressing the right mouse button is to move the nearest end of the
+     current selection to the current cursor position.
+
+     The other way to make selections in rrvvtt is to use double and triple
+     clicks of the left mouse button with a double click selecting a word and
+     a triple click selecting a whole line. For this purpose, a word is a se-
+     quence of characters in the same class.  The default character classes
+     are:
+
+          ++oo   The upper and lower case letters, digits and `_' (underscore)
+              all in one class;
+
+          ++oo   The white space characters all in one class;
+
+          ++oo   Each of the remaining punctuation characters in a class by it-
+              self.
+
+     If you want to change the character classes so that, for example, you can
+     select a UNIX pathname or a mail address in one double click, then you
+     can do so by using the --cccc command line option or the _c_h_a_r_C_l_a_s_s X re-
+     source.  Multiple clicking can be combined with dragging to select a se-
+     quence of consecutive words or lines.
+
+     Although rrvvtt essentially mimics the behaviour of xterm(1) in its support
+     of text selection and insertion, there are a couple of minor differences:
+
+          ++oo   rrvvtt respects TAB characters in selected text and does not auto-
+              matically convert them into spaces as does xterm(1);
+
+          ++oo   rrvvtt will let you abort a text insertion if you realize you have
+              made a mistake before releasing the middle mouse button.
+
+EENNVVIIRROONNMMEENNTT
+     rrvvtt utilizes the following environment variables.
+
+     DISPLAY     The default X server that the client should connect to.
+
+     RLOGIN_CMD  The default command that will be run to connect to the remote
+                 host.  This can be anything from rsh(1), ssh(1), to telnet(1)
+                 because rvt is an interactive process, automatic authentica-
+                 tion is not required as it is with dsh(1).
+
+DDIIAAGGNNOOSSTTIICCSS
+     Exit status is 0 on success, 1 if an error occurs.
+
+SSEEEE AALLSSOO
+     xterm(1), dsh(1), xvt(1), telnet(1), rsh(1).
+
+HHIISSTTOORRYY
+     The rrvvtt command appeared in clusterit 2.0.
+
+AAUUTTHHOORR
+     RRvvtt is based on the program xvt(1) written by John Bovey, University of
+     Kent, in 1992.  Modifications to make this program compile on modern ma-
+     chines, and work with dvt(1) were made by Tim Rightnour.
+
+BBUUGGSS
+     Pasting very large quantities of text does not work.
+
+                                January 7, 2001                              4
