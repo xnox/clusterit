@@ -1,4 +1,4 @@
-.\"	$Id: pdf.1,v 1.9 2000/01/14 23:30:36 garbled Exp $
+.\"	$Id: pdf.1,v 1.10 2000/02/20 04:46:24 garbled Exp $
 .\"
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
@@ -82,20 +82,25 @@ environment variable.
 .It Fl g
 If the
 .Fl g
-option is specified, followed by a comma separated list of group names, the command will only be run on that group
-of nodes.  A node may be a part of more than one group if desired, however running without the
+option is specified, followed by a comma separated list of group
+names, the command will only be run on that group of nodes.  A node
+may be a part of more than one group if desired, however running
+without the
 .Fl g
-option will run the command on the same node as many times as it appears in the
-file specified by the
+option will run the command on the same node as many times as it
+appears in the file specified by the
 .Ev CLUSTER
-environment variable.  This option is silently ignored if used with the -w option.
+environment variable.  This option is silently ignored if used with the
+.Fl w
+option.
 .It Fl x
 The
 .Fl x
-option can be used to exclude specific nodes from the cluster.  The format is the same as
-the
+option can be used to exclude specific nodes from the cluster.  The
+format is the same as the
 .Fl w
-option, a comma delimited list of machine names.  This option is silently ignored if used with the
+option, a comma delimited list of machine names.  This option is
+silently ignored if used with the
 .Fl w
 option.
 .It Fl l
@@ -161,7 +166,11 @@ command in IBM PSSP.
 was written by Tim Rightnour.
 .Sh BUGS
 Output is formatted for 80 columns.  This means that mount points and
-filesystems with long names ( > 20 characters ) will be truncated.  In
+filesystems with long names 
+.Po
+> 20 characters
+.Pc
+will be truncated.  In
 addition, numbers longer than 9 digits will be truncated as well.
 .Pp
 .Nm
