@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.11 2000/02/19 22:16:19 garbled Exp $ */
+/* $Id: barrierd.c,v 1.12 2001/08/13 20:55:24 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -31,6 +31,7 @@
  * SUCH DAMAGE.
  */
 
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -44,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.11 2000/02/19 22:16:19 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.12 2001/08/13 20:55:24 garbled Exp $");
 #endif
 
 #define MAX_TOKENS	10
@@ -64,9 +65,8 @@ void log_bailout __P((int));
 char * strsep(char **stringp, const char *delim);
 #endif
 
-int main(argc, argv)
-	int argc;
-	char *argv[];
+int
+main(int argc, char *argv[])
 {
 	extern char *optarg;
 
@@ -96,7 +96,8 @@ int main(argc, argv)
 	return(sleeper());
 }
 
-int sleeper(void)
+int
+sleeper(void)
 {
 	fd_set active_fd_set, read_fd_set;
 	struct sockaddr_in clientname;
@@ -129,7 +130,8 @@ int sleeper(void)
 		FD_ZERO(&active_fd_set);
 		FD_SET(sock, &active_fd_set);
 #ifdef DEBUG
-		printf("Server going into wait mode, listening on port %d\n", barrier_port);
+		printf("Server going into wait mode, listening on port %d\n",
+			barrier_port);
 #endif
 		while (1) {
 			/* Block until input arrives on one or more active sockets. */
@@ -144,12 +146,15 @@ int sleeper(void)
 						/* Connection request on original socket. */
 						int new;
 						size = sizeof(clientname);
-						new = accept(sock, (struct sockaddr *) &clientname, &size);
+						new = accept(sock, (struct sockaddr *) &clientname,
+							&size);
 						if (new < 0)
 							log_bailout(__LINE__);
 #ifdef DEBUG
-						(void)fprintf(stderr, "Server: connect from host %s, port %hd.\n",
-						    inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port));
+						(void)fprintf(stderr,
+							"Server: connect from host %s, port %hd.\n",
+						    inet_ntoa(clientname.sin_addr),
+							ntohs(clientname.sin_port));
 #endif
 						FD_SET(new, &active_fd_set);
 						if (read_from_client(new, &buf) > 0) {
@@ -162,23 +167,30 @@ int sleeper(void)
 								if (!found)
 									k++;
 							}
-							if (!found) /* we didn't find a matching token, now make a new one */
-							for (k=0; (k < MAX_TOKENS && tokens[k] != NULL); k++)
-								;
+							if (!found) /* we didn't find a matching token,
+										   now make a new one */
+							for (k=0; (k < MAX_TOKENS && tokens[k] != NULL);
+								 k++);
 
 							if (k > MAX_TOKENS - 1) {
-								(void)fprintf(stderr, "Server: too many tokens. Disconnected host %s, port %hd.\n",
-								    inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port));
-								write_to_client(new,"fail");
+								(void)fprintf(stderr, "Server: too many "
+									"tokens. Disconnected host %s, "
+									"port %hd.\n",
+									inet_ntoa(clientname.sin_addr),
+									ntohs(clientname.sin_port));
+								write_to_client(new, "fail");
 								close(new);
 								FD_CLR(new, &active_fd_set);
 							} else { 
 								for (l=0; sockets[k][l] != 0; l++)
 									;
 								if (l > MAX_CLUSTER - 1) {
-									(void)fprintf(stderr, "Server: too many sockets on token. Disconnected host %s, port %hd.\n",
-									    inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port));
-									write_to_client(new,"fail");
+									(void)fprintf(stderr, "Server: too many "
+										"sockets on token. Disconnected "
+										"host %s, port %hd.\n",
+									    inet_ntoa(clientname.sin_addr),
+										ntohs(clientname.sin_port));
+									write_to_client(new, "fail");
 									close(new);
 									FD_CLR(new, &active_fd_set);
 								} else {
@@ -189,9 +201,11 @@ int sleeper(void)
 									if (connections[k] == sizes[k]) {
 										l = connections[k];
 										for (m=0; m < l; m++) {
-											write_to_client(sockets[k][m],"passed");
+											write_to_client(sockets[k][m],
+												"passed");
 											close(sockets[k][m]);
-											FD_CLR (sockets[k][m], &active_fd_set);
+											FD_CLR (sockets[k][m], 
+												&active_fd_set);
 											sockets[k][m] = 0;
 											tokens[k] = NULL;
 											sizes[k] = 0;
@@ -217,8 +231,6 @@ void
 log_bailout(line) 
 	int line;
 {
-	extern int errno;
-	
 	if (debug)
 		syslog(LOG_CRIT, "%s: Failed on line %d: %m %d", progname, line,
 			errno);

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2000/02/25 21:47:34 garbled Exp $
+# $Id: Makefile,v 1.7 2001/08/13 20:55:23 garbled Exp $
 # barrier Makefile: Tim Rightnour
 
 # Some options need to be uncommented for Solaris
@@ -11,7 +11,8 @@ PROGS= 		barrierd barrier
 SSRCS=		../common/sockcommon.c ../common/common.c
 BSRCS=		barrier.c ${SSRCS}
 DSRCS=		barrierd.c ${SSRCS}
-#DSRCS+=		strsep.c
+OSRCS=		barrierd.c barrier.c
+#DSRCS=		barrierd.c ${SSRCS} ../common/netbsd.c
 
 MAN= barrierd.1 barrier.1
 
@@ -22,6 +23,15 @@ barrier: ${BSRCS:.c=.o}
 
 barrierd: ${DSRCS:.c=.o}
 	${CC} ${CFLAGS} -o $@ ${DSRCS:.c=.o} ${LIBS}
+
+lint: ${OSRCS:.c=.ln} ${SSRCS:.c=.ln}
+	@for prog in ${PROGS} ; do \
+		echo ${LINT} ${LINTFLAGS} ${SSRCS:.o=.ln} $$prog.ln ; \
+		${LINT} ${LINTFLAGS} ${SSRCS:.o=.ln} $$prog.ln ; \
+	done
+
+${SSRCS:.c=.ln} ${OSRCS:.c=.ln}: ${SSRCS} ${OSRCS}
+	${LINT} ${LINTFLAGS} -o $*.ln -i $*.c
 
 ${BSRCS:.c=.o}: ${BSRCS}
 	${CC} ${CFLAGS} -c $*.c -o $*.o
@@ -36,4 +46,4 @@ install: ${PROGS}
 	${INSTALL} -c -o bin -g bin -m 0444 barrierd.1 ${PREFIX}/man/man1
 
 clean:
-	rm -f *.o ${PROGS} ../common/*.o
+	rm -f *.o *.core core *~ ${PROGS} ../common/*.o ../common/*.ln *.ln

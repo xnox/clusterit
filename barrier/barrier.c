@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.12 2000/02/19 22:16:18 garbled Exp $ */
+/* $Id: barrier.c,v 1.13 2001/08/13 20:55:24 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrier.c,v 1.12 2000/02/19 22:16:18 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.13 2001/08/13 20:55:24 garbled Exp $");
 #endif
 
 int quietflag, barrier_port, debug;
@@ -62,9 +62,8 @@ int make_barrier __P((char *key, int nodes));
 int write_to_server __P((int filedes, char *buf));
 void log_bailout __P((int));
 
-int main(argc, argv)
-	int argc;
-	char *argv[];
+int
+main(int argc, char *argv[])
 {
 	extern char *optarg;
 
@@ -108,7 +107,9 @@ int main(argc, argv)
 		exit(EXIT_FAILURE);
 	}
 	if (key == NULL)
-		key = "barrier";
+		key = strdup("barrier");
+	if (key == NULL)
+		bailout(__LINE__);
 
 	if (barrier_port == BARRIER_SOCK)
 		if (getenv("BARRIER_PORT") != NULL)
