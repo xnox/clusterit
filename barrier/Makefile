@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2001/08/14 04:02:37 garbled Exp $
+# $Id: Makefile,v 1.9 2001/08/14 04:10:02 garbled Exp $
 # barrier Makefile: Tim Rightnour
 
 # Some options need to be uncommented for Solaris
@@ -48,9 +48,9 @@ ${DSRCS:.c=.o}: ${DSRCS}
 
 install: ${PROGS} ${MAN}
 	${INSTALL} -c -s -o bin -g bin -m 0755 barrier ${PREFIX}/bin
-	${INSTALL} -c -o bin -g bin -m 0444 barrier.1 ${PREFIX}/man/man1
+	${INSTALL} -c -o root -g wheel -m 0444 barrier.1 ${PREFIX}/man/man1
 	${INSTALL} -c -s -o bin -g bin -m 0755 barrierd ${PREFIX}/bin
-	${INSTALL} -c -o bin -g bin -m 0444 barrierd.1 ${PREFIX}/man/man1
+	${INSTALL} -c -o root -g wheel -m 0444 barrierd.1 ${PREFIX}/man/man1
 
 clean:
 	rm -f *.o *.core core *~ ${PROGS} ../common/*.o ../common/*.ln *.ln

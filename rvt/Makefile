@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2001/08/13 22:38:28 garbled Exp $
+# $Id: Makefile,v 1.2 2001/08/14 04:10:10 garbled Exp $
 # rvt Makefile: Tim Rightnour
 
 # Some of the below needs to be uncommented for Solaris to work.
@@ -39,7 +39,7 @@ ${SSRCS}: ${SSRCS:.o=.c}
 
 install: ${PROGS} ${MAN}
 	${INSTALL} -c -s -o bin -g bin -m 0755 ${PROGS} ${PREFIX}/bin
-	${INSTALL} -c -o bin -g bin -m 0444 ${MAN} ${PREFIX}/man/man1
+	${INSTALL} -c -o root -g wheel -m 0444 ${MAN} ${PREFIX}/man/man1
 
 clean:
 	rm -f *.o *.core core *~ ${PROGS} ../common/*.o ../common/*.ln *.ln
