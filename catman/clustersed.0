@@ -1,0 +1,51 @@
+CLUSTERSED(1)               NetBSD Reference Manual              CLUSTERSED(1)
+
+NNAAMMEE
+     cclluusstteerrsseedd - quickly dissect cluster files
+
+SSYYNNOOPPSSIISS
+     cclluusstteerrsseedd _c_l_u_s_t_e_r_f_i_l_e|- _s_t_r_i_n_g_1 _._._. _s_t_r_i_n_g_n
+
+DDEESSCCRRIIPPTTIIOONN
+     The cclluusstteerrsseedd program is used to cut individual groups out of a cluster
+     file.  This can be used to see the contents of a particular group easily,
+     or to generate special-use clusters on the fly. The results of the pro-
+     gram will be sent to standard output.  The following options are avail-
+     able:
+
+     _c_l_u_s_t_e_r_f_i_l_e  The first argument must either be the name of a cluster
+                  file, or a single dash (`-'). If the dash is given, the
+                  clusterfile will be read from the file indicated in the
+                  CLUSTER environment variable.  If the CLUSTER environment
+                  variable does not exist, cclluusstteerrsseedd will process standard
+                  input.
+
+     _s_t_r_i_n_g       The second argument is a space separated list of one or more
+                  strings to search for in the cluster file.  These are the
+                  names of groups within the cluster, and will only match
+                  group names.  If a group name is matched, all nodes in that
+                  group will be printed out, along with the `GROUP:' heading
+                  and the name of the group.  You can partially match the be-
+                  gining of a group name with a string.  For example, the ar-
+                  gument `serv' would match `server1' and `server2' but would
+                  not match `subserv'.
+
+EENNVVIIRROONNMMEENNTT
+     cclluusstteerrsseedd utilizes the following environment variables:
+
+     CLUSTER  Contains a filename, which is a newline separated list of nodes
+              in the cluster.
+
+DDIIAAGGNNOOSSTTIICCSS
+     Exit status is 0 on success, 1 if an error occurs.
+
+SSEEEE AALLSSOO
+     dsh(1).
+
+HHIISSTTOORRYY
+     The cclluusstteerrsseedd command appeared in clusterit 2.0.
+
+AAUUTTHHOORR
+     CClluusstteerrsseedd was written by Tim Rightnour.
+
+                               February 25, 2000                             1

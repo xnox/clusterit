@@ -1,0 +1,102 @@
+<html>
+<head>
+     <title>
+           February 25, 2000 CLUSTERSED 1
+
+     </title>
+        <style type="text/css">
+        <!--
+          body { margin-left:4%; }
+          H1 { color: maroon; padding: 4pt; margin-left: -4% }
+          H2 { color: maroon; padding: 4pt; margin-left: -4% }
+          H3 { color: maroon; padding: 4pt; margin-left: -4% }
+          H4 { color: maroon; padding: 4pt; margin-left: -4% }
+          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+        -->
+        </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+     <h3>
+     NAME
+     </h3>
+<b>clustersed</b>
+- quickly dissect cluster files
+     <h3>
+     SYNOPSIS
+     </h3>
+<b>clustersed</b>
+<i></i><i>clusterfile</i>|-
+<i></i><i>string1</i><i> ...</i><i> stringn</i>
+     <h3>
+     DESCRIPTION
+     </h3>
+The
+<b>clustersed</b>
+program is used to cut individual groups out of a cluster file.  This
+can be used to see the contents of a particular group easily, or to
+generate special-use clusters on the fly. The results of the program
+will be sent to standard output.
+The following options are available:
+<dl compact>
+<p><dt><i></i><i>clusterfile</i><dd>
+The first argument must either be the name of a cluster file, or a
+single dash
+(`-').
+If the dash is given, the clusterfile will be read from the file
+indicated in the
+<code></code><code>CLUSTER</code>
+environment variable.  If the
+<code></code><code>CLUSTER</code>
+environment variable does not exist,
+<b>clustersed</b>
+will process standard input.
+<p><dt><i></i><i>string</i><dd>
+The second argument is a space separated list of one or more strings
+to search for in the cluster file.  These are the names of groups
+within the cluster, and will only match group names.  If a group name
+is matched, all nodes in that group will be printed out, along with
+the
+`GROUP:'
+heading and the name of the group.  You can partially match the
+begining of a group name with a string.  For example, the argument
+`serv'
+would match
+`server1'
+and
+`server2'
+but would not match
+`subserv'.
+</dl>
+     <h3>
+     ENVIRONMENT
+     </h3>
+<b>clustersed</b>
+utilizes the following environment variables:
+<dl compact>
+<p><dt><code></code><code>CLUSTER</code><dd>
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+</dl>
+     <h3>
+     DIAGNOSTICS
+     </h3>
+Exit status is 0 on success, 1 if an error occurs.
+     <h3>
+     SEE ALSO
+     </h3>
+<code>dsh(1)</code>.
+     <h3>
+     HISTORY
+     </h3>
+The
+<b>clustersed</b>
+command appeared in clusterit 2.0.
+     <h3>
+     AUTHOR
+     </h3>
+<b>Clustersed</b>
+was written by Tim Rightnour.
+</font></body>
+</html>
+
+
