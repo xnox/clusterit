@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.5 1999/05/04 20:04:57 garbled Exp $ */
+/* $Id: barrierd.c,v 1.6 1999/10/14 17:07:56 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: barrierd.c,v 1.5 1999/05/04 20:04:57 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.6 1999/10/14 17:07:56 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK	1933	/* default socket for barrier */
@@ -58,16 +58,17 @@ __RCSID("$Id: barrierd.c,v 1.5 1999/05/04 20:04:57 garbled Exp $");
 
 int barrier_port;
 
-#ifdef __NetBSD__
+#ifndef __P
+#define __P(protos) protos
+#endif
+
 int make_socket __P((void));
 int sleeper __P((void));
 int write_to_client __P((int filedes, char *buf));
 int read_from_client __P((int filedes, char **j));
-#else
-int make_socket(void);
-int sleeper(void);
-int write_to_client(int filedes, char *buf);
-int read_from_client(int filedes, char **j);
+
+#ifndef __NetBSD__
+char * strsep(char **stringp, const char *delim);
 #endif
 
 int main(argc, argv)

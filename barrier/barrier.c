@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.5 1998/10/20 07:26:33 garbled Exp $ */
+/* $Id: barrier.c,v 1.6 1999/10/14 17:07:56 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: barrier.c,v 1.5 1998/10/20 07:26:33 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.6 1999/10/14 17:07:56 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK 1933	/* default socket for barrier */
@@ -55,10 +55,12 @@ __RCSID("$Id: barrier.c,v 1.5 1998/10/20 07:26:33 garbled Exp $");
 int quietflag, barrier_port;
 char *barrier_host;
 
-#ifdef __NetBSD__
+#ifndef __P
+#define __P(protos) protos
+#endif
+
 int make_barrier __P((char *key, int nodes));
 int write_to_server __P((int filedes, char *buf));
-#endif
 
 int main(argc, argv)
 	int argc;
