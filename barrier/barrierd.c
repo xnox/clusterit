@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.12 2001/08/13 20:55:24 garbled Exp $ */
+/* $Id: barrierd.c,v 1.13 2002/03/14 18:09:19 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.12 2001/08/13 20:55:24 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.13 2002/03/14 18:09:19 garbled Exp $");
 #endif
 
 #define MAX_TOKENS	10
@@ -61,7 +61,7 @@ char *progname;
 int sleeper __P((void));
 void log_bailout __P((int));
 
-#ifndef __NetBSD__
+#if !defined(__NetBSD__) && !defined(__linux__)
 char * strsep(char **stringp, const char *delim);
 #endif
 
