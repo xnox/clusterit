@@ -1,4 +1,4 @@
-.\"	$Id: prm.1,v 1.2 1998/10/13 20:00:20 garbled Exp $
+.\"	$Id: prm.1,v 1.3 1999/05/05 08:49:55 garbled Exp $
 .\"
 .\" Copyright (c) 1998
 .\"	Tim Rightnour.  All rights reserved.
@@ -40,7 +40,9 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl dfrPRW
+.Op Fl g Ar nodegroup1,...,nodegroupN
 .Op Ar -w node1,...,nodeN
+.Op Ar -x node1,...,nodeN
 .Ar file ...
 .Sh DESCRIPTION
 The 
@@ -60,6 +62,29 @@ will be run on each node in the list.  Without this flag,
 runs on the nodes listed in the file pointed to by the
 .Ev CLUSTER
 environment variable.
+.It Fl g
+If the
+.Fl g
+option is specified, followed by a comma separated list of group names, the
+command will only be run on that group of nodes.  A node may be a part of
+more than one group if desired, however running without the
+.Fl g
+option will run the command on the same node as many times as it appears in the
+file specified by the
+.Ev CLUSTER
+environment variable.  This option is silently ignored if used with the
+.Fl w
+option.
+.It Fl x
+The
+.Fl x
+option can be used to exclude specific nodes from the cluster.  The format is
+the same as the
+.Fl w
+option, a comma delimited list of machine names.  This option is silently
+ignored if used with the
+.Fl w
+option.
 .It Fl d
 Attempt to remove directories as well as other types of files.
 .It Fl f
@@ -119,3 +144,11 @@ command in IBM PSSP.
 was written by Tim Rightnour.
 .Sh BUGS
 Error handling could use some work.
+.Pp
+Some of the more advanced options, like the
+.Fl P
+option, may not be available in some versions of
+.Xr rm 1 .
+Consult the
+.Xr rm 1
+manpage on the remote host if you have problems.
