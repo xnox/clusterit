@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.8 2000/01/14 23:31:59 garbled Exp $ */
+/* $Id: barrier.c,v 1.9 2000/02/17 07:29:25 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -44,10 +44,8 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrier.c,v 1.8 2000/01/14 23:31:59 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.9 2000/02/17 07:29:25 garbled Exp $");
 #endif
-
-#define BARRIER_SOCK 1933	/* default socket for barrier */
 
 int quietflag, barrier_port;
 char *barrier_host;

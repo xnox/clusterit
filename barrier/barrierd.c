@@ -1,6 +1,6 @@
-/* $Id: barrierd.c,v 1.8 2000/01/14 23:31:59 garbled Exp $ */
+/* $Id: barrierd.c,v 1.9 2000/02/17 07:29:25 garbled Exp $ */
 /*
- * Copyright (c) 1998
+ * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,24 +33,17 @@
 
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/if_ether.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <string.h>
+#include "../common/sockcommon.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.8 2000/01/14 23:31:59 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.9 2000/02/17 07:29:25 garbled Exp $");
 #endif
 
-#define BARRIER_SOCK	1933	/* default socket for barrier */
-#define MAXMSG		512
 #define MAX_TOKENS	10
 #define MAX_CLUSTER	512
 
@@ -60,10 +53,8 @@ int barrier_port;
 #define __P(protos) protos
 #endif
 
-int make_socket __P((void));
 int sleeper __P((void));
-int write_to_client __P((int filedes, char *buf));
-int read_from_client __P((int filedes, char **j));
+void log_bailout __P((int));
 
 #ifndef __NetBSD__
 char * strsep(char **stringp, const char *delim);
@@ -77,7 +68,7 @@ int main(argc, argv)
 
 	int ch;
 	
-	barrier_port = BARRIER_SOCK;
+	barrier_port = 0;
 
 	while ((ch = getopt(argc, argv, "?p:")) != -1)
 		switch (ch) {
@@ -92,68 +83,13 @@ int main(argc, argv)
 			break;
 	}
 
-	if (barrier_port == BARRIER_SOCK)
+	if (barrier_port == 0)
 		if (getenv("BARRIER_PORT") != NULL)
 			barrier_port = atoi(getenv("BARRIER_PORT"));
+		else
+			barrier_port = BARRIER_SOCK;
 
 	return(sleeper());
-}
-
-int make_socket(void)
-{
-	int sock;
-	struct sockaddr_in name;
-
-	/* create socket */
-	sock = socket(PF_INET, SOCK_STREAM, 0);
-	if (sock < 0) {
-		perror("socket");
-		exit(EXIT_FAILURE);
-	}
-
-	name.sin_family = AF_INET;
-	name.sin_port = htons(barrier_port);
-	name.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	if (bind(sock, (struct sockaddr *) &name, sizeof(name)) != 0) {
-		perror("bind");
-		exit(EXIT_FAILURE);
-	}
-	return(sock);
-}
-
-int write_to_client(int filedes, char *buf)
-{
-	int nbytes;
-
-	nbytes = write(filedes, buf, strlen(buf));
-	if (nbytes < 0)
-		return(EXIT_FAILURE);
-	else
-		return(EXIT_SUCCESS);
-}
-
-int read_from_client(int filedes, char **j)
-{
-	int nbytes;
-	char *buffer;
-
-	buffer = malloc( MAXMSG * sizeof(char));
-
-	nbytes = read(filedes, buffer, MAXMSG);
-	if (nbytes < 0) {
-		/* Read error. */
-		perror("read");
-		exit (EXIT_FAILURE);
-	} else if (nbytes == 0)
-		/* End-of-file. */
-		return(-1);
-	else { /* Data read. */
-		/* place data from the socket into the buffer we were passed */
-		*j = strdup(buffer);
-		return(nbytes);
-	}
-	/*NOTREACHED*/
 }
 
 int sleeper(void)
@@ -173,12 +109,11 @@ int sleeper(void)
 	case 0: 
 #endif
 		/* Create the socket and set it up to accept connections. */
-		sock = make_socket();
+		sock = make_socket(barrier_port);
 
-		if (listen(sock, 1) < 0) {
-			perror("listen");
-			exit(EXIT_FAILURE);
-		}
+		if (listen(sock, 1) < 0)
+			log_bailout(__LINE__);
+
 		for (l=0; l < MAX_TOKENS; l++) {
 			connections[l] = 0;
 			tokens[l] = NULL;
@@ -195,10 +130,9 @@ int sleeper(void)
 		while (1) {
 			/* Block until input arrives on one or more active sockets. */
 			read_fd_set = active_fd_set;
-			if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
-				perror ("select");
-				exit (EXIT_FAILURE);
-			}
+			if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0)
+				log_bailout(__LINE__);
+
 			/* Service all the sockets with input pending. */
 			for (i = 0; i < FD_SETSIZE; ++i)
 				if (FD_ISSET (i, &read_fd_set)) {
@@ -207,10 +141,8 @@ int sleeper(void)
 						int new;
 						size = sizeof(clientname);
 						new = accept(sock, (struct sockaddr *) &clientname, &size);
-						if (new < 0) {
-							perror("accept");
-							exit(EXIT_FAILURE);
-						}
+						if (new < 0)
+							log_bailout(__LINE__);
 #ifdef DEBUG
 						(void)fprintf(stderr, "Server: connect from host %s, port %hd.\n",
 						    inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port));
@@ -274,4 +206,20 @@ int sleeper(void)
 		break;
 	} /* switch */
 #endif
+}
+
+/*ARGSUSED*/
+void
+log_bailout(line) 
+	int line;
+{
+	extern int errno;
+	
+	if (debug)
+		syslog(LOG_CRIT, "%s: Failed on line %d: %m %d", progname, line,
+			errno);
+	else
+		syslog(LOG_CRIT, "%s: Internal error, aborting: %m", progname);
+
+	_exit(EXIT_FAILURE);
 }
