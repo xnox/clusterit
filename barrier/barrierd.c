@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.9 2000/02/17 07:29:25 garbled Exp $ */
+/* $Id: barrierd.c,v 1.10 2000/02/17 07:54:42 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -35,19 +35,22 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <syslog.h>
+#include <varargs.h>
 #include "../common/sockcommon.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.9 2000/02/17 07:29:25 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.10 2000/02/17 07:54:42 garbled Exp $");
 #endif
 
 #define MAX_TOKENS	10
 #define MAX_CLUSTER	512
 
-int barrier_port;
+int barrier_port, debug;
+char *progname;
 
 #ifndef __P
 #define __P(protos) protos
