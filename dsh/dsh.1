@@ -1,4 +1,4 @@
-.\" $Id: dsh.1,v 1.5 1998/10/15 19:40:28 garbled Exp $
+.\" $Id: dsh.1,v 1.6 1998/10/20 07:32:38 garbled Exp $
 .\" Copyright (c) 1998
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -39,7 +39,7 @@
 .Nm
 .Op Fl eiq
 .Op Ar -f fanout
-.Op Ar -g rungroup
+.Op Ar -g rungroup1,...,rungroupN
 .Op Ar -l username
 .Op Ar -w node1,...,nodeN
 .Op Ar command ...
@@ -81,7 +81,7 @@ environment variable.
 .It Fl g
 If the
 .Fl g
-option is specified, followed by a group name, the command will only be run on that group
+option is specified, followed by a comma separated list of group names, the command will only be run on that group
 of nodes.  A node may be a part of more than one group if desired, however running without the
 .Fl g
 option will run the command on the same node as many times as it appears in the
