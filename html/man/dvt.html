@@ -1,0 +1,234 @@
+<html>
+<head>
+     <title>
+           January 7, 2001 DVT 1
+
+     </title>
+        <style type="text/css">
+        <!--
+          body { margin-left:4%; }
+          H1 { color: maroon; padding: 4pt; margin-left: -4% }
+          H2 { color: maroon; padding: 4pt; margin-left: -4% }
+          H3 { color: maroon; padding: 4pt; margin-left: -4% }
+          H4 { color: maroon; padding: 4pt; margin-left: -4% }
+          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+        -->
+        </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+     <h3>
+     NAME
+     </h3>
+<b>dvt</b>
+- launch an interactive window on a cluster of machines
+     <h3>
+     SYNOPSIS
+     </h3>
+<b>dvt</b>
+[<b></b><b>-eiq</b>]
+[<b></b><b>-f</b><i></i><i> fanout</i>]
+[<b></b><b>-g</b><i></i><i> rungroup1,...,rungroupN</i>]
+[<b></b><b>-l</b><i></i><i> username</i>]
+[<b></b><b>-w</b><i></i><i> node1,...,nodeN</i>]
+[<b></b><b>-x</b><i></i><i> node1,...,nodeN</i>]
+     <h3>
+     DESCRIPTION
+     </h3>
+The
+<b>dvt</b>
+utility launches a number of terminal windows, one for each machine the user
+specifies on the command line.  In addition, it launches a single control
+window.  The terminal windows are similar to terminal windows provided by
+<code>xterm(1)</code>,
+<code>xvt(1)</code>
+or
+<code>rxvt(1)</code>
+in most regards, and may be used as a standard terminal window by themselves.
+The control window however, allows global control of all the terminal
+windows.  The user can type in the command box of the control window,
+and the keystrokes will be sent to all the terminal windows at once.
+In this way the user can perform interactive commands, such as editing
+a file, in parallel.  At any point, the user can switch his keyboard
+focus to a particular window, and issue commands to that window only,
+should it become neccesary.
+The following options are available:
+<dl compact>
+<p><dt><b></b><b>-e</b><dd>
+Unless the
+<b></b><b>-e</b>
+option is specified, stderr from remote commands will not be reported to the
+user.
+<p><dt><b></b><b>-i</b><dd>
+The
+<b></b><b>-i</b>
+option will list information about the current cluster, and command groupings.
+It will print out the current value of the fanout, and how many groups of
+machines there are within the cluster. It will also show you which command
+you are about to run, and your username if specified with the
+<b></b><b>-l</b>
+option.
+<p><dt><b></b><b>-q</b><dd>
+The
+<b></b><b>-q</b>
+option does not issue any commands, but displays information about the
+cluster, and the fanout groupings.
+<p><dt><b></b><b>-f</b><dd>
+If the
+<b></b><b>-f</b>
+option is specified, followed by a number, it sets the fanout size of the
+cluster.  The fanout size is the number of nodes a command will run on in
+parallel at one time.  The fanout option, restricts the maximum number
+of windows that can be opened at one time.  This is used to prevent
+the user from accidentally launching hundreds of windows, and crashing
+their X-terminal, or server.  The fanout size defaults to 64.  This
+option overrides the
+<code></code><code>FANOUT</code>
+environment variable.
+<p><dt><b></b><b>-g</b><dd>
+If the
+<b></b><b>-g</b>
+option is specified, followed by a comma separated list of group names, the
+command will only be run on that group of nodes.  A node may be a part of
+more than one group if desired, however running without the
+<b></b><b>-g</b>
+option will open windows to the same node as many times as it appears in the
+file specified by the
+<code></code><code>CLUSTER</code>
+environment variable.  This option is silently ignored if used with the
+<b></b><b>-w</b>
+option.
+<p><dt><b></b><b>-l</b><dd>
+If the
+<b></b><b>-l</b>
+option is specified, followed by a username, the initial connection
+attempted will pass the username argument and attempt to login with
+that account to the remote system. Consideration must be taken for
+proper authentication, for this to work.
+<p><dt><b></b><b>-w</b><dd>
+If the
+<b></b><b>-w</b>
+option is specified, followed by a comma delimited list of machine names,
+windows will be opened to each node in the list.  Without this option,
+<b>dvt</b>
+open windows to all the nodes listed in the file pointed to by the
+<code></code><code>CLUSTER</code>
+environment variable.
+<p><dt><b></b><b>-x</b><dd>
+The
+<b></b><b>-x</b>
+option can be used to exclude specific nodes from the cluster.  The format
+is the same as the
+<b></b><b>-w</b>
+option, a comma delimited list of machine names.  This option is silently
+ignored if used with the
+<b></b><b>-w</b>
+option.
+</dl>
+     <h3>
+     ENVIRONMENT
+     </h3>
+<b>dvt</b>
+utilizes the following environment variables.
+<dl compact>
+<p><dt><code></code><code>CLUSTER</code><dd>
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+<p><dt><code></code><code>RVT_CMD</code><dd>
+Contains the name of a binary to be executed by
+<b>dvt</b>
+which will open a terminal window and connection to a single remote
+host.  The user may override this with another program that performs
+the same function, however, the program must supply as it's only
+output to stdout, it's X Window-ID in decimal.  In addition, it must
+take as the final argument, the name of a remtoe machine to connect
+to.  This program must also be capable of recieving X events sent via
+the
+<code>XSendEvent(3)</code>
+facility.  If this environment variable is not set, it defaults to
+<b></b><b>rvt</b>
+<p><dt><code></code><code>FANOUT</code><dd>
+When set, limits the maximum number of terminal windows to open
+simultaneously.  This is designed to safeguard the user from
+potentially opening hundreds of windows, and overloading the
+X-terminal or server. Defaults to 64.  This environment setting can be
+overridden by the
+<b></b><b>-f</b>
+option.
+</dl>
+     <h3>
+     FILES
+     </h3>
+The file pointed to by the
+<code></code><code>CLUSTER</code>
+environment variable has the following format:
+<dl compact><dt><dd>
+<code>
+<pre>
+pollux
+castor
+GROUP:alpha
+rigel
+kent
+GROUP:sparc
+alshain
+altair
+LUMP:alphasparc
+alpha
+sparc
+</pre>
+</code>
+</dl>
+     <p>
+This example would have pollux and castor a member of no groups, rigel and
+kent a member of group 'alpha', and alshain and altair a member of group
+`sparc'.
+Note the format of the GROUP command, it is in all capital letters, followed
+by a colon, and the group name.  There can be no spaces following the GROUP
+command, or in the name of the group.
+     <p>
+There is also a LUMP command, which is identical in syntax to the GROUP
+command.  This command allows you to create a named group of groups.  Each
+member of the lump is the name of a group.  The LUMP command is terminated
+by another LUMP or GROUP command, or the EOF marker.
+     <p>
+Any line beginning with a
+`#'
+symbol denotes a comment field, and the entire line will be ignored.
+Note that a hash mark placed anywhere other than the first character
+of a line, will be considered part of a valid hostname or command.
+     <h3>
+     DIAGNOSTICS
+     </h3>
+Exit status is 0 on success, 1 if an error occurs.
+     <h3>
+     SEE ALSO
+     </h3>
+<code>xterm(1)</code>,
+<code>dsh(1)</code>,
+<code>rvt(1)</code>,
+<code>XSendEvent(3)</code>,
+<code>kerberos(3)</code>,
+<code>hosts.equiv(5)</code>,
+<code>rhosts(5)</code>
+     <h3>
+     HISTORY
+     </h3>
+The
+<b>dvt</b>
+command appeared in clusterit 2.0.
+     <h3>
+     AUTHOR
+     </h3>
+<b>Dvt</b>
+was written by Tim Rightnour.
+     <h3>
+     BUGS
+     </h3>
+Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
+that
+<b>dvt</b>
+will fail on a fanout size greater than about 32-40 nodes.
+</font></body>
+</html>
+
+
