@@ -1,4 +1,4 @@
-.\"	$Id: pdf.1,v 1.3 1998/12/14 16:33:16 garbled Exp $
+.\"	$Id: pdf.1,v 1.4 1998/12/14 17:02:22 garbled Exp $
 .\"
 .\" Copyright (c) 1998
 .\"	Tim Rightnour.  All rights reserved.
@@ -40,7 +40,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl ln
-.Op Fl g Ar nodegroup
+.Op Fl g Ar nodegroup1,...,nodegroupN
 .Op Fl m Ar size
 .Op Fl t Ar type
 .Op Ar -w node1,...,nodeN
@@ -58,17 +58,13 @@ If neither a file or a
 operand is specified,
 statistics for all mounted file systems, on all machines are displayed
 (subject to the
-.Fl w
-,
-.Fl x
-,
-.Fl g
-,
-.Fl m
-,
-.Fl l
+.Fl w ,
+.Fl x ,
+.Fl g ,
+.Fl m ,
+.Fl l 
 and
-.Fl t
+.Fl t 
 options below).
 The following options are available:
 .Bl -tag -width www
@@ -167,3 +163,9 @@ was written by Tim Rightnour.
 Output is formatted for 80 columns.  This means that mount points and
 filesystems with long names ( > 20 characters ) will be truncated.  In
 addition, numbers longer than 9 digits will be truncated as well.
+.Pp
+.Nm
+will only work on nodes that produce the
+.Xr df 1
+output that it expects.  It has been made to work on HP-UX, Solaris, and
+AIX, along with any BSD. 
