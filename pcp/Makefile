@@ -1,11 +1,13 @@
-# $Id: Makefile,v 1.3 1998/10/20 07:32:57 garbled Exp $
+# $Id: Makefile,v 1.4 1998/10/20 07:35:50 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
-CC= /usr/local/bin/gcc
+#Uncomment things for solaris.
+
+#CC= /usr/local/bin/gcc
 PROG=		pcp
 
-SRCS= pcp.c strsep.c
-#SRCS= pcp.c
+#SRCS= pcp.c strsep.c
+SRCS= pcp.c
 
 SCRIPTS=	prm pdf dshbak
 MAN=		pcp.1 prm.1 pdf.1
