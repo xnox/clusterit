@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 1998/10/20 07:39:04 garbled Exp $
+# $Id: Makefile,v 1.6 2000/02/17 08:09:54 garbled Exp $
 # Makefile for clusterit:  Tim Rightnour
 
 OPSYS!=		uname
@@ -6,7 +6,7 @@ OPSYS!=		uname
 CFLAGS=		-O2 -Wall
 PREFIX?=	/usr/local
 
-SUBDIR=		dsh pcp barrier
+SUBDIR=		dsh pcp barrier jsd
 
 all:
 	@for dir in ${SUBDIR} ; do \
