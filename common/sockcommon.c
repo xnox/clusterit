@@ -1,6 +1,6 @@
-/* $Id: common.h,v 1.3 2000/02/17 07:32:42 garbled Exp $ */
+/* $Id: sockcommon.c,v 1.1 2000/02/17 07:32:42 garbled Exp $ */
 /*
- * Copyright (c) 1998, 1999, 2000
+ * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,54 +31,75 @@
  * SUCH DAMAGE.
  */
 
-/* Headers for common.c, used by dsh-like programs. */
+/*
+ * these are routines that are used in all the jsd and barrier programs,
+ * and therefore rather than having to fix them in n places, they are kept
+ * here.
+ */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#include "../common/sockcommon.h"
 
-enum {
-	DEFAULT_FANOUT = 64,
-	GROUP_MALLOC = 16,
-	MAXBUF = 1024
-};
-
-#ifndef __P
-#define __P(protos) protos
+#if !defined(lint) && defined(__NetBSD__)
+__COPYRIGHT(
+"@(#) Copyright (c) 2000\n\
+        Tim Rightnour.  All rights reserved\n");
+__RCSID("$Id: sockcommon.c,v 1.1 2000/02/17 07:32:42 garbled Exp $");
 #endif
 
-typedef struct { int fds[2]; } pipe_t;
 
-struct node_data {
-	char *name;					/* node name */
-	int group;					/* member of this group */
-	pipe_t err, out;			/* pipe structures */
-	pid_t childpid;				/* pid of the child */
-	struct node_data *next;		/* pointer to next node */
-	int free;
-	double index;
-};
-typedef struct node_data node_t;
+int make_socket(port)
+	int port;
+{
+	int sock;
+	struct sockaddr_in name;
 
-struct group_data {
-	char *name;					/* group name */
-	int lump;					/* member of this lump */
-};
-typedef struct group_data group_t;
+	/* create socket */
+	sock = socket(PF_INET, SOCK_STREAM, 0);
+	if (sock < 0)
+		log_bailout(__LINE__);
 
-void bailout __P((int));
-void do_showcluster __P((int));
-char *alignstring __P((char *, size_t));
-int parse_cluster __P((char **));
-node_t *nodealloc __P((char *));
-#ifndef __NetBSD__
-char * strsep(char **stringp, const char *delim);
-#endif
+	name.sin_family = AF_INET;
+	name.sin_port = htons(port);
+	name.sin_addr.s_addr = htonl(INADDR_ANY);
 
-extern char **lumplist;
-extern char **rungroup;
-extern int exclusion, debug, grouping;
-extern group_t *grouplist;
-extern node_t *nodelink;
-extern char *progname;
+	if (bind(sock, (struct sockaddr *) &name, sizeof(name)) != 0)
+		log_bailout(__LINE__);
+
+	return(sock);
+}
+
+int write_to_client(filedes, buf)
+	int filedes;
+	char *buf;
+{
+	int nbytes;
+
+	nbytes = write(filedes, buf, strlen(buf));
+	if (nbytes < 0)
+		return(EXIT_FAILURE);
+	else
+		return(EXIT_SUCCESS);
+}
+
+int read_from_client(filedes, j)
+	int filedes;
+	char **j;
+{
+	int nbytes;
+	char *buffer;
+
+	buffer = (char *)malloc( MAXMSG * sizeof(char));
+
+	nbytes = read(filedes, buffer, MAXMSG);
+	if (nbytes < 0)
+		log_bailout(__LINE__);
+	else if (nbytes == 0)
+		/* End-of-file. */
+		return(-1);
+	else { /* Data read. */
+		/* place data from the socket into the buffer we were passed */
+		*j = strdup(buffer);
+		return(nbytes);
+	}
+	/*NOTREACHED*/
+}

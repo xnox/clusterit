@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.2 2000/01/14 23:29:31 garbled Exp $ */
+/* $Id: common.c,v 1.3 2000/02/17 07:32:41 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.2 2000/01/14 23:29:31 garbled Exp $");
+__RCSID("$Id: common.c,v 1.3 2000/02/17 07:32:41 garbled Exp $");
 #endif
 
 
@@ -90,11 +90,11 @@ do_showcluster(fanout)
 		for (i=0; (i < fanout && nodeptr != NULL); i++) {
 			l++;
 			group = NULL;
-			if (nodeptr->group > 0)
-					group = strdup(grouplist[nodeptr->group]);
+			if (nodeptr->group >= 0)
+					group = strdup(grouplist[nodeptr->group].name);
 			if (group == NULL)
 				(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None"
-					"            Host: %-15s\n", l, n + 1, nodeptr->name);
+					"             Host: %-15s\n", l, n + 1, nodeptr->name);
 			else
 				(void)printf("Node: %3d  Fangroup: %3d  Rungroup: %-15s"
 					"  Host: %-15s\n", l, n + 1, group,
@@ -116,16 +116,24 @@ parse_cluster(exclude)
 {
 	FILE *fd;
 	char *clusterfile, *p, *nodename;
-	char **grouptemp;
-	int i, j, g, fail, gfail;
+	int i, j, g, fail, gfail, lumping, n, ging;
 	char	buf[MAXBUF];
 	extern int errno;
-	struct node_data *nodeptr;
+	group_t *grouptemp;
+	node_t *nodeptr;
+	char **lumptemp;
 
 	g = -1;
+	lumping = ging = 0;
+	n = 0;
+	gfail = 1;
 
-	grouplist = (char **)malloc(GROUP_MALLOC * sizeof(char **));
+	grouplist = (group_t *)malloc(GROUP_MALLOC * sizeof(group_t));
 	if (grouplist == NULL)
+		bailout(__LINE__);
+
+	lumplist = (char **)malloc(GROUP_MALLOC * sizeof(char *));
+	if (lumplist == NULL)
 		bailout(__LINE__);
 
     /* if -w wasn't specified, we need to parse the cluster file */
@@ -142,36 +150,98 @@ parse_cluster(exclude)
 			progname, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+
+	/* this is horrid. rewrite me in lex/yacc */
+
+	/* First, find all the groups, and build a grouplist */
+	while ((nodename = fgets(buf, sizeof(buf), fd))) {
+		p = (char *)strsep(&nodename, "\n");
+		if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
+			if (strstr(p, "GROUP") != NULL) {
+				ging = 1;
+				strsep(&p, ":");
+				if (((g+1) % GROUP_MALLOC) != 0 && n > 0) {
+					grouplist[++g].name = strdup(p);
+					grouplist[g].lump = 0;
+				} else {
+					grouptemp = realloc(grouplist,
+						(g+1)*sizeof(group_t) + GROUP_MALLOC *
+						sizeof(group_t));
+					if (grouptemp != NULL)
+						grouplist = grouptemp;
+					else
+						bailout(__LINE__);
+					grouplist[++g].name = strdup(p);
+					grouplist[g].lump = 0;
+				}
+			} else if (ging && ((strstr(p, "GROUP") != NULL) ||
+			    (strstr(p, "LUMP") != NULL)))
+				ging = 0;
+		}
+	}
+	rewind(fd);
+	/* now build the lump list */
+	lumplist[0] = "NO_GROUP_HERE";
+	while ((nodename = fgets(buf, sizeof(buf), fd))) {
+		p = (char *)strsep(&nodename, "\n");
+		/* check for a null line, or a comment */
+		if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
+			if (strstr(p, "LUMP") != NULL) {
+				lumping = 1;
+				strsep(&p, ":");
+				if (((n+1) % GROUP_MALLOC) != 0 && n > 0) {
+					lumplist[++n] = strdup(p);
+				} else {
+					lumptemp = realloc(lumplist,
+						(n+1)*sizeof(char *) + GROUP_MALLOC *
+						sizeof(char *));
+					if (lumptemp != NULL)
+						lumplist = lumptemp;
+					else
+						bailout(__LINE__);
+					lumplist[++n] = strdup(p);
+				}
+			} else if (lumping){
+				if ((strstr(p, "GROUP") != NULL) ||
+				    (strstr(p, "LUMP") != NULL))
+					lumping = 0;
+				else {
+					for (j = 0; j <= g; j++)
+						if (strcmp(p, grouplist[j].name) == 0)
+							grouplist[j].lump = n;
+				}
+			}
+		}
+	}
+	rewind(fd);
+	/* Now.. parse the file for real, and build the nodelist */
+	g = -1;
 	i = 0;
 	while ((nodename = fgets(buf, sizeof(buf), fd))) {
 		p = (char *)strsep(&nodename, "\n");
-		if (strcmp(p, "") != 0) {
+		if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
+			/*printf("g = %d p = %s\n", g, p);*/
+			if (strstr(p, "LUMP") != NULL)
+				lumping = 1;
+			if (lumping && (strstr(p, "GROUP") != NULL))
+					lumping = 0;
 			if (exclusion || grouping) { /* this handles the -x,g option */
 				fail = 0;
 				for (j = 0; exclude[j] != NULL; j++)
 					if (strcmp(p, exclude[j]) == 0)
 						fail = 1;
-				gfail = 1;
-				for (j = 0; (rungroup[j] != NULL && gfail == 1); j++)
-					if (strcmp(grouplist[g], rungroup[j]) == 0)
-						gfail = 0;
-
+				if (g >= 0) {
+					gfail = 1;
+					for (j = 0; (rungroup[j] != NULL && gfail == 1); j++)
+						if ((strcmp(grouplist[g].name, rungroup[j]) == 0) ||
+							(strcmp(lumplist[grouplist[g].lump],
+								rungroup[j]) == 0))
+							gfail = 0;
+				}
 				if (!fail) {
 					if (strstr(p, "GROUP") != NULL) {
-						strsep(&p, ":");
-						if (((g+1) % GROUP_MALLOC) != 0 && g > 0) {
-						    grouplist[++g] = strdup(p);
-						} else {
-							grouptemp = realloc(grouplist,
-								(g+1)*sizeof(char **) +
-								GROUP_MALLOC * sizeof(char **));
-							if (grouptemp != NULL)
-								grouplist = grouptemp;
-							else
-								bailout(__LINE__);
-							grouplist[++g] = strdup(p);
-						}
-					} else if (!gfail) {
+						g++;
+					} else if (!gfail && !lumping) {
 						nodeptr = nodealloc(strdup(p));
 						if (g >= 0)
 							nodeptr->group = g;
@@ -179,20 +249,8 @@ parse_cluster(exclude)
 				}
 			} else {
 				if (strstr(p, "GROUP") != NULL) {
-					strsep(&p, ":");
-					if (((g+1) % GROUP_MALLOC) != 0 || g < 1) {
-						grouplist[++g] = strdup(p);
-					} else {
-						grouptemp = (char **)realloc(grouplist,
-							(g+1)*sizeof(char **) +
-							GROUP_MALLOC * sizeof(char **));
-						if (grouptemp != NULL)
-							grouplist = grouptemp;
-						else
-							bailout(__LINE__);
-						grouplist[++g] = strdup(p);
-					}
-				} else {
+					g++;
+				} else if (!lumping){
 					nodeptr = nodealloc(strdup(p));
 					if (g >= 0)
 						nodeptr->group = g;
@@ -203,7 +261,6 @@ parse_cluster(exclude)
 	fclose(fd);
 	return(g);
 }
-
 /* return a string, followed by n - strlen spaces */
 
 char *
@@ -259,6 +316,8 @@ nodealloc(nodename)
 		nodelink->err.fds[1] = NULL;
 		nodelink->out.fds[0] = NULL;
 		nodelink->out.fds[1] = NULL;
+		nodelink->index = 1.0;
+		nodelink->free = 1;
 		nodelink->childpid = NULL;
 		nodelink->next = NULL;
 		return(nodelink);
@@ -279,6 +338,8 @@ nodealloc(nodename)
 	nodex->out.fds[0] = NULL;
 	nodex->out.fds[1] = NULL;
 	nodex->childpid = NULL;
-	nodex->next = NULL;							
+	nodex->next = NULL;
+	nodex->free = 1;
+	nodex->index = 1.0;
 	return(nodex);
 }

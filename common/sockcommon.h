@@ -1,6 +1,6 @@
-/* $Id: common.h,v 1.3 2000/02/17 07:32:42 garbled Exp $ */
+/* $Id: sockcommon.h,v 1.1 2000/02/17 07:32:42 garbled Exp $ */
 /*
- * Copyright (c) 1998, 1999, 2000
+ * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,54 +31,29 @@
  * SUCH DAMAGE.
  */
 
-/* Headers for common.c, used by dsh-like programs. */
+/* Headers for sockcommon.c, used by jsd, jsh, barrier. */
 
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-
-enum {
-	DEFAULT_FANOUT = 64,
-	GROUP_MALLOC = 16,
-	MAXBUF = 1024
-};
+#include <errno.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/if_ether.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/resource.h>
+#include <sys/socket.h>
 
 #ifndef __P
 #define __P(protos) protos
 #endif
 
-typedef struct { int fds[2]; } pipe_t;
+#define MAXMSG			512
+#define JSDIPORT		2001
+#define JSDOPORT		2002
+#define BARRIER_SOCK	1933	/* default socket for barrier */
 
-struct node_data {
-	char *name;					/* node name */
-	int group;					/* member of this group */
-	pipe_t err, out;			/* pipe structures */
-	pid_t childpid;				/* pid of the child */
-	struct node_data *next;		/* pointer to next node */
-	int free;
-	double index;
-};
-typedef struct node_data node_t;
-
-struct group_data {
-	char *name;					/* group name */
-	int lump;					/* member of this lump */
-};
-typedef struct group_data group_t;
-
-void bailout __P((int));
-void do_showcluster __P((int));
-char *alignstring __P((char *, size_t));
-int parse_cluster __P((char **));
-node_t *nodealloc __P((char *));
-#ifndef __NetBSD__
-char * strsep(char **stringp, const char *delim);
-#endif
-
-extern char **lumplist;
-extern char **rungroup;
-extern int exclusion, debug, grouping;
-extern group_t *grouplist;
-extern node_t *nodelink;
-extern char *progname;
+int make_socket __P((int));
+int write_to_client __P((int, char *));
+int read_from_client __P((int, char **));
