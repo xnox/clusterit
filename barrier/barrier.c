@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.9 2000/02/17 07:29:25 garbled Exp $ */
+/* $Id: barrier.c,v 1.10 2000/02/17 07:31:30 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,11 +40,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../common/sockcommon.h"
+
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrier.c,v 1.9 2000/02/17 07:29:25 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.10 2000/02/17 07:31:30 garbled Exp $");
 #endif
 
 int quietflag, barrier_port;

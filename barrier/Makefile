@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 1998/10/20 07:27:14 garbled Exp $
+# $Id: Makefile,v 1.4 2000/02/17 07:31:30 garbled Exp $
 # barrier Makefile: Tim Rightnour
 
 # Some options need to be uncommented for Solaris
@@ -8,8 +8,8 @@ CFLAGS?=	-Wall -O2
 PROGS= 		barrierd barrier
 #LIBS=		-lsocket -lnsl
 #
-BSRCS=		barrier.c
-DSRCS=		barrierd.c
+BSRCS=		barrier.c ../common/sockcommon.c
+DSRCS=		barrierd.c ../common/sockcommon.c
 #DSRCS+=		strsep.c
 
 MAN= barrierd.1 barrier.1
