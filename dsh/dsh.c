@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.2 1998/10/13 07:04:25 garbled Exp $ */
+/* $Id: dsh.c,v 1.3 1998/10/14 21:55:31 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: dsh.c,v 1.2 1998/10/13 07:04:25 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.3 1998/10/14 21:55:31 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
@@ -65,6 +65,8 @@ void do_showcluster(char *nodelist[], int fanout);
 
 int debug;
 int errorflag;
+char *grouplist[MAX_CLUSTER];
+char *rungroup;
 
 /* 
  *  dsh is a cluster management tool derrived from the IBM tool of the
@@ -81,7 +83,7 @@ void main(argc, argv)
 
 	FILE *fd;
 	int someflag, ch, i, fanout, showflag, exclusion, j, fail, fanflag;
-	char *p, *nodelist[MAX_CLUSTER], *nodename, *clusterfile, *username;
+	char *p, *group, *nodelist[MAX_CLUSTER], *nodename, *clusterfile, *username;
 	char *exclude[MAX_CLUSTER];
 	char buf[256];
 
@@ -96,8 +98,10 @@ void main(argc, argv)
 	errorflag = 0;
 	fanout = DEFAULT_FANOUT;
 	username = NULL;
+	group = NULL;
+	rungroup = NULL;
 
-	while ((ch = getopt(argc, argv, "?eiqf:l:w:x:")) != -1)
+	while ((ch = getopt(argc, argv, "?eiqf:g:l:w:x:")) != -1)
 		switch (ch) {
 		case 'e':		/* we want stderr to be printed */
 			errorflag = 1;
@@ -115,6 +119,9 @@ void main(argc, argv)
 			fanout = atoi(optarg);
 			fanflag = 1;
 			break;
+		case 'g':		/* pick a group to run on */
+			rungroup = strdup(optarg);
+			break;			
 		case 'x':		/* exclude nodes, w overrides this */
 			exclusion = 1;
 			i = 0;
@@ -162,12 +169,30 @@ void main(argc, argv)
 					for (j = 0; exclude[j] != NULL; j++)
 						if (strcmp(p,exclude[j]) == 0)
 							fail = 1;
-					if (!fail)
+					if (!fail) {
+						if (strstr(p, "GROUP") != NULL) {
+							strsep(&p, ":");
+							group = strdup(p);
+						} else {
+							grouplist[i] = (char *)strdup(group);
+							nodelist[i++] = (char *)strdup(p);
+						}
+					}
+				} else {
+					if (strstr(p, "GROUP") != NULL) {
+						strsep(&p, ":");
+						group = strdup(p);
+					} else {
+						if (group == NULL)
+							grouplist[i] = NULL;
+						else
+							grouplist[i] = (char *)strdup(group);
 						nodelist[i++] = (char *)strdup(p);
-				} else
-					nodelist[i++] = (char *)strdup(p);
+					}
+				}
 		}
 		nodelist[i] = '\0';
+		grouplist[i] = '\0';
 		fclose(fd);
 	}
 	argc -= optind;
@@ -189,21 +214,45 @@ void do_showcluster(nodelist, fanout)
 	char *nodelist[];
 	int fanout;
 {
-	int i, j, n, g;
+	int i, j, l, n, g;
 
-	for (i=0; nodelist[i] != NULL; i++)		/* just count the nodes */
-		;
+	i = l = 0;
+
+	if (rungroup == NULL)
+		for (i=0; nodelist[i] != NULL; i++)		/* just count the nodes */
+			;
+	else
+		for (j=0; nodelist[j] != NULL;) {
+			if (grouplist[j] != NULL)
+				if (strcmp(rungroup,grouplist[j]) == 0)
+					i++;
+			j++;
+		}
+
 	j = i / fanout;		/* how many times do I have to run in order to reach them all */
 	if (i % fanout)
 		j++;
 
+	if (rungroup != NULL)
+		(void)printf("Rungroup: %s\n", rungroup);
+
 	if (getenv("CLUSTER"))
-		printf("Cluster file: %s\n", getenv("CLUSTER"));
+		(void)printf("Cluster file: %s\n", getenv("CLUSTER"));
 	printf("Fanout size: %d\n", fanout);
 	for (n=0; n <= j; n++) {
 		for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
-			g = i - n * fanout;
-			printf("Node: %3d Group: %3d Host: %s\n", i + 1, n + 1, nodelist[i]);
+			if (rungroup != NULL) {
+				if (grouplist[i] != NULL)
+					if (strcmp(rungroup,grouplist[i]) == 0) {
+						l++;
+						g = l - n * fanout;
+						printf("Node: %3d Fangroup: %3d Rungroup: %s Host: %s\n", l, n + 1, grouplist[i], nodelist[i]);
+					}
+			} else {
+				l++;
+				g = l - n * fanout;
+				printf("Node: %3d Fangroup: %3d Rungroup: %s Host: %s\n", l, n + 1, grouplist[i], nodelist[i]);
+			}
 		}
 	}
 }
