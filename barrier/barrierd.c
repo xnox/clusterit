@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.7 1999/10/14 17:45:56 garbled Exp $ */
+/* $Id: barrierd.c,v 1.8 2000/01/14 23:31:59 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/if_ether.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -43,12 +44,9 @@
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
-"@(#) Copyright (c) 1998\n\
+"@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-#endif /* not lint */
-
-#if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: barrierd.c,v 1.7 1999/10/14 17:45:56 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.8 2000/01/14 23:31:59 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK	1933	/* default socket for barrier */
@@ -165,11 +163,7 @@ int sleeper(void)
 	char *key, *buf;
 	char *tokens[MAX_TOKENS];
 	int i, k, l, m, found, sock;
-#if (NetBSD > 199904)
-	socklen_t size;
-#else
 	size_t size;
-#endif
 	int sizes[MAX_TOKENS];
 	int connections[MAX_TOKENS];
 	int sockets[MAX_TOKENS][MAX_CLUSTER];

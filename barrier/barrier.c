@@ -1,6 +1,6 @@
-/* $Id: barrier.c,v 1.7 1999/10/14 17:24:05 garbled Exp $ */
+/* $Id: barrier.c,v 1.8 2000/01/14 23:31:59 garbled Exp $ */
 /*
- * Copyright (c) 1998
+ * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,12 +42,9 @@
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
-"@(#) Copyright (c) 1998\n\
+"@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-#endif /* not lint */
-
-#if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: barrier.c,v 1.7 1999/10/14 17:24:05 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.8 2000/01/14 23:31:59 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK 1933	/* default socket for barrier */
@@ -112,14 +109,14 @@ int main(argc, argv)
 		if (getenv("BARRIER_PORT") != NULL)
 			barrier_port = atoi(getenv("BARRIER_PORT"));
 
-	if (barrier_host == NULL) {
+	if (barrier_host == NULL)
 		if (getenv("BARRIER_HOST") != NULL)
 			barrier_host = strdup(getenv("BARRIER_HOST"));
 		else {
 			(void)fprintf(stderr, "No barrier host given on command line, and BARRIER_HOST environment not found.\n");
 			exit(EXIT_FAILURE);
 		}
-	}
+
 	code = make_barrier(key, nodes);
 	if (code == 6) {
 		if (!quietflag)
