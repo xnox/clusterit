@@ -1,0 +1,102 @@
+.\"	$Id: clustersed.1,v 1.1 2000/02/25 21:48:57 garbled Exp $
+.\"
+.\" Copyright (c) 2000
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour for
+.\"	The NetBSD Foundation, Inc.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd February 25, 2000
+.Dt CLUSTERSED 1
+.Sh NAME
+.Nm clustersed
+.Nd quickly dissect cluster files
+.Sh SYNOPSIS
+.Nm
+.Ar clusterfile Ns | Ns -
+.Ar string1 ... stringn
+.Sh DESCRIPTION
+The
+.Nm
+program is used to cut individual groups out of a cluster file.  This
+can be used to see the contents of a particular group easily, or to
+generate special-use clusters on the fly. The results of the program
+will be sent to standard output.
+The following options are available:
+.Bl -tag -width clusterfile
+.It Ar clusterfile
+The first argument must either be the name of a cluster file, or a
+single dash
+.Pq Sq - .
+If the dash is given, the clusterfile will be read from the file
+indicated in the
+.Ev CLUSTER
+environment variable.  If the
+.Ev CLUSTER
+environment variable does not exist,
+.Nm
+will process standard input.
+.It Ar string
+The second argument is a space separated list of one or more strings
+to search for in the cluster file.  These are the names of groups
+within the cluster, and will only match group names.  If a group name
+is matched, all nodes in that group will be printed out, along with
+the
+.Sq GROUP:
+heading and the name of the group.  You can partially match the
+begining of a group name with a string.  For example, the argument
+.Sq serv
+would match
+.Sq server1
+and
+.Sq server2
+but would not match
+.Sq subserv .
+.El
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables:
+.Bl -tag -width "CLUSTER"
+.It Ev CLUSTER
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+.El
+.\" .Sh FILES
+.Sh DIAGNOSTICS
+Exit status is 0 on success, 1 if an error occurs.
+.Sh SEE ALSO
+.Xr dsh 1 .
+.Sh HISTORY
+The
+.Nm
+command appeared in clusterit 2.0.
+.Sh AUTHOR
+.Nm Clustersed
+was written by Tim Rightnour.
+.\" .Sh BUGS
