@@ -1,0 +1,27 @@
+
+DSHBAK(1)                   NetBSD Reference Manual                  DSHBAK(1)
+
+NNAAMMEE
+     ddsshhbbaakk - format the output of dsh
+
+SSYYNNOOPPSSIISS
+     ddsshhbbaakk
+
+DDEESSCCRRIIPPTTIIOONN
+     ddsshhbbaakk takes input from the dsh command, and formats it to look nicer for
+     the user.  This equates to pulling the nodename off the front of each
+     line, and placing it in a header above the output for that node.  This is
+     generally useful for commands that make output larger than 80 columns
+     when prepended with the nodename.
+
+SSEEEE AALLSSOO
+     dsh(1).
+
+HHIISSTTOORRYY
+     The ddsshhbbaakk command appeared in clusterit 1.0.  It is based on the ddsshhbbaakk
+     command in IBM PSSP.
+
+AAUUTTHHOORR
+     DDsshhbbaakk was written by Tim Rightnour.
+
+                                October 6, 1998                              1

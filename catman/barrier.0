@@ -1,0 +1,56 @@
+
+BARRIER(1)                  NetBSD Reference Manual                 BARRIER(1)
+
+NNAAMMEE
+     bbaarrrriieerr - syncronize a process on a number of machines.
+
+SSYYNNOOPPSSIISS
+     bbaarrrriieerr [--qq] [--hh _b_a_r_r_i_e_r___h_o_s_t] [--kk _k_e_y] [--pp _p_o_r_t] --ss _c_l_u_s_t_e_r___s_i_z_e
+
+DDEESSCCRRIIPPTTIIOONN
+     The bbaarrrriieerr command can be used to syncronize execution of various com-
+     mands.  When a barrier is set, it is not released until all the nodes or
+     processes have met the barrier condition.  This can be a handy way to
+     make sure slower machines, perform certain tasks before doing something
+     on faster machines that relies on them.  The following options are avail-
+     able:
+
+     --qq   Turns quiet off, so barrier notifications are sent to the user.
+
+     --hh   Specifies a host, which is running barrierd, to connect to for bar-
+          rier syncronization.  Overrides the BARRIER_HOST environment vari-
+          able.
+
+     --kk   Specifies a unique key to syncronize with.  A barrier will only syn-
+          chronize with other barriers that share the same key.  Defaults to
+          the string 'barrier'.
+
+     --pp   Specifies a port number of a remote barrier daemon to connect to.
+          Defaults to 1933, and overrides the BARRIER_PORT environment vari-
+          able.
+
+     --ss   Sets the size of the cluster.  A barrier condition is met, when the
+          number of barrier clients connected to the remote daemon, sharing
+          the same unique key, is equal to this number.
+
+EENNVVIIRROONNMMEENNTT
+     bbaarrrriieerr utilizes the following environment variables.
+
+     BARRIER_SOCK  Sets the default remote port to connect to.
+
+     BARRIER_HOST  Sets the default remote host to connect to.
+
+DDIIAAGGNNOOSSTTIICCSS
+     Exit status is 0 on successful syncronization.  Exit status will be set
+     to 1 if the connection is lost, or the server rejects your connection.
+
+SSEEEE AALLSSOO
+     barrierd(1),  dsh(1),
+
+HHIISSTTOORRYY
+     The bbaarrrriieerr command appeared in clusterit 1.1.
+
+AAUUTTHHOORR
+     BBaarrrriieerr was written by Tim Rightnour.
+
+                               October 14, 1998                              1

@@ -1,0 +1,95 @@
+
+PDF(1)                      NetBSD Reference Manual                     PDF(1)
+
+NNAAMMEE
+     ppddff - display free disk space across a group of machines
+
+SSYYNNOOPPSSIISS
+     ppddff [--llnn] [--gg _n_o_d_e_g_r_o_u_p_1_,_._._._,_n_o_d_e_g_r_o_u_p_N] [--mm _s_i_z_e] [--tt _t_y_p_e] [--ww
+     _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_f_i_l_e | _f_i_l_e___s_y_s_t_e_m _._._.]
+
+DDEESSCCRRIIPPTTIIOONN
+     ppddff displays statistics about the amount of free disk space on the speci-
+     fied _f_i_l_e___s_y_s_t_e_m or on the file system of which _f_i_l_e is a part on all ma-
+     chines in a cluster.  If neither a file or a _f_i_l_e___s_y_s_t_e_m operand is spec-
+     ified, statistics for all mounted file systems, on all machines are dis-
+     played (subject to the --ww, --xx, --gg, --mm, --ll and --tt options below).  The
+     following options are available:
+
+     --ww   If the --ww option is specified, followed by a comma delimited list of
+          machine names, the _c_o_m_m_a_n_d will be run on each node in the list.
+          Without this flag, ppddff runs on the nodes listed in the file pointed
+          to by the CLUSTER environment variable.
+
+     --gg   If the --gg option is specified, followed by a comma separated list of
+          group names, the command will only be run on that group of nodes.  A
+          node may be a part of more than one group if desired, however run-
+          ning without the --gg option will run the command on the same node as
+          many times as it appears in the file specified by the CLUSTER envi-
+          ronment variable.  This option is silently ignored if used with the
+          -w option.
+
+     --xx   The --xx option can be used to exclude specific nodes from the clus-
+          ter.  The format is the same as the --ww option, a comma delimited
+          list of machine names.  This option is silently ignored if used with
+          the --ww option.
+
+     --ll   Display statistics only about mounted file systems with the MNT_LO-
+          CAL flag set.  If a non-local file system is given as an argument, a
+          warning is issued and no information is given on that file system.
+
+     --nn   Print out the previously obtained statistics from the file systems.
+          This option should be used if it is possible that one or more file
+          systems are in a state such that they will not be able to provide
+          statistics without a long delay.  When this option is specified, ppddff
+          will not request new statistics from the file systems, but will re-
+          spond with the possibly stale statistics that were previously ob-
+          tained.
+
+     --mm _s_i_z_e
+          Is used to limit the displayed file systems to only those with a
+          size greater than the user-supplied _s_i_z_e argument.
+
+     --tt _t_y_p_e
+          Is used to indicate the actions should only be taken on filesystems
+          of the specified type.  More than one type may be specified in a
+          comma separated list.  The list of filesystem types can be prefixed
+          with ``no'' to specify the filesystem types for which action should
+          _n_o_t be taken.  If a file system is given on the command line that is
+          not of the specified type, a warning is issued and no information is
+          given on that file system.
+
+EENNVVIIRROONNMMEENNTT
+     ppddff utilizes the following environment variables.
+
+     CLUSTER   Contains a filename, which is a newline separated list of nodes
+
+               in the cluster.
+
+     RCMD_CMD  Command to use to connect to remote machines.  The command cho-
+               sen must be able to connect with no password to the remote
+               host.  Defaults to rrsshh
+
+DDIIAAGGNNOOSSTTIICCSS
+     Exit status is 0 on success, 1 if an error occurs.
+
+SSEEEE AALLSSOO
+     dsh(1),  df(1),  rsh(1),  kerberos(3),  hosts.equiv(5),  rhosts(5)
+
+HHIISSTTOORRYY
+     The ppddff command appeared in clusterit 1.0. It is based on the ppddff command
+     in IBM PSSP.
+
+AAUUTTHHOORR
+     PPddff was written by Tim Rightnour.
+
+BBUUGGSS
+     Output is formatted for 80 columns.  This means that mount points and
+     filesystems with long names ( > 20 characters ) will be truncated.  In
+     addition, numbers longer than 9 digits will be truncated as well.
+
+     ppddff will only work on nodes that produce the df(1) output that it ex-
+     pects.  It has been made to work on HP-UX, Solaris, and AIX, along with
+     any BSD.
+
+                                  May 5, 1999                                2

@@ -1,0 +1,82 @@
+
+PRM(1)                      NetBSD Reference Manual                     PRM(1)
+
+NNAAMMEE
+     pprrmm - delete a file or files on a cluster of
+
+SSYYNNOOPPSSIISS
+     pprrmm [--ddffrrPPRRWW] [--gg _n_o_d_e_g_r_o_u_p_1_,_._._._,_n_o_d_e_g_r_o_u_p_N] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx
+     _n_o_d_e_1_,_._._._,_n_o_d_e_N] _f_i_l_e _._._.
+
+DDEESSCCRRIIPPTTIIOONN
+     The pprrmm utility can be used to delete files or directories on a cluster
+     of machines.  The following options are available:
+
+     --ww   If the --ww option is specified, followed by a comma delimited list of
+          machine names, the _c_o_m_m_a_n_d will be run on each node in the list.
+          Without this flag, pprrmm runs on the nodes listed in the file pointed
+          to by the CLUSTER environment variable.
+
+     --gg   If the --gg option is specified, followed by a comma separated list of
+          group names, the command will only be run on that group of nodes.  A
+          node may be a part of more than one group if desired, however run-
+          ning without the --gg option will run the command on the same node as
+          many times as it appears in the file specified by the CLUSTER envi-
+          ronment variable.  This option is silently ignored if used with the
+          --ww option.
+
+     --xx   The --xx option can be used to exclude specific nodes from the clus-
+          ter.  The format is the same as the --ww option, a comma delimited
+          list of machine names.  This option is silently ignored if used with
+          the --ww option.
+
+     --dd   Attempt to remove directories as well as other types of files.
+
+     --ff   Attempt to remove the files without prompting for confirmation, re-
+          gardless of the file's permissions.  If the file does not exist, do
+          not display a diagnostic message or modify the exit status to re-
+          flect an error.
+
+     --PP   Overwrite regular files before deleting them.  Files are overwritten
+          three times, first with the byte pattern 0xff, then 0x00, and then
+          0xff again, before they are deleted.
+
+     --RR   Attempt to remove the file hierarchy rooted in each file argument.
+          The --RR option implies the --dd option.
+
+     --rr   Equivalent to --RR.
+
+     --WW   Attempts to undelete the named files.  Currently, this option can
+          only be used to recover files covered by whiteouts.
+
+EENNVVIIRROONNMMEENNTT
+     pprrmm utilizes the following environment variables.
+
+     CLUSTER   Contains a filename, which is a newline separated list of nodes
+               in the cluster.
+
+     RCMD_CMD  Command to use to connect to remote machines.  The command cho-
+               sen must be able to connect with no password to the remote
+               host.  Defaults to rrsshh
+
+DDIIAAGGNNOOSSTTIICCSS
+     Exit status is 0 on success, 1 if an error occurs.
+
+SSEEEE AALLSSOO
+     dsh(1),  rm(1),  rsh(1),  kerberos(3),  hosts.equiv(5),  rhosts(5)
+
+HHIISSTTOORRYY
+     The pprrmm command appeared in clusterit 1.0. It is based on the pprrmm command
+     in IBM PSSP.
+
+AAUUTTHHOORR
+     PPrrmm was written by Tim Rightnour.
+
+BBUUGGSS
+     Error handling could use some work.
+
+     Some of the more advanced options, like the --PP option, may not be avail-
+     able in some versions of rm(1).  Consult the rm(1) manpage on the remote
+     host if you have problems.
+
+                                  May 5, 1999                                2

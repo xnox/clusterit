@@ -1,0 +1,81 @@
+
+RUN(1)                      NetBSD Reference Manual                     RUN(1)
+
+NNAAMMEE
+     rruunn - run a command on a machine at random
+
+SSYYNNOOPPSSIISS
+     rruunn [--aaeeiiqq] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e] [--ww
+     _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
+
+DDEESSCCRRIIPPTTIIOONN
+     The rruunn utility can be used to run a command, or group of commands on a
+     cluster of machines.  The command or commands are run on a single node in
+     the cluster, which is chosen at random.  The following options are avail-
+     able:
+
+     --aa   The --aa option modifies the behavior of seq when dealing with stdin.
+          Normally all commands from stdin are run on the same machine.  Spec-
+          ifying the --aa option causes each command to be run on a random node.
+
+     --ee   Unless the --ee option is specified, stderr from remote commands will
+          not be reported to the user.
+
+     --ii   The --ii option will list information about the current cluster, and
+          command groupings.  It will also show you which command you are
+          about to run, and your username if specified with the --ll option.
+
+     --qq   The --qq option does not issue any commands, but displays information
+          about the cluster.
+
+     --gg   If the --gg option is specified, followed by a comma separated list of
+          group names, the command will only be run on that group of nodes.  A
+          node may be a part of more than one group if desired, however run-
+          ning without the --gg option will run the command on the same node as
+          many times as it appears in the file specified by the CLUSTER envi-
+          ronment variable.  This option is silently ignored if used with the
+          --ww option.
+
+     --ll   If the --ll option is specified, followed by a username, the commands
+          will be run under that userid on the remote machines.  Consideration
+          must be taken for proper authentication, for this to work.
+
+     --ww   If the --ww option is specified, followed by a comma delimited list of
+          machine names, the _c_o_m_m_a_n_d will be run on each node in the list.
+          Without this option, rruunn runs on the nodes listed in the file point-
+          ed to by the CLUSTER environment variable.
+
+     --xx   The --xx option can be used to exclude specific nodes from the clus-
+          ter.  The format is the same as the --ww option, a comma delimited
+          list of machine names.  This option is silently ignored if used with
+          the --ww option.
+
+EENNVVIIRROONNMMEENNTT
+     rruunn utilizes the following environment variables.
+
+     CLUSTER   Contains a filename, which is a newline separated list of nodes
+               in the cluster.
+
+     RCMD_CMD  Command to use to connect to remote machines.  The command cho-
+               sen must be able to connect with no password to the remote
+               host.  Defaults to rrsshh
+
+DDIIAAGGNNOOSSTTIICCSS
+     Exit status is 0 on success, 1 if an error occurs.
+
+SSEEEE AALLSSOO
+     dsh(1),  rsh(1),  seq(1),  kerberos(3),  hosts.equiv(5),  rhosts(5)
+
+HHIISSTTOORRYY
+     The rruunn command appeared in clusterit 1.1.
+
+AAUUTTHHOORR
+     RRuunn was written by Tim Rightnour.
+
+BBUUGGSS
+     Error handling could use some work.
+
+     The maximum number of nodes in a cluster is hardwired to 512.  This can
+     be modified by recompiling the program.
+
+                                  May 5, 1999                                2
