@@ -1,4 +1,4 @@
-.\"	$Id: pdf.1,v 1.1 1998/10/13 06:58:51 garbled Exp $
+.\"	$Id: pdf.1,v 1.2 1998/10/13 20:01:02 garbled Exp $
 .\"
 .\" Copyright (c) 1998
 .\"	Tim Rightnour.  All rights reserved.
@@ -34,7 +34,6 @@
 .\" The following requests are required for all man pages.
 .Dd October 6, 1998
 .Dt PDF 1
-.Os NetBSD 1.4
 .Sh NAME
 .Nm pdf
 .Nd display free disk space across a group of machines
@@ -138,14 +137,12 @@ Exit status is 0 on success, 1 if an error occurs.
 .Sh HISTORY
 The
 .Nm
-command appeared in
-.Nx
-1.4. It is based on the
+command appeared in clusterit 1.0. It is based on the
 .Nm
 command in IBM PSSP.
 .Sh AUTHOR
 .Nm Pdf
-was written by Tim Rightnour for The NetBSD Foundation, Inc.
+was written by Tim Rightnour.
 .Sh BUGS
 Output is formatted for 80 columns.  This means that mount points and
 filesystems with long names ( > 20 characters ) will be truncated.  In
