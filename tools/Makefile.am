@@ -18,9 +18,17 @@ pdf: pdf.sh
 	cp pdf.sh pdf
 	chmod 755 pdf
 
-.sh: $(script_sources)
-	cp $@ $<
-	chmod 755 $<
+dshbak: dshbak.sh
+	cp dshbak.sh dshbak
+	chmod 755 dshbak
+
+prm: prm.sh
+	cp prm.sh prm
+	chmod 755 prm
+
+clustersed: clustersed.sh
+	cp clustersed.sh clustersed
+	chmod 755 clustersed
 
 man_MANS = \
 	clustersed.1 \
