@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.5 2000/02/17 08:09:01 garbled Exp $ */
+/* $Id: jsd.c,v 1.6 2000/02/19 23:26:42 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -38,7 +38,7 @@
 
 #include <syslog.h>
 #include <signal.h>
-#include <setjmp.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -49,7 +49,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.5 2000/02/17 08:09:01 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.6 2000/02/19 23:26:42 garbled Exp $");
 #endif
 
 extern int errno;
@@ -59,8 +59,6 @@ extern int errno;
 
 /* globals */
 int debug, errorflag, exclusion, grouping, iportnum, oportnum;
-int gotsigterm;
-jmp_buf jmpenv;
 group_t *grouplist;
 node_t *nodelink;
 char **rungroup;
@@ -94,7 +92,6 @@ main(argc, argv)
 	pid_t pid;
 
 	someflag = showflag = fanflag = 0;
-	gotsigterm = 0;
 	exclusion = debug = 0;
 	iportnum = oportnum = 0;
 	fanout = DEFAULT_FANOUT;
@@ -209,18 +206,18 @@ main(argc, argv)
 		if (getenv("FANOUT"))
 			fanout = atoi(getenv("FANOUT"));
 
-	if (!iportnum)
+	if (!iportnum) {
 		if (getenv("JSD_IPORT"))
 			iportnum = atoi(getenv("JSD_IPORT"));
 		else
 			iportnum = JSDIPORT;
-
-	if (!oportnum)
+	}
+	if (!oportnum) {
 		if (getenv("JSD_OPORT"))
 			oportnum = atoi(getenv("JSD_OPORT"));
 		else
 			oportnum = JSDOPORT;
-
+	}
 	if (!someflag)
 		parse_cluster(exclude);
 
@@ -296,8 +293,6 @@ main_loop()
 	fd_set node_fd_set, free_fd_set, full_fd_set;
 	struct timeval timeout;
 	struct sigaction signaler;
-
-	extern int gotsigterm;
 
 	buf = NULL;
 
@@ -560,7 +555,6 @@ void
 sig_handler(i)
 	int i;
 {
-	extern int gotsigterm;
 
 	switch (i) {
 	case SIGTERM:

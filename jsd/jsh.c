@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.3 2000/02/17 08:09:01 garbled Exp $ */
+/* $Id: jsh.c,v 1.4 2000/02/19 23:26:42 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.3 2000/02/17 08:09:01 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.4 2000/02/19 23:26:42 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -144,23 +144,26 @@ main(argc, argv)
 	argc -= optind;
 	argv += optind;
 
-	if (!iportnum)
+	if (!iportnum) {
 		if (getenv("JSD_IPORT"))
 			iportnum = atoi(getenv("JSD_IPORT"));
 		else
 			iportnum = JSDIPORT;
+	}
 
-	if (!oportnum)
+	if (!oportnum) {
 		if (getenv("JSD_OPORT"))
 			oportnum = atoi(getenv("JSD_OPORT"));
 		else
 			oportnum = JSDOPORT;
+	}
 
-	if (jsd_host == NULL)
+	if (jsd_host == NULL) {
 		if (getenv("JSD_HOST"))
 			jsd_host = strdup(getenv("JSD_HOST"));
 		else
 			jsd_host = "localhost";
+	}
 
 	do_command(argv, allflag, username);
 	exit(EXIT_SUCCESS);
