@@ -1,13 +1,11 @@
-# $Id: Makefile,v 1.2 1998/10/13 19:59:31 garbled Exp $
+# $Id: Makefile,v 1.3 1998/10/20 07:32:57 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
+CC= /usr/local/bin/gcc
 PROG=		pcp
 
-.if (${OPSYS} != NetBSD)
 SRCS= pcp.c strsep.c
-.else
-SRCS= pcp.c
-.endif
+#SRCS= pcp.c
 
 SCRIPTS=	prm pdf dshbak
 MAN=		pcp.1 prm.1 pdf.1
