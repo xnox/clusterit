@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.8 2001/08/13 21:28:37 garbled Exp $ */
+/* $Id: jsd.c,v 1.9 2001/08/14 04:36:54 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -50,7 +50,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.8 2001/08/13 21:28:37 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.9 2001/08/14 04:36:54 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -294,7 +294,7 @@ main_loop()
 	buf = NULL;
 
 	signaler.sa_handler = sig_handler;
-	signaler.sa_flags |= SA_RESTART;
+	signaler.sa_flags = SA_RESTART;
 	sigemptyset(&signaler.sa_mask);
 	if (sigaction(SIGTERM, &signaler, NULL) != 0)
 		log_bailout(__LINE__);
