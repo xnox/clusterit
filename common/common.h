@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.6 2002/03/14 18:10:31 garbled Exp $ */
+/* $Id: common.h,v 1.7 2003/11/02 15:33:11 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #ifdef USE_X11
 #include <X11/Xlib.h>

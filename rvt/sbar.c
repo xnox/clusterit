@@ -60,7 +60,7 @@ sbar_init()
 	XGCValues gcv;
 
 	stipple = XCreateBitmapFromData(display, sb_win, stipple_bits, 16, 16);
-	if (stipple == NULL) {
+	if (stipple == (Pixmap)NULL) {
 		error("Cannot create scrollbar bitmap");
 		quit(1);
 	}

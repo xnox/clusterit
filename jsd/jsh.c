@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.7 2001/08/14 04:43:47 garbled Exp $ */
+/* $Id: jsh.c,v 1.8 2003/11/02 15:33:16 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.7 2001/08/14 04:43:47 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.8 2003/11/02 15:33:16 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -100,7 +100,11 @@ main(int argc, char *argv[])
 	}
 	progname = strdup(q);
 
+#if defined(__linux__)
+	while ((ch = getopt(argc, argv, "+?adeil:k:p:")) != -1)
+#else
 	while ((ch = getopt(argc, argv, "?adeil:k:p:")) != -1)
+#endif
 		switch (ch) {
 		case 'a':		/* set the allrun flag */
 			allflag = 1;

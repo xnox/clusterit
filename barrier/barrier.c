@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.13 2001/08/13 20:55:24 garbled Exp $ */
+/* $Id: barrier.c,v 1.14 2003/11/02 15:33:07 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrier.c,v 1.13 2001/08/13 20:55:24 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.14 2003/11/02 15:33:07 garbled Exp $");
 #endif
 
 int quietflag, barrier_port, debug;
@@ -76,7 +76,11 @@ main(int argc, char *argv[])
 	key = NULL;
 	nodes = 0;
 
+#if defined(__linux__)
+	while ((ch = getopt(argc, argv, "+?dh:k:p:s:")) != -1)
+#else
 	while ((ch = getopt(argc, argv, "?dh:k:p:s:")) != -1)
+#endif
 		switch (ch) {
 		case 'q':
 			quietflag = 0;

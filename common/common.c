@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.10 2002/03/14 19:33:15 garbled Exp $ */
+/* $Id: common.c,v 1.11 2003/11/02 15:33:11 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.10 2002/03/14 19:33:15 garbled Exp $");
+__RCSID("$Id: common.c,v 1.11 2003/11/02 15:33:11 garbled Exp $");
 #endif
 
 
@@ -278,13 +278,13 @@ nodealloc(nodename)
 		nodelink = malloc((size_t)sizeof(node_t));
 		nodelink->name = strdup(nodename);
 		nodelink->group = 0;
-		nodelink->err.fds[0] = NULL;
-		nodelink->err.fds[1] = NULL;
-		nodelink->out.fds[0] = NULL;
-		nodelink->out.fds[1] = NULL;
+		nodelink->err.fds[0] = 0;
+		nodelink->err.fds[1] = 0;
+		nodelink->out.fds[0] = 0;
+		nodelink->out.fds[1] = 0;
 		nodelink->index = 1.0;
 		nodelink->free = 1;
-		nodelink->childpid = NULL;
+		nodelink->childpid = 0;
 		nodelink->next = NULL;
 #ifdef USE_X11
 		nodelink->win_id = 0;
@@ -302,12 +302,12 @@ nodealloc(nodename)
 	nodeptr->next = nodex;
 	nodex->name = strdup(nodename);
 	nodex->group = 0;
-	nodex->err.fds[0] = NULL;
-	nodex->err.fds[1] = NULL;
-	nodex->out.fds[0] = NULL;
-	nodex->out.fds[1] = NULL;
-	nodex->childpid = NULL;
-	nodex->next = NULL;
+	nodex->err.fds[0] = 0;
+	nodex->err.fds[1] = 0;
+	nodex->out.fds[0] = 0;
+	nodex->out.fds[1] = 0;
+	nodex->childpid = 0;
+	nodex->next = 0;
 	nodex->free = 1;
 	nodex->index = 1.0;
 #ifdef USE_X11

@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.17 2001/08/13 21:06:36 garbled Exp $ */
+/* $Id: dsh.c,v 1.18 2003/11/02 15:33:13 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -46,7 +46,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.17 2001/08/13 21:06:36 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.18 2003/11/02 15:33:13 garbled Exp $");
 #endif /* not lint */
 
 #ifndef __P
@@ -106,8 +106,11 @@ main(int argc, char *argv[])
 		progname = (char *)strsep(&p, "/");
 	}
 	progname = strdup(q);
-
+#if defined(__linux__)
+	while ((ch = getopt(argc, argv, "+?deiqf:g:l:w:x:")) != -1)
+#else
 	while ((ch = getopt(argc, argv, "?deiqf:g:l:w:x:")) != -1)
+#endif
 		switch (ch) {
 		case 'd':		/* we want to debug dsh (hidden)*/
 			debug = 1;

@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.9 2001/08/13 21:06:36 garbled Exp $ */
+/* $Id: run.c,v 1.10 2003/11/02 15:33:13 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,7 +40,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: run.c,v 1.9 2001/08/13 21:06:36 garbled Exp $");
+__RCSID("$Id: run.c,v 1.10 2003/11/02 15:33:13 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -108,7 +108,11 @@ main(int argc, char *argv[])
 
 	srand48(getpid()); /* seed the random number generator */
 
+#if defined(__linux__)
+	while ((ch = getopt(argc, argv, "+?adeiqg:l:w:x:")) != -1)
+#else
 	while ((ch = getopt(argc, argv, "?adeiqg:l:w:x:")) != -1)
+#endif
 		switch (ch) {
 		case 'a':		/* set the allrun flag */
 			allflag = 1;

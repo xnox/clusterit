@@ -1,0 +1,17 @@
+I've had reports of people having trouble running dvt on various machines
+and clusters.  IMHO, this is probably the second most useful peice of
+clusterit, so hopefully these hints will get you started.  If not, feel
+free to email me at root@garbled.net for help.  I'm usually nice.
+
+1) Make sure that rvt is in your path, and is executable.  Try running it
+manually just to make sure it works.
+
+2) rvt/dvt default to using rlogin.  You probably want to set this to ssh.
+If you aren't sure this is working, or don't want to deal with ssh, one trick
+I ususally use is to set the RLOGIN_CMD environment variable to "telnet" and
+just login manually.
+
+3) Make sure you have your display set, and all that fun stuff.  If you can't
+run an xterm, dvt/rvt won't work either.
+
+If none of this helps, send me a note, perhaps I can help you with it.

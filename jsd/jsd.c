@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.9 2001/08/14 04:36:54 garbled Exp $ */
+/* $Id: jsd.c,v 1.10 2003/11/02 15:33:16 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -50,7 +50,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.9 2001/08/14 04:36:54 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.10 2003/11/02 15:33:16 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -112,7 +112,11 @@ main(int argc, char *argv[])
 	}
 	progname = strdup(q);
 
+#if defined(__linux__)
+	while ((ch = getopt(argc, argv, "+?diqf:g:l:w:x:p:")) != -1)
+#else
 	while ((ch = getopt(argc, argv, "?diqf:g:l:w:x:p:")) != -1)
+#endif
 		switch (ch) {
 		case 'd':		/* we want to debug jsd (hidden)*/
 			debug = 1;
