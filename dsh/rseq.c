@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.4 1998/10/20 07:28:44 garbled Exp $ */
+/* $Id: rseq.c,v 1.5 1998/10/20 09:29:32 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: rseq.c,v 1.4 1998/10/20 07:28:44 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.5 1998/10/20 09:29:32 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
@@ -227,7 +227,7 @@ void test_and_set(char *nodelist[])
 	char buf[256];
 	FILE *sd;
 
-	p = NULL;
+	p = buf;
 	i = 0;
 
 	seqfile = getenv("SEQ_FILE");
@@ -239,8 +239,7 @@ void test_and_set(char *nodelist[])
 	if (sd == NULL)
 		sd = fopen(seqfile, "w");
 	else {
-		fscanf(sd, "%s", buf);
-		p = strdup(buf);
+		fscanf(sd, "%s", p);
 		seqnumber = atoi(p);
 		fclose(sd);
 		sd = fopen(seqfile, "w");
