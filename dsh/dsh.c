@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.3 1998/10/14 21:55:31 garbled Exp $ */
+/* $Id: dsh.c,v 1.4 1998/10/15 07:04:47 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: dsh.c,v 1.3 1998/10/14 21:55:31 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.4 1998/10/15 07:04:47 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
@@ -56,11 +56,13 @@ extern int errno;
 void bailout __P((int));
 void do_command __P((char **argv, char *nodelist[], int fanout, char *username));
 void do_showcluster __P((char *nodelist[], int fanout));
+int test_node __P((int count));
 #else
 void bailout(int);
 void do_command(char **argv, char *nodelist[], int fanout, char *username);
 char * strsep(char **stringp, const char *delim);
 void do_showcluster(char *nodelist[], int fanout);
+int test_node(int count);
 #endif
 
 int debug;
@@ -144,7 +146,7 @@ void main(argc, argv)
 			break;
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
-			    "usage: dsh [-eiq] [-f fanout] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] [command ...]\n");
+			    "usage: dsh [-eiq] [-f fanout] [-g rungroup] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] [command ...]\n");
 			exit(EXIT_FAILURE);
 			break;
 		default:
@@ -174,7 +176,10 @@ void main(argc, argv)
 							strsep(&p, ":");
 							group = strdup(p);
 						} else {
-							grouplist[i] = (char *)strdup(group);
+							if (group == NULL)
+								grouplist[i] = NULL;
+							else
+								grouplist[i] = (char *)strdup(group);
 							nodelist[i++] = (char *)strdup(p);
 						}
 					}
@@ -214,7 +219,7 @@ void do_showcluster(nodelist, fanout)
 	char *nodelist[];
 	int fanout;
 {
-	int i, j, l, n, g;
+	int i, j, l, n;
 
 	i = l = 0;
 
@@ -222,12 +227,9 @@ void do_showcluster(nodelist, fanout)
 		for (i=0; nodelist[i] != NULL; i++)		/* just count the nodes */
 			;
 	else
-		for (j=0; nodelist[j] != NULL;) {
-			if (grouplist[j] != NULL)
-				if (strcmp(rungroup,grouplist[j]) == 0)
-					i++;
-			j++;
-		}
+		for (j=0; nodelist[j] != NULL; j++)
+			if (test_node(j))
+				i++;
 
 	j = i / fanout;		/* how many times do I have to run in order to reach them all */
 	if (i % fanout)
@@ -242,15 +244,12 @@ void do_showcluster(nodelist, fanout)
 	for (n=0; n <= j; n++) {
 		for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
 			if (rungroup != NULL) {
-				if (grouplist[i] != NULL)
-					if (strcmp(rungroup,grouplist[i]) == 0) {
-						l++;
-						g = l - n * fanout;
-						printf("Node: %3d Fangroup: %3d Rungroup: %s Host: %s\n", l, n + 1, grouplist[i], nodelist[i]);
-					}
+				if (test_node(i)) {
+					l++;
+					printf("Node: %3d Fangroup: %3d Rungroup: %s Host: %s\n", l, n + 1, grouplist[i], nodelist[i]);
+				}
 			} else {
 				l++;
-				g = l - n * fanout;
 				printf("Node: %3d Fangroup: %3d Rungroup: %s Host: %s\n", l, n + 1, grouplist[i], nodelist[i]);
 			}
 		}
@@ -277,7 +276,7 @@ void do_command(argv, nodelist, fanout, username)
 
 	extern int debug;
 
-	j = 0;
+	j = i = 0;
 	piping = 0;
 	in = NULL;
 	cd = NULL;
@@ -287,13 +286,26 @@ void do_command(argv, nodelist, fanout, username)
 			printf("As User: %s\n",username);
 		printf("On nodes:");
 		for (i=0; nodelist[i] != NULL; i++) {
-			if (!(i % 4))
+			if (!(j % 4) && j > 0)
 				printf("\n");
-			printf("%s\t", nodelist[i]);
+			if (rungroup != NULL) {
+				if (test_node(i)) {
+					printf("%s\t", nodelist[i]);
+					j++;
+				}
+			} else {
+				printf("%s\t", nodelist[i]);
+				j++;
+			}
 		}
 	} else {
-		for (i=0; nodelist[i] != NULL; i++)  /* count the nodes up */
-			;
+		if (rungroup == NULL)
+			for (i=0; nodelist[i] != NULL; i++)		/* just count the nodes */
+				;
+		else
+			for (j=0; nodelist[j] != NULL; j++)
+				if (test_node(j))
+						i++;
 	}
 	j = i / fanout;
 	if (i % fanout)
@@ -323,56 +335,60 @@ void do_command(argv, nodelist, fanout, username)
 	while (command != NULL) {
 		for (n=0; n <= j; n++) {
 			for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
-				g = i - n * fanout;
+				if (test_node(i)) {
+					g = i - n * fanout;
 #ifdef DEBUG
-				printf("Working node: %d, group %d, fanout part: %d\n", i, n, g);
+					printf("Working node: %d, group %d, fanout part: %d\n", i, n, g);
 #endif
-				pipe(out[i]);	/* we set up pipes for each node, to prepare for the oncoming barrage of data */
-				pipe(err[i]);
-				switch (fork()) {  /* its the ol fork and switch routine eh? */
-					case -1:
-						bailout(__LINE__);
-						break;
-					case 0: 
-						if (dup2(out[g][1], STDOUT_FILENO) != STDOUT_FILENO) /* stupid unix tricks vol 1 */
+					pipe(out[i]);	/* we set up pipes for each node, to prepare for the oncoming barrage of data */
+					pipe(err[i]);
+					switch (fork()) {  /* its the ol fork and switch routine eh? */
+						case -1:
 							bailout(__LINE__);
-						if (dup2(err[g][1], STDERR_FILENO) != STDERR_FILENO)
-							bailout(__LINE__);
-						if (close(out[g][0]) != 0)
-							bailout(__LINE__);
-						if (close(err[g][0]) != 0)
-							bailout(__LINE__);
-						rsh = getenv("RCMD_CMD");
-						if (rsh == NULL)
-							rsh = "rsh";
+							break;
+						case 0: 
+							if (dup2(out[g][1], STDOUT_FILENO) != STDOUT_FILENO) /* stupid unix tricks vol 1 */
+								bailout(__LINE__);
+							if (dup2(err[g][1], STDERR_FILENO) != STDERR_FILENO)
+								bailout(__LINE__);
+							if (close(out[g][0]) != 0)
+								bailout(__LINE__);
+							if (close(err[g][0]) != 0)
+								bailout(__LINE__);
+							rsh = getenv("RCMD_CMD");
+							if (rsh == NULL)
+								rsh = "rsh";
 #ifdef DEBUG
-						printf("%s %s %s\n", rsh, nodelist[i], command);
+							printf("%s %s %s\n", rsh, nodelist[i], command);
 #endif
-						if (username != NULL)  /* interestingly enough, this -l thing works great with ssh */
-							execlp(rsh, rsh, "-l", username, nodelist[i], command, (char *)0);
-						else
-							execlp(rsh, rsh, nodelist[i], command, (char *)0);
-						bailout(__LINE__);
-					}
-			}
+							if (username != NULL)  /* interestingly enough, this -l thing works great with ssh */
+								execlp(rsh, rsh, "-l", username, nodelist[i], command, (char *)0);
+							else
+								execlp(rsh, rsh, nodelist[i], command, (char *)0);
+							bailout(__LINE__);
+						}
+				} /* test_node */
+			} /* for i */
 			for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
-				g = i - n * fanout;
-				if (close(out[g][1]) != 0)  /* now close off the useless stuff, and read the goodies */
-					bailout(__LINE__);
-				if (close(err[g][1]) != 0)
-					bailout(__LINE__);
-				fd = fdopen(out[g][0], "r"); /* stdout */
-				while ((p = fgets(buf, sizeof(buf), fd)))
-					printf("%s:\t%s", nodelist[i], p);
-				fclose(fd);
-				fd = fdopen(err[g][0], "r"); /* stderr */
-				while ((p = fgets(buf, sizeof(buf), fd)))
-					if (errorflag)
+				if (test_node(i)) {
+					g = i - n * fanout;
+					if (close(out[g][1]) != 0)  /* now close off the useless stuff, and read the goodies */
+						bailout(__LINE__);
+					if (close(err[g][1]) != 0)
+						bailout(__LINE__);
+					fd = fdopen(out[g][0], "r"); /* stdout */
+					while ((p = fgets(buf, sizeof(buf), fd)))
 						printf("%s:\t%s", nodelist[i], p);
-				fclose(fd);
-				(void)wait(&status);
-			}
-		}
+					fclose(fd);
+					fd = fdopen(err[g][0], "r"); /* stderr */
+					while ((p = fgets(buf, sizeof(buf), fd)))
+						if (errorflag)
+							printf("%s:\t%s", nodelist[i], p);
+					fclose(fd);
+					(void)wait(&status);
+				} /* test_node */
+			} /* for pipe read */
+		} /* for n */
 		if (piping) {
 			if (isatty(STDIN_FILENO) && piping) /* yes, this is code repetition, no need to adjust your monitor */
 				printf("dsh>");
@@ -382,11 +398,24 @@ void do_command(argv, nodelist, fanout, username)
 					command = NULL;
 		} else
 			command = NULL;
-	}
+	} /* while loop */
 		if (piping) {  /* I learned this the hard way */
 			fflush(in);
 			fclose(in);
 		}
+}
+
+/* test routine, saves a ton of repetive code */
+
+int test_node(int count)
+{
+	if (rungroup == NULL)
+		return(1);
+	else
+		if (grouplist[count] != NULL)
+			if (strcmp(rungroup,grouplist[count]) == 0)
+				return(1);
+	return(0);
 }
 
 /* Simple error handling routine, needs severe work.  Its almost totally useless. */
