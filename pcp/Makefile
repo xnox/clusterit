@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.13 2001/08/13 23:17:01 garbled Exp $
+# $Id: Makefile,v 1.14 2001/08/14 04:05:45 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
 #Uncomment things for solaris.
@@ -11,14 +11,18 @@ CFLAGS+=	-DCLUSTERS
 #CFLAGS=		-DCLUSTERS
 
 #SRCS= pcp.c ../common/netbsd.c ../common/common.c
-SRCS= pcp.c ../common/common.c
+SRCS= pcp.c
+SOBJS= common.o
 
 MAN=		pcp.1
 
 all: ${PROG}
 
-${PROG}: ${SRCS:.c=.o}
-	${CC} ${CFLAGS} -o $@ ${SRCS:.c=.o}
+${PROG}: ${SRCS:.c=.o} ${SOBJS}
+	${CC} ${CFLAGS} -o $@ ${SRCS:.c=.o} ${SOBJS}
+
+common.o: ../common/common.c
+	${CC} ${CFLAGS} -c $? -o $@
 
 ${SRCS:.c=.o}: ${SRCS}
 	${CC} ${CFLAGS} -c $< -o $@
