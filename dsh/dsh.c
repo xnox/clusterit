@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.7 1998/12/14 16:31:28 garbled Exp $ */
+/* $Id: dsh.c,v 1.8 1998/12/14 17:59:43 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -31,9 +31,9 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/resource.h>
 #include <sys/wait.h>
 
 #include <fcntl.h>
@@ -49,7 +49,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: dsh.c,v 1.7 1998/12/14 16:31:28 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.8 1998/12/14 17:59:43 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
