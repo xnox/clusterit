@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.12 2004/10/04 18:21:43 garbled Exp $ */
+/* $Id: common.c,v 1.13 2004/11/20 15:40:38 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.12 2004/10/04 18:21:43 garbled Exp $");
+__RCSID("$Id: common.c,v 1.13 2004/11/20 15:40:38 garbled Exp $");
 #endif
 
 
@@ -61,6 +61,9 @@ do_showcluster(int fanout)
     char *group;
 
     i = l = 0;
+    if (nodelink == NULL)
+	return;
+
     for (nodeptr = nodelink; nodeptr->next != NULL;
 	 nodeptr = nodeptr->next)
 	i++; /* just count the nodes */
@@ -224,12 +227,12 @@ parse_cluster(char **exclude)
     }
     rewind(fd);
     /* Now.. parse the file for real, and build the nodelist */
-    g = 0;
+    g = -1;
     i = 0;
     while ((nodename = fgets(buf, sizeof(buf), fd))) {
 	p = (char *)strsep(&nodename, "\n");
 	if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
-	    /*printf("g = %d p = %s\n", g, p);*/
+	    /* printf("g = %d p = %s\n", g, p); */
 	    if (strstr(p, "LUMP") != NULL)
 		lumping = 1;
 	    if (lumping && (strstr(p, "GROUP") != NULL))
@@ -243,12 +246,12 @@ parse_cluster(char **exclude)
 		    gfail = 1;
 		    for (j = 0; (rungroup[j] != NULL && gfail == 1); j++) {
 			int l;
-			for (l=0; l < grouplist[g].numlump; l++) {
-			    if (!strcmp(grouplist[g].name, rungroup[j]) ||
-				!strcmp(lumplist[grouplist[g].lump[l]],
+			if (!strcmp(grouplist[g].name, rungroup[j]))
+			    gfail = 0;
+			for (l=0; l < grouplist[g].numlump; l++)
+			    if (!strcmp(lumplist[grouplist[g].lump[l]],
 				    rungroup[j]))
 				gfail = 0;
-			}
 		    }
 		}
 		if (g >= 0 && gfail && exclusion && rungroup[0] == 0)
