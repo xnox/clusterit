@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.9 1999/05/04 19:20:43 garbled Exp $ */
+/* $Id: dsh.c,v 1.10 1999/05/04 19:30:36 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -51,7 +51,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: dsh.c,v 1.9 1999/05/04 19:20:43 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.10 1999/05/04 19:30:36 garbled Exp $");
 #endif
 
 enum {
@@ -345,10 +345,8 @@ do_command(argv, nodelist, fanout, username)
 	err = malloc((fanout+1)*sizeof(pipe_t));
 	childpid = malloc((fanout+1)*sizeof(pid_t));
 
-	if (err == NULL || out == NULL || childpid == NULL) {
-		fprintf(stderr, "Out of memory");
-		exit(EXIT_FAILURE);
-	}
+	if (err == NULL || out == NULL || childpid == NULL)
+		bailout(__LINE__);
 
 	maxnodelen = 0;
 	j = i = 0;
@@ -478,6 +476,7 @@ do_command(argv, nodelist, fanout, username)
 								execlp(rsh, rsh, nodelist[i], command,
 								    (char *)0);
 							bailout(__LINE__);
+							break;
 						default:
 							break;
 						} /* switch */
@@ -575,11 +574,11 @@ alignstring(string, n)
  * Its almost totally useless.
  */
 
+/*ARGSUSED*/
 void
 bailout(line) 
 	int line;
 {
-/*ARGSUSED*/
 extern int errno;
 
 #ifdef DEBUG
