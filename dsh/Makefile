@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 1998/12/14 16:31:28 garbled Exp $
+# $Id: Makefile,v 1.10 1999/10/14 16:50:52 garbled Exp $
 # dsh Makefile: Tim Rightnour
 
 # Some of the below needs to be uncommented for Solaris to work.
@@ -14,7 +14,7 @@ SSRCS=
 
 MAN= dsh.1 seq.1 run.1
 
-all: ${OBJS} ${SSRCS}
+all: ${OBJS} ${SSRCS} common.h
 	@for prog in ${PROGS} ; do \
 		echo ${CC} ${CFLAGS} -o $$prog $$prog.o ${SSRCS} ${LIBS}; \
 		${CC} ${CFLAGS} -o $$prog $$prog.o ${SSRCS} ${LIBS}; \

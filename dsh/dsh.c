@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.11 1999/05/05 09:45:05 garbled Exp $ */
+/* $Id: dsh.c,v 1.12 1999/10/14 16:50:52 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -39,10 +39,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+
+#include "common.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
@@ -51,33 +49,19 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: dsh.c,v 1.11 1999/05/05 09:45:05 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.12 1999/10/14 16:50:52 garbled Exp $");
 #endif
-
-enum {
-	MAX_CLUSTER = 512,
-	DEFAULT_FANOUT = 64,
-	MAX_GROUPS = 32,
-	MAXBUF = 1024
-};
 
 extern int errno;
 #ifndef __P
 #define __P(protos) protos
 #endif
 
-void bailout __P((int));
 void do_command __P((char **, char *[], int, char *));
-void do_showcluster __P((char *[], int));
-int test_node __P((int));
-char *alignstring __P((char *, size_t));
 void sig_handler __P((int));
 
-#ifndef __NetBSD__
-char * strsep(char **stringp, const char *delim);
-#endif
-
-int debug, errorflag, gotsigint, gotsigterm;
+/* globals */
+int debug, errorflag, gotsigint, gotsigterm, exclusion;
 char *grouplist[MAX_CLUSTER];
 char *rungroup[MAX_GROUPS];
 pid_t currentchild;
@@ -96,31 +80,28 @@ main(argc, argv)
 	extern char	*optarg;
 	extern int	optind;
 
-	FILE	*fd;
-	int someflag, ch, i, fanout, showflag, exclusion, j, fail, fanflag;
+	int someflag, ch, i, fanout, showflag, fanflag;
 	char *p, *group, *nodelist[MAX_CLUSTER];
-	char *nodename, *clusterfile, *username, *exclude[MAX_CLUSTER];
-	char	buf[256];
+	char *nodename, *username, *exclude[MAX_CLUSTER];
 	struct rlimit	limit;
 
 	extern int debug, errorflag, gotsigterm, gotsigint;
 
-	someflag = 0;
-	showflag = 0;
-	fanflag = 0;
-	exclusion = 0;
-	debug = 0;
-	errorflag = 0;
-	gotsigint = 0;
-	gotsigterm = 0;
+	someflag = showflag = fanflag = 0;
+	exclusion = debug = errorflag = 0;
+	gotsigint = gotsigterm = 0;
 	fanout = DEFAULT_FANOUT;
+	nodename = NULL;
 	username = NULL;
 	group = NULL;
 	for (i=0; i < MAX_GROUPS; i++)
 		rungroup[i] = NULL;
 
-	while ((ch = getopt(argc, argv, "?eiqf:g:l:w:x:")) != -1)
+	while ((ch = getopt(argc, argv, "?deiqf:g:l:w:x:")) != -1)
 		switch (ch) {
+		case 'd':		/* we want to debug dsh (hidden)*/
+			debug = 1;
+			break;
 		case 'e':		/* we want stderr to be printed */
 			errorflag = 1;
 			break;
@@ -182,54 +163,10 @@ main(argc, argv)
 /* check for a fanout var, and use it if the fanout isn't on the commandline */
 		if (getenv("FANOUT"))
 			fanout = atoi(getenv("FANOUT"));
-	if (!someflag) {
-/* if -w wasn't specified, we need to parse the cluster file */
-		clusterfile = getenv("CLUSTER");
-		if (clusterfile == NULL) {
-			(void)fprintf(stderr,
-			    "must use -w flag without CLUSTER environment setting.\n");
-			return(EXIT_FAILURE);
-		}
-		fd = fopen(clusterfile, "r");
-		i = 0;
-		while ((nodename = fgets(buf, sizeof(buf), fd))) {
-			p = (char *)strsep(&nodename, "\n");
-			if (strcmp(p, "") != 0) {
-				if (exclusion) {		/* this handles the -x option */
-					fail = 0;
-					for (j = 0; exclude[j] != NULL; j++)
-						if (strcmp(p, exclude[j]) == 0)
-							fail = 1;
-					if (!fail) {
-						if (strstr(p, "GROUP") != NULL) {
-							strsep(&p, ":");
-							group = strdup(p);
-						} else {
-							if (group == NULL)
-								grouplist[i] = NULL;
-							else
-								grouplist[i] = (char *)strdup(group);
-							nodelist[i++] = (char *)strdup(p);
-						}
-					}
-				} else {
-					if (strstr(p, "GROUP") != NULL) {
-						strsep(&p, ":");
-						group = strdup(p);
-					} else {
-						if (group == NULL)
-							grouplist[i] = NULL;
-						else
-							grouplist[i] = (char *)strdup(group);
-						nodelist[i++] = (char *)strdup(p);
-					}
-				} /* exlusion */
-			} /* strcmp */
-		} /* while nodename */
-		nodelist[i] = '\0';
-		grouplist[i] = '\0';
-		fclose(fd);
-	}
+
+	if (!someflag)
+		parse_cluster(nodename, exclude, nodelist);
+
 	argc -= optind;
 	argv += optind;
 	if (showflag) {
@@ -243,76 +180,17 @@ main(argc, argv)
 	 */
 	if (getrlimit(RLIMIT_NOFILE, &limit) != 0)
 		bailout(__LINE__);
-	limit.rlim_cur = fanout * 5;
-	if (setrlimit(RLIMIT_NOFILE, &limit) != 0)
-		bailout(__LINE__);
+	if (limit.rlim_cur < fanout * 5) {
+		limit.rlim_cur = fanout * 5;
+		if (setrlimit(RLIMIT_NOFILE, &limit) != 0)
+			bailout(__LINE__);
+	}
 
 	do_command(argv, nodelist, fanout, username);
 	return(EXIT_SUCCESS);
 }
 
-/*
- * This routine just rips open the various arrays and prints out information
- * about what the command would have done, and the topology of your cluster.
- * Invoked via the -q switch.
- */
 
-void
-do_showcluster(nodelist, fanout)
-	char *nodelist[];
-	int fanout;
-{
-	int i, j, l, n;
-
-	i = l = 0;
-	for (i=0; nodelist[i] != NULL; i++)		/* just count the nodes */
-		;
-	j = i / fanout;
-      /* how many times do I have to run in order to reach them all */
-	if (i % fanout)
-		j++;
-
-	if (rungroup[0] != NULL) {
-		(void)printf("Rungroup:");
-		for (i=0; rungroup[i] != NULL; i++) {
-			if (!(i % 4) && i > 0)
-				(void)printf("\n");
-			(void)printf("\t%s", rungroup[i]);
-		}
-		if (i % 4)
-			(void)printf("\n");
-	}	
-
-	if (getenv("CLUSTER"))
-		(void)printf("Cluster file: %s\n", getenv("CLUSTER"));
-	(void)printf("Fanout size: %d\n", fanout);
-	for (n=0; n <= j; n++) {
-		for (i=n * fanout;
-		    ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
-			if (rungroup[0] != NULL) {
-				if (test_node(i)) {
-					l++;
-					if (grouplist[i] == NULL)
-						(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None"
-						    "             Host: %s\n", l, n + 1, nodelist[i]);
-					else
-						(void)printf("Node: %3d  Fangroup: %3d  Rungroup: "
-						    "%-15s  Host: %-15s\n", l, n + 1, grouplist[i],
-							nodelist[i]);
-				}
-			} else {
-				l++;
-				if (grouplist[i] == NULL)
-					(void)printf("Node: %3d  Fangroup: %3d  Rungroup: None"
-					    "            Host: %-15s\n", l, n + 1, nodelist[i]);
-				else
-					(void)printf("Node: %3d  Fangroup: %3d  Rungroup: %-15s"
-					    "  Host: %-15s\n", l, n + 1, grouplist[i],
-						nodelist[i]);
-			}
-		}
-	}
-}
 
 /* 
  * Do the actual dirty work of the program, now that the arguments
@@ -357,7 +235,7 @@ do_command(argv, nodelist, fanout, username)
 	if (debug) {
 		if (username != NULL)
 			(void)printf("As User: %s\n", username);
-		(void)printf("On nodes:");
+		(void)printf("On nodes:\n");
 		for (i=0; nodelist[i] != NULL; i++) {
 			if (!(j % 4) && j > 0)
 				(void)printf("\n");
@@ -372,8 +250,9 @@ do_command(argv, nodelist, fanout, username)
 			}
 		}
 	}
-	for (i=0; nodelist[i] != NULL; i++)		/* just count the nodes */
-		if (strlen(nodelist[i]) > maxnodelen)
+/* just count the nodes */
+	for (i=0; nodelist[i] != NULL; i++)
+		if (strlen(nodelist[i]) > maxnodelen && test_node(i))
 			maxnodelen = strlen(nodelist[i]); /* compute max hostname len */
 	
 	j = i / fanout;
@@ -418,10 +297,9 @@ do_command(argv, nodelist, fanout, username)
 					exit(EXIT_FAILURE);
 				if (test_node(i)) {
 					g = i - n * fanout;
-#ifdef DEBUG
-					(void)printf("Working node: %d, group %d, fanout part: "
-					    "%d\n", i, n, g);
-#endif
+					if (debug)
+						(void)printf("Working node: %d, group %d,"
+							" fanout part: %d\n", i, n, g);
 /*
  * we set up pipes for each node, to prepare for the oncoming barrage of data.
  * Close on exec must be set here, otherwise children spawned after other
@@ -464,10 +342,9 @@ do_command(argv, nodelist, fanout, username)
 							rsh = getenv("RCMD_CMD");
 							if (rsh == NULL)
 								rsh = "rsh";
-#ifdef DEBUG
-							(void)printf("%s %s %s\n", rsh, nodelist[i],
-							    command);
-#endif
+							if (debug)
+								(void)printf("%s %s %s\n", rsh, nodelist[i],
+									command);
 							if (username != NULL)
 /* interestingly enough, this -l thing works great with ssh */
 								execlp(rsh, rsh, "-l", username, nodelist[i],
@@ -531,62 +408,6 @@ do_command(argv, nodelist, fanout, username)
 			fflush(in);
 			fclose(in);
 		}
-}
-
-/* test routine, saves a ton of repetive code */
-
-int
-test_node(count)
-	int count;
-{
-	int i;
-
-	if (rungroup[0] == NULL)
-		return(1);
-	else
-		if (grouplist[count] != NULL)
-			for (i=0; rungroup[i] != NULL; i++)
-				if (strcmp(rungroup[i], grouplist[count]) == 0)
-					return(1);
-	return(0);
-}
-
-/* return a string, followed by n - strlen spaces */
-
-char *
-alignstring(string, n)
-	char *string;
-	size_t n;
-{
-	size_t i;
-	char *newstring;
-
-	newstring = strdup(string);
-	for (i=1; i <= n - strlen(string); i++)
-		newstring = strcat(newstring, " ");
-
-	return(newstring);
-}
-
-
-/* 
- * Simple error handling routine, needs severe work.
- * Its almost totally useless.
- */
-
-/*ARGSUSED*/
-void
-bailout(line) 
-	int line;
-{
-extern int errno;
-
-#ifdef DEBUG
-	(void)fprintf(stderr, "Failed on line %d: %s %d\n", line, strerror(errno), errno);
-#else
-	(void)fprintf(stderr, "Internal error, aborting: %s\n", strerror(errno));
-#endif
-	_exit(EXIT_FAILURE);
 }
 
 void
