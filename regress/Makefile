@@ -1,3 +1,4 @@
+# $Id: Makefile,v 1.2 1998/10/20 07:26:07 garbled Exp $
 # Makefiles and big fun!
 
 CC= ../dsh/seq -i
