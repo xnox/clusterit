@@ -1,9 +1,11 @@
-$Id: README,v 1.4 1998/10/20 07:27:51 garbled Exp $
+$Id: README,v 1.5 1999/10/14 16:58:14 garbled Exp $
 
-Welcome to clusterit-1.1 !
+Welcome to clusterit-1.3 !
 
 This is a collection of clustering tools, to turn your ordinary
 everyday pile of UNIX workstations into a speedy parallel beast.
+
+To get started quickly, please read the file INSTALL.
 
 Initially this work was based on the work of IBM's PSSP, and copied
 heavily from the ideas there.  Its also lightly based on the work
@@ -78,3 +80,5 @@ Things to do still:
 supper
 	Mimic IBM's supper suite.. but do a better job of
 it than big blue did.  Yuck.
+
+Tim Rightnour <root@garbled.net>

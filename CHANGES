@@ -1,4 +1,11 @@
-$Id: CHANGES,v 1.3 1999/05/05 09:35:43 garbled Exp $
+$Id: CHANGES,v 1.4 1999/10/14 16:58:14 garbled Exp $
+
+# changes since 1.3
+* Release 1.3 *
+
+Break dsh, run and seq's common code into a common.c and common.h file,
+so I don't forget to add options to run and seq when fixing dsh.  Also, fix
+some locations where run and seq were out of sync slightly.
 
 Fix a bug in pcp where if the -m option was used, filesystems at 100%
 would not be displayed.

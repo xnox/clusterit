@@ -1,0 +1,195 @@
+*** Makefile.orig	Fri May  7 11:20:09 1999
+--- Makefile	Fri May  7 11:20:40 1999
+***************
+*** 2,8 ****
+  # Makefile for clusterit:  Tim Rightnour
+  
+  OPSYS!=		uname
+! #CC=		/usr/local/bin/gcc
+  CFLAGS=		-O2 -Wall
+  PREFIX?=	/usr/local
+  
+--- 2,8 ----
+  # Makefile for clusterit:  Tim Rightnour
+  
+  OPSYS!=		uname
+! CC=		/usr/local/bin/gcc
+  CFLAGS=		-O2 -Wall
+  PREFIX?=	/usr/local
+  
+*** dsh/Makefile.orig	Fri May  7 11:20:48 1999
+--- dsh/Makefile	Fri May  7 11:35:26 1999
+***************
+*** 3,15 ****
+  
+  # Some of the below needs to be uncommented for Solaris to work.
+  
+! #CC=		/usr/local/bin/gcc
+! CFLAGS=		-Wall -O2 #-DDEBUG -g
+  PROGS=		dsh seq run
+  
+  OBJS= dsh.o seq.o run.o
+! #SSRCS= strsep.o
+! SSRCS=
+  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+  
+  MAN= dsh.1 seq.1 run.1
+--- 3,15 ----
+  
+  # Some of the below needs to be uncommented for Solaris to work.
+  
+! CC=		/usr/local/bin/gcc
+! CFLAGS?=	-Wall -O2 #-DDEBUG -g
+  PROGS=		dsh seq run
+  
+  OBJS= dsh.o seq.o run.o
+! SSRCS= strsep.o
+! #SSRCS=
+  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+  
+  MAN= dsh.1 seq.1 run.1
+***************
+*** 20,28 ****
+  		${CC} ${CFLAGS} -o $$prog $$prog.o ${SSRCS} ${LIBS}; \
+  	done
+  
+! install: ${PROGS} ${MAN}
+! 	/usr/bin/install -c -s -o bin -g bin -m 0755 ${PROGS} ${PREFIX}/bin
+! 	/usr/bin/install -c -o bin -g bin -m 0444 ${MAN} ${PREFIX}/man/man1
+  
+  clean:
+  	rm -f *.o ${PROGS}
+--- 20,28 ----
+  		${CC} ${CFLAGS} -o $$prog $$prog.o ${SSRCS} ${LIBS}; \
+  	done
+  
+! install: ${PROGS} mans
+! 	/usr/ucb/install -c -s -o bin -g bin -m 0755 ${PROGS} ${PREFIX}/bin
+! #	/usr/bin/install -c -o bin -g bin -m 0444 ${MAN} ${PREFIX}/man/man1
+  
+  clean:
+  	rm -f *.o ${PROGS}
+*** pcp/Makefile.orig	Fri May  7 11:36:01 1999
+--- pcp/Makefile	Fri May  7 11:37:32 1999
+***************
+*** 3,14 ****
+  
+  #Uncomment things for solaris.
+  
+! #CC= /usr/local/bin/gcc
+  PROG=		pcp
+  CFLAGS?=	-O2 -Wall
+  
+! #SRCS= pcp.c strsep.c
+! SRCS= pcp.c
+  
+  SCRIPTS=	prm pdf dshbak
+  MAN=		pcp.1 prm.1 pdf.1
+--- 3,14 ----
+  
+  #Uncomment things for solaris.
+  
+! CC= /usr/local/bin/gcc
+  PROG=		pcp
+  CFLAGS?=	-O2 -Wall
+  
+! SRCS= pcp.c strsep.c
+! #SRCS= pcp.c
+  
+  SCRIPTS=	prm pdf dshbak
+  MAN=		pcp.1 prm.1 pdf.1
+***************
+*** 21,38 ****
+  scripts: ${SCRIPTS}
+  
+  dshbak.sh: dshbak.src
+! 	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $> > $@
+! #	sed -e 's|@@@AWK@@@|/usr/xpg4/bin/awk|' < $> > $@
+  
+  install: ${PROG} ${SCRIPTS}
+! 	/usr/bin/install -c -s -o bin -g bin -m 0755 pcp ${PREFIX}/bin
+! 	/usr/bin/install -c -o bin -g bin -m 0755 pdf ${PREFIX}/bin
+! 	/usr/bin/install -c -o bin -g bin -m 0755 prm ${PREFIX}/bin
+! 	/usr/bin/install -c -o bin -g bin -m 0755 dshbak ${PREFIX}/bin
+! 	/usr/bin/install -c -o bin -g bin -m 0444 pcp.1 ${PREFIX}/man/man1
+! 	/usr/bin/install -c -o bin -g bin -m 0444 pdf.1 ${PREFIX}/man/man1
+! 	/usr/bin/install -c -o bin -g bin -m 0444 prm.1 ${PREFIX}/man/man1
+! 	/usr/bin/install -c -o bin -g bin -m 0444 dshbak.1 ${PREFIX}/man/man1
+  
+  clean:
+  	rm -f ${PROG} ${SCRIPTS} *.o dshbak.sh
+--- 21,38 ----
+  scripts: ${SCRIPTS}
+  
+  dshbak.sh: dshbak.src
+! #	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $> > $@
+! 	sed -e 's|@@@AWK@@@|/usr/xpg4/bin/awk|' < $> > $@
+  
+  install: ${PROG} ${SCRIPTS}
+! 	/usr/ucb/install -c -s -o bin -g bin -m 0755 pcp ${PREFIX}/bin
+! 	/usr/ucb/install -c -o bin -g bin -m 0755 pdf ${PREFIX}/bin
+! 	/usr/ucb/install -c -o bin -g bin -m 0755 prm ${PREFIX}/bin
+! 	/usr/ucb/install -c -o bin -g bin -m 0755 dshbak ${PREFIX}/bin
+! #	/usr/ucb/install -c -o bin -g bin -m 0444 pcp.1 ${PREFIX}/man/man1
+! #	/usr/ucb/install -c -o bin -g bin -m 0444 pdf.1 ${PREFIX}/man/man1
+! #	/usr/ucb/install -c -o bin -g bin -m 0444 prm.1 ${PREFIX}/man/man1
+! #	/usr/ucb/install -c -o bin -g bin -m 0444 dshbak.1 ${PREFIX}/man/man1
+  
+  clean:
+  	rm -f ${PROG} ${SCRIPTS} *.o dshbak.sh
+*** barrier/Makefile.orig	Fri May  7 11:37:52 1999
+--- barrier/Makefile	Fri May  7 11:38:24 1999
+***************
+*** 3,16 ****
+  
+  # Some options need to be uncommented for Solaris
+  
+! #CC=		/usr/local/bin/gcc
+  CFLAGS?=	-Wall -O2
+  PROGS= 		barrierd barrier
+! #LIBS=		-lsocket -lnsl
+  #
+  BSRCS=		barrier.c
+  DSRCS=		barrierd.c
+! #DSRCS+=		strsep.c
+  
+  MAN= barrierd.1 barrier.1
+  
+--- 3,16 ----
+  
+  # Some options need to be uncommented for Solaris
+  
+! CC=		/usr/local/bin/gcc
+  CFLAGS?=	-Wall -O2
+  PROGS= 		barrierd barrier
+! LIBS=		-lsocket -lnsl
+  #
+  BSRCS=		barrier.c
+  DSRCS=		barrierd.c
+! DSRCS+=		strsep.c
+  
+  MAN= barrierd.1 barrier.1
+  
+***************
+*** 23,32 ****
+  	${CC} ${CFLAGS} -o $@ ${DSRCS:.c=.o} ${LIBS}
+  
+  install: ${PROGS}
+! 	/usr/bin/install -c -s -o bin -g bin -m 0755 barrier ${PREFIX}/bin
+! 	/usr/bin/install -c -o bin -g bin -m 0444 barrier.1 ${PREFIX}/man/man1
+! 	/usr/bin/install -c -s -o bin -g bin -m 0755 barrierd ${PREFIX}/bin
+! 	/usr/bin/install -c -o bin -g bin -m 0444 barrierd.1 ${PREFIX}/man/man1
+  
+  clean:
+  	rm -f *.o ${PROGS}
+--- 23,32 ----
+  	${CC} ${CFLAGS} -o $@ ${DSRCS:.c=.o} ${LIBS}
+  
+  install: ${PROGS}
+! 	/usr/ucb/install -c -s -o bin -g bin -m 0755 barrier ${PREFIX}/bin
+! #	/usr/bin/install -c -o bin -g bin -m 0444 barrier.1 ${PREFIX}/man/man1
+! 	/usr/ucb/install -c -s -o bin -g bin -m 0755 barrierd ${PREFIX}/bin
+! #	/usr/bin/install -c -o bin -g bin -m 0444 barrierd.1 ${PREFIX}/man/man1
+  
+  clean:
+  	rm -f *.o ${PROGS}
