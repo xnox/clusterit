@@ -3,7 +3,7 @@
 	<title>ClusterIt</title>
   </head>
   <body bgcolor="#ffffff">
-	<!-- $Id: clusterit.html,v 1.5 2000/02/20 20:13:01 garbled Exp $ -->
+	<!-- $Id: clusterit.html,v 1.6 2001/08/14 05:03:37 garbled Exp $ -->
 	
 	<center><h2>Welcome to clusterit-1.3 !</center></h2>
 	
@@ -124,6 +124,16 @@ do something else
 	  "something" before the continue on to the next something.  The
 	  -s, is the level of parallelism for the script, ie: how many
 	  processes to wait for before continuing.
+	<DT>Distributed Virtual Terminals</DT>
+	<p>
+	  This is a parallel interactive execution environment.  The user 
+	  is given windows for each host in the cluster, and a central
+	  management window.  Keystrokes typed on the central management
+	  window, will be relayed to all of the subordinate windows. This
+	  allows the user to vi a file on 20 machines simultaneously, for
+	  example.  You can also select a window, and use it like a normal
+	  xterm, to perform actions on just that host.
+	</p>
 	</DL>
 	<HR>
 	<DL>What my solution does not provide:
@@ -134,14 +144,6 @@ do something else
 		this suite.</DD>
 	</DL>
 	<hr>
-	<DL>
-	  Things to do still:
-	  <br>
-	  <dt>supper</dt>
-	  <dd>
-		Mimic IBM's supper suite.. but do a better job of it than big
-		blue did.  Yuck.</dd>
-	</dl>
 	<hr><center><h2>ClusterIt Manpages</h2></center>
 	<ul>
 	  <li><a href="man/dsh.html">dsh(1)</a>
@@ -155,6 +157,9 @@ do something else
 	  <li><a href="man/pcp.html">pcp(1)</a>
 	  <li><a href="man/pdf.html">pdf(1)</a>
 	  <li><a href="man/prm.html">prm(1)</a>
+	  <li><a href="man/rvt.html">rvt(1)</a>
+	  <li><a href="man/dvt.html">dvt(1)</a>
+	  <li><a href="man/clustersed.html">clustersed(1)</a>
 	</ul>
 	<hr><center><h2>Download ClusterIt</h2></center>
 	<ul>
