@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.2 1998/10/15 18:30:04 garbled Exp $ */
+/* $Id: rseq.c,v 1.3 1998/10/15 19:47:38 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #ifndef lint
-__RCSID("$Id: rseq.c,v 1.2 1998/10/15 18:30:04 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.3 1998/10/15 19:47:38 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
@@ -86,7 +86,7 @@ void main(argc, argv)
 	extern int optind;
 
 	FILE *fd, *sd;
-	int someflag, ch, i, allflag, showflag, exclusion, j, fail, fanflag;
+	int someflag, ch, i, allflag, showflag, exclusion, j, fail;
 	char *p, *group, *nodelist[MAX_CLUSTER], *nodename, *clusterfile, *username, *seqfile;
 	char *exclude[MAX_CLUSTER];
 	char buf[256];
@@ -96,7 +96,6 @@ void main(argc, argv)
 
 	someflag = 0;
 	showflag = 0;
-	fanflag = 0;
 	exclusion = 0;
 	debug = 0;
 	errorflag = 0;
@@ -310,15 +309,14 @@ void do_command(argv, nodelist, allrun, username)
 	int err[2];
 	char buf[1024];
 	char bufx[6];
-	int status, i, j, piping;
-	char *p, *command, *rsh, *cd;
+	int status, i, piping;
+	char *p, *command, *rsh;
 
 	extern int debug;
 
-	j = i = 0;
+	i = 0;
 	piping = 0;
 	in = NULL;
-	cd = NULL;
 
 	if (debug) {
 		if (username != NULL)
