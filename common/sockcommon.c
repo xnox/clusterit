@@ -1,4 +1,4 @@
-/* $Id: sockcommon.c,v 1.2 2000/02/17 07:55:07 garbled Exp $ */
+/* $Id: sockcommon.c,v 1.3 2001/08/13 21:04:22 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,11 +43,12 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: sockcommon.c,v 1.2 2000/02/17 07:55:07 garbled Exp $");
+__RCSID("$Id: sockcommon.c,v 1.3 2001/08/13 21:04:22 garbled Exp $");
 #endif
 
 
-int make_socket(port)
+int
+make_socket(port)
 	int port;
 {
 	int sock;
@@ -68,9 +69,10 @@ int make_socket(port)
 	return(sock);
 }
 
-int write_to_client(filedes, buf)
+int
+write_to_client(filedes, buf)
 	int filedes;
-	char *buf;
+	const char *buf;
 {
 	int nbytes;
 
@@ -81,7 +83,8 @@ int write_to_client(filedes, buf)
 		return(EXIT_SUCCESS);
 }
 
-int read_from_client(filedes, j)
+int
+read_from_client(filedes, j)
 	int filedes;
 	char **j;
 {

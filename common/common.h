@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.4 2000/02/17 07:55:07 garbled Exp $ */
+/* $Id: common.h,v 1.5 2001/08/13 21:04:22 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -38,6 +38,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef USE_X11
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xresource.h>
+#include <X11/cursorfont.h>
+#endif
+
 enum {
 	DEFAULT_FANOUT = 64,
 	GROUP_MALLOC = 16,
@@ -58,6 +65,9 @@ struct node_data {
 	struct node_data *next;		/* pointer to next node */
 	int free;
 	double index;
+#ifdef USE_X11
+	Window win_id;				/* the window ID of node's window */
+#endif
 };
 typedef struct node_data node_t;
 
@@ -71,6 +81,11 @@ void bailout __P((int));
 char *alignstring __P((char *, size_t));
 #ifndef __NetBSD__
 char * strsep(char **stringp, const char *delim);
+#endif
+#ifdef NEED_PTY
+int     login_tty __P((int));
+int     openpty __P((int *, int *, char *, struct termios *,
+		     struct winsize *));
 #endif
 
 #ifdef CLUSTERS

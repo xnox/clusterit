@@ -1,5 +1,8 @@
-/* $Id: strsep.c,v 1.2 1998/10/13 07:05:23 garbled Exp $ */
+/* $Id: netbsd.c,v 1.1 2001/08/13 21:04:22 garbled Exp $ */
+
 /*	$NetBSD: strsep.c,v 1.7 1998/02/03 18:49:23 perry Exp $	*/
+/*	$NetBSD: pty.c,v 1.16 2000/07/10 11:16:38 ad Exp $	*/
+/*	$NetBSD: login_tty.c,v 1.10 2000/07/05 11:46:41 ad Exp $	*/
 
 /*-
  * Copyright (c) 1990, 1993
@@ -34,15 +37,27 @@
  * SUCH DAMAGE.
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-#if 0
-static char sccsid[] = "@(#)strsep.c	8.1 (Berkeley) 6/4/93";
-#else
-__RCSID("$NetBSD: strsep.c,v 1.7 1998/02/03 18:49:23 perry Exp $");
-#endif
-#endif /* LIBC_SCCS and not lint */
 
 #include <string.h>
+#include <sys/cdefs.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/syslog.h>
+
+#include <signal.h>
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <grp.h>
+#include <stdio.h>
+#include <string.h>
+#include <termios.h>
+#include <unistd.h>
+
+#include "../common/common.h"
+
+#define TTY_LETTERS	"pqrstuvwxyzPQRST"
 
 /*
  * Get next token from string *stringp, where tokens are possibly-empty
@@ -83,3 +98,87 @@ strsep(stringp, delim)
 	}
 	/* NOTREACHED */
 }
+
+#ifdef NEED_PTY
+
+int
+openpty(int *amaster, int *aslave, char *name, struct termios *termp, 
+	struct winsize *winp)
+{
+	static char line[] = "/dev/XtyXX";
+	const char *cp1, *cp2;
+	int master, slave;
+	gid_t ttygid;
+	struct group *gr;
+
+	assert(amaster != NULL);
+	assert(aslave != NULL);
+	/* name may be NULL */
+	/* termp may be NULL */
+	/* winp may be NULL */
+
+	if ((gr = getgrnam("tty")) != NULL)
+		ttygid = gr->gr_gid;
+	else
+		ttygid = (gid_t) -1;
+
+	for (cp1 = TTY_LETTERS; *cp1; cp1++) {
+		line[8] = *cp1;
+		for (cp2 = "0123456789abcdef"; *cp2; cp2++) {
+			line[5] = 'p';
+			line[9] = *cp2;
+			if ((master = open(line, O_RDWR, 0)) == -1) {
+				if (errno == ENOENT)
+					return (-1);	/* out of ptys */
+			} else {
+				line[5] = 't';
+				(void) chown(line, getuid(), ttygid);
+				(void) chmod(line, S_IRUSR|S_IWUSR|S_IWGRP);
+				(void) revoke(line);
+				if ((slave = open(line, O_RDWR, 0)) != -1) {
+					*amaster = master;
+					*aslave = slave;
+					if (name)
+						strcpy(name, line);
+					if (termp)
+						(void) tcsetattr(slave,
+							TCSAFLUSH, termp);
+					if (winp)
+						(void) ioctl(slave, TIOCSWINSZ,
+						    winp);
+					return (0);
+				}
+				(void) close(master);
+			}
+		}
+	}
+	errno = ENOENT;	/* out of ptys */
+	return (-1);
+}
+
+int
+login_tty(int fd)
+{
+	int mypgrp = getpid();
+	void (*old)(int);
+
+	if (setpgid(0, mypgrp) == -1) {
+		syslog(LOG_AUTH|LOG_NOTICE, "setpgrp(0, %d): %m", mypgrp);
+		return(-1);
+	}
+	old = signal(SIGTTOU, SIG_IGN);
+	if (ioctl(fd, TIOCSPGRP, &mypgrp) == -1) {
+		syslog(LOG_AUTH|LOG_NOTICE, "ioctl(%d, TIOCSPGRP, %d): %m",
+		    fd, mypgrp);
+		return(-1);
+	}
+	(void) signal(SIGTTOU, old);
+
+	(void) dup2(fd, 0);
+	(void) dup2(fd, 1);
+	(void) dup2(fd, 2);
+	if (fd > STDERR_FILENO)
+		(void) close(fd);
+	return (0);
+}
+#endif

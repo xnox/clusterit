@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.4 2000/02/17 07:55:07 garbled Exp $ */
+/* $Id: common.c,v 1.5 2001/08/13 21:04:22 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.4 2000/02/17 07:55:07 garbled Exp $");
+__RCSID("$Id: common.c,v 1.5 2001/08/13 21:04:22 garbled Exp $");
 #endif
 
 
@@ -182,7 +182,9 @@ parse_cluster(exclude)
 	}
 	rewind(fd);
 	/* now build the lump list */
-	lumplist[0] = "NO_GROUP_HERE";
+	lumplist[0] = strdup("NO_GROUP_HERE");
+	if (lumplist[0] == NULL)
+		bailout(__LINE__);
 	while ((nodename = fgets(buf, sizeof(buf), fd))) {
 		p = (char *)strsep(&nodename, "\n");
 		/* check for a null line, or a comment */
@@ -273,7 +275,7 @@ nodealloc(nodename)
 	if (nodelink == NULL) {
 		nodelink = malloc((size_t)sizeof(node_t));
 		nodelink->name = strdup(nodename);
-	    nodelink->group = 0;
+		nodelink->group = 0;
 		nodelink->err.fds[0] = NULL;
 		nodelink->err.fds[1] = NULL;
 		nodelink->out.fds[0] = NULL;
@@ -282,6 +284,9 @@ nodealloc(nodename)
 		nodelink->free = 1;
 		nodelink->childpid = NULL;
 		nodelink->next = NULL;
+#ifdef USE_X11
+		nodelink->win_id = 0;
+#endif
 		return(nodelink);
 	}
 	nodex = malloc(sizeof(node_t));
@@ -303,6 +308,9 @@ nodealloc(nodename)
 	nodex->next = NULL;
 	nodex->free = 1;
 	nodex->index = 1.0;
+#ifdef USE_X11
+	nodex->win_id = 0;
+#endif
 	return(nodex);
 }
 
