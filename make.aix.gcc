@@ -1,3 +1,4 @@
+$Id: make.aix.gcc,v 1.5 2000/02/20 20:59:28 garbled Exp $
 diff -r -C 3 ../src/Makefile ./Makefile
 *** ../src/Makefile	Sun Feb 20 11:11:55 2000
 --- ./Makefile	Sun Feb 20 13:27:02 2000
