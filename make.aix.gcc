@@ -67,7 +67,7 @@
 +SSRCS= ../common/common.o ../common/sockcommon.o
  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
  
- MAN= #empty
+ MAN=	jsh.1 jsd.1
 --- ./pcp/Makefile	Sat Feb 19 14:27:36 2000
 +++ ../src/pcp/Makefile	Thu Feb 17 03:01:08 2000
 @@ -5,10 +5,11 @@
