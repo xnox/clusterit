@@ -1,87 +1,149 @@
---- ./Makefile	Sat Feb 19 14:24:11 2000
-+++ ../src/Makefile	Thu Feb 17 03:14:04 2000
-@@ -2,8 +2,8 @@
- # Makefile for clusterit:  Tim Rightnour
- 
- OPSYS!=		uname
--CC=		/usr/local/bin/gcc
--PREFIX=		/usr/local
-+#CC=		/usr/local/bin/gcc
-+PREFIX?=	/usr/local
- 
- SUBDIR=		dsh pcp barrier jsd
- 
---- ./barrier/Makefile	Sat Feb 19 17:12:15 2000
-+++ ../src/barrier/Makefile	Thu Feb 17 03:12:43 2000
-@@ -4,13 +4,14 @@
- # Some options need to be uncommented for Solaris
- 
- #CC=		/usr/local/bin/gcc
--CFLAGS=		-Wall -O2
-+CFLAGS?=	-Wall -O2
- PROGS= 		barrierd barrier
- #LIBS=		-lsocket -lnsl
- #
- SSRCS=		../common/sockcommon.c ../common/common.c
- BSRCS=		barrier.c ${SSRCS}
--DSRCS=		barrierd.c ${SSRCS} ../common/strsep.c
-+DSRCS=		barrierd.c ${SSRCS}
-+#DSRCS+=		strsep.c
- 
- MAN= barrierd.1 barrier.1
- 
---- ./dsh/Makefile	Sat Feb 19 14:27:00 2000
-+++ ../src/dsh/Makefile	Thu Feb 17 02:59:23 2000
-@@ -5,12 +5,13 @@
- 
- #CC=		/usr/vac/bin/cc
- #CC=		/usr/local/bin/gcc
--CFLAGS=		-O2 -Wall -DCLUSTERS
-+CFLAGS?=	-O2 -Wall #-DDEBUG -g
-+CFLAGS+=	-DCLUSTERS
- PROGS=		dsh seq run
- 
- OBJS= dsh.o seq.o run.o
--SSRCS= ../common/strsep.o ../common/common.o
--#SSRCS= ../common/common.o
-+#SSRCS= ../common/strsep.o ../common/common.o
-+SSRCS= ../common/common.o
- #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
- 
- MAN= dsh.1 seq.1 run.1
---- ./jsd/Makefile	Sat Feb 19 14:27:24 2000
-+++ ../src/jsd/Makefile	Thu Feb 17 03:03:57 2000
-@@ -5,12 +5,13 @@
- 
- #CC=		/usr/vac/bin/cc
- #CC=		/usr/local/bin/gcc
--CFLAGS=		-O2 -Wall -DCLUSTERS
-+CFLAGS?=	-O2 -g #-DDEBUG -g
-+CFLAGS+=	-DCLUSTERS
- PROGS=		jsd jsh
- 
- OBJS= jsh.o jsd.o
--SSRCS= ../common/strsep.o ../common/common.o ../common/sockcommon.o
--#SSRCS= ../common/common.o ../common/sockcommon.o
-+#SSRCS= ../common/strsep.o ../common/common.o ../common/sockcommon.o
-+SSRCS= ../common/common.o ../common/sockcommon.o
- #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
- 
- MAN=	jsh.1 jsd.1
---- ./pcp/Makefile	Sat Feb 19 14:27:36 2000
-+++ ../src/pcp/Makefile	Thu Feb 17 03:01:08 2000
-@@ -5,10 +5,11 @@
- 
- #CC= /usr/local/bin/gcc
- PROG=		pcp
--CFLAGS=		-O2 -Wall -DCLUSTERS
-+CFLAGS?=	-O2 -Wall
-+CFLAGS+=	-DCLUSTERS
- 
--SRCS= pcp.c ../common/strsep.c ../common/common.c
--#SRCS= pcp.c ../common/common.c
-+#SRCS= pcp.c ../common/strsep.c ../common/common.c
-+SRCS= pcp.c ../common/common.c
- 
- SCRIPTS=	prm pdf dshbak
- MAN=		pcp.1 prm.1 pdf.1
+diff -r -C 3 ../src/Makefile ./Makefile
+*** ../src/Makefile	Sun Feb 20 11:11:55 2000
+--- ./Makefile	Sun Feb 20 13:27:02 2000
+***************
+*** 2,9 ****
+  # Makefile for clusterit:  Tim Rightnour
+  
+  OPSYS!=		uname
+! #CC=		/usr/local/bin/gcc
+! PREFIX?=	/usr/local
+  
+  SUBDIR=		dsh pcp barrier jsd
+  
+--- 2,9 ----
+  # Makefile for clusterit:  Tim Rightnour
+  
+  OPSYS!=		uname
+! CC=		/usr/local/bin/gcc
+! PREFIX=		/usr/local
+  
+  SUBDIR=		dsh pcp barrier jsd
+  
+Only in .: Makefile.orig
+diff -r -C 3 ../src/barrier/Makefile ./barrier/Makefile
+*** ../src/barrier/Makefile	Thu Feb 17 01:12:43 2000
+--- ./barrier/Makefile	Sun Feb 20 13:27:02 2000
+***************
+*** 4,17 ****
+  # Some options need to be uncommented for Solaris
+  
+  #CC=		/usr/local/bin/gcc
+! CFLAGS?=	-Wall -O2
+  PROGS= 		barrierd barrier
+  #LIBS=		-lsocket -lnsl
+  #
+  SSRCS=		../common/sockcommon.c ../common/common.c
+  BSRCS=		barrier.c ${SSRCS}
+! DSRCS=		barrierd.c ${SSRCS}
+! #DSRCS+=		strsep.c
+  
+  MAN= barrierd.1 barrier.1
+  
+--- 4,16 ----
+  # Some options need to be uncommented for Solaris
+  
+  #CC=		/usr/local/bin/gcc
+! CFLAGS=		-Wall -O2
+  PROGS= 		barrierd barrier
+  #LIBS=		-lsocket -lnsl
+  #
+  SSRCS=		../common/sockcommon.c ../common/common.c
+  BSRCS=		barrier.c ${SSRCS}
+! DSRCS=		barrierd.c ${SSRCS} ../common/strsep.c
+  
+  MAN= barrierd.1 barrier.1
+  
+Only in ./barrier: Makefile.orig
+diff -r -C 3 ../src/dsh/Makefile ./dsh/Makefile
+*** ../src/dsh/Makefile	Thu Feb 17 00:59:23 2000
+--- ./dsh/Makefile	Sun Feb 20 13:27:02 2000
+***************
+*** 5,17 ****
+  
+  #CC=		/usr/vac/bin/cc
+  #CC=		/usr/local/bin/gcc
+! CFLAGS?=	-O2 -Wall #-DDEBUG -g
+! CFLAGS+=	-DCLUSTERS
+  PROGS=		dsh seq run
+  
+  OBJS= dsh.o seq.o run.o
+! #SSRCS= ../common/strsep.o ../common/common.o
+! SSRCS= ../common/common.o
+  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+  
+  MAN= dsh.1 seq.1 run.1
+--- 5,16 ----
+  
+  #CC=		/usr/vac/bin/cc
+  #CC=		/usr/local/bin/gcc
+! CFLAGS=		-O2 -Wall -DCLUSTERS
+  PROGS=		dsh seq run
+  
+  OBJS= dsh.o seq.o run.o
+! SSRCS= ../common/strsep.o ../common/common.o
+! #SSRCS= ../common/common.o
+  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+  
+  MAN= dsh.1 seq.1 run.1
+Only in ./dsh: Makefile.orig
+diff -r -C 3 ../src/jsd/Makefile ./jsd/Makefile
+*** ../src/jsd/Makefile	Sat Feb 19 21:46:11 2000
+--- ./jsd/Makefile	Sun Feb 20 13:27:02 2000
+***************
+*** 5,17 ****
+  
+  #CC=		/usr/vac/bin/cc
+  #CC=		/usr/local/bin/gcc
+! CFLAGS?=	-O2 -g #-DDEBUG -g
+! CFLAGS+=	-DCLUSTERS
+  PROGS=		jsd jsh
+  
+  OBJS= jsh.o jsd.o
+! #SSRCS= ../common/strsep.o ../common/common.o ../common/sockcommon.o
+! SSRCS= ../common/common.o ../common/sockcommon.o
+  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+  
+  MAN=	jsh.1 jsd.1
+--- 5,16 ----
+  
+  #CC=		/usr/vac/bin/cc
+  #CC=		/usr/local/bin/gcc
+! CFLAGS=		-O2 -Wall -DCLUSTERS
+  PROGS=		jsd jsh
+  
+  OBJS= jsh.o jsd.o
+! SSRCS= ../common/strsep.o ../common/common.o ../common/sockcommon.o
+! #SSRCS= ../common/common.o ../common/sockcommon.o
+  #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+  
+  MAN=	jsh.1 jsd.1
+Only in ./jsd: Makefile.orig
+diff -r -C 3 ../src/pcp/Makefile ./pcp/Makefile
+*** ../src/pcp/Makefile	Thu Feb 17 01:01:08 2000
+--- ./pcp/Makefile	Sun Feb 20 13:27:03 2000
+***************
+*** 5,15 ****
+  
+  #CC= /usr/local/bin/gcc
+  PROG=		pcp
+! CFLAGS?=	-O2 -Wall
+! CFLAGS+=	-DCLUSTERS
+  
+! #SRCS= pcp.c ../common/strsep.c ../common/common.c
+! SRCS= pcp.c ../common/common.c
+  
+  SCRIPTS=	prm pdf dshbak
+  MAN=		pcp.1 prm.1 pdf.1
+--- 5,14 ----
+  
+  #CC= /usr/local/bin/gcc
+  PROG=		pcp
+! CFLAGS=		-O2 -Wall -DCLUSTERS
+  
+! SRCS= pcp.c ../common/strsep.c ../common/common.c
+! #SRCS= pcp.c ../common/common.c
+  
+  SCRIPTS=	prm pdf dshbak
+  MAN=		pcp.1 prm.1 pdf.1
+Only in ./pcp: Makefile.orig
