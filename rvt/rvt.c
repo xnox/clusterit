@@ -21,7 +21,7 @@ char xvt_xvt_c_sccsid[] = "@(#)xvt.c	1.2 18/9/92 (UKC)";
 extern int debugging;
 extern char *username;
 extern char *nodename;
-extern char *rcmd;
+extern char *remotecmd;
 
 static int size_set = 0;	/* flag set once the window size has been set */
 
@@ -106,13 +106,13 @@ main(int argc, char *argv[])
 	if (com_argv == NULL)
 		exit(1);
 
-	rcmd = getenv("RLOGIN_CMD");
-	if (rcmd == NULL)
-		rcmd = strdup("rsh");
-	if (rcmd == NULL)
+	remotecmd = getenv("RLOGIN_CMD");
+	if (remotecmd == NULL)
+		remotecmd = strdup("rsh");
+	if (remotecmd == NULL)
 		exit(1);
 	i = 0;
-	com_argv[i] = rcmd;
+	com_argv[i] = remotecmd;
 	i++;
 	if (username != NULL) {
 		com_argv[i] = strdup("-l");
