@@ -1,4 +1,4 @@
-/* $Id: sockcommon.h,v 1.5 2001/08/13 21:04:22 garbled Exp $ */
+/* $Id: sockcommon.h,v 1.6 2002/03/14 18:10:31 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,9 +42,13 @@
 #include <netinet/in.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#if !defined(__sun__) && !defined(__linux__)
 #include <sys/mbuf.h>
+#endif
 #include <net/if.h>
+#if !defined(__linux__)
 #include <net/if_dl.h>
+#endif
 #include <netinet/if_ether.h>
 #include <arpa/inet.h>
 #include <sys/types.h>

@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.6 2001/08/16 19:08:17 garbled Exp $ */
+/* $Id: common.c,v 1.7 2002/03/14 18:10:31 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.6 2001/08/16 19:08:17 garbled Exp $");
+__RCSID("$Id: common.c,v 1.7 2002/03/14 18:10:31 garbled Exp $");
 #endif
 
 
@@ -326,7 +326,8 @@ alignstring(string, n)
 	size_t i;
 	char *newstring;
 
-	newstring = strdup(string);
+	newstring = (char *)malloc(1 + strlen(string) + n * sizeof(char));
+	strcpy(newstring, string);
 	for (i=1; i <= n - strlen(string); i++)
 		newstring = strcat(newstring, " ");
 

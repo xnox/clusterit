@@ -1,4 +1,4 @@
-/* $Id: netbsd.c,v 1.1 2001/08/13 21:04:22 garbled Exp $ */
+/* $Id: netbsd.c,v 1.2 2002/03/14 18:10:31 garbled Exp $ */
 
 /*	$NetBSD: strsep.c,v 1.7 1998/02/03 18:49:23 perry Exp $	*/
 /*	$NetBSD: pty.c,v 1.16 2000/07/10 11:16:38 ad Exp $	*/
@@ -39,7 +39,9 @@
 
 
 #include <string.h>
+#if !defined(__SVR4) && !defined(__sun__)
 #include <sys/cdefs.h>
+#endif
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -56,6 +58,16 @@
 #include <unistd.h>
 
 #include "../common/common.h"
+
+#ifdef __SVR4
+int
+revoke(path)
+        const char *path;
+{
+        vhangup();        /* XXX */
+        return 0;
+}
+#endif
 
 #define TTY_LETTERS	"pqrstuvwxyzPQRST"
 

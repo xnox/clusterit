@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.5 2001/08/13 21:04:22 garbled Exp $ */
+/* $Id: common.h,v 1.6 2002/03/14 18:10:31 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -79,7 +79,7 @@ typedef struct group_data group_t;
 
 void bailout __P((int));
 char *alignstring __P((char *, size_t));
-#ifndef __NetBSD__
+#if !defined(__NetBSD__) && !defined(__linux__)
 char * strsep(char **stringp, const char *delim);
 #endif
 #ifdef NEED_PTY
