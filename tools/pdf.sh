@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: pdf.sh,v 1.4 1999/05/05 08:20:53 garbled Exp $
+# $Id: pdf.sh,v 1.5 1999/05/05 08:37:43 garbled Exp $
 args=`getopt lng:m:t:w:x: $*`
 if test $? != 0
 then
@@ -28,12 +28,12 @@ do
 	esac
 done
 
-if test -n "$warg"; then 
+if [ -n "$warg" ]; then 
 	dshargs=`echo "-w $warg"`
-elif test -n "$garg"; then
-	dshargs=`echo "-w $garg"`
+elif [ -n "$garg" ]; then
+	dshargs=`echo "-g $garg"`
 fi
-if test -n "$xarg"; then
+if [ -n "$xarg" ]; then
 	dshargs=`echo "$dshargs -x $xarg"`
 fi
 
@@ -43,7 +43,7 @@ dsh $dshargs 'sh -c "if [ `uname` = "AIX" ]; then df -kI '$flag $*'; elif [ `una
 echo 'Node      Filesystem            1K-Blks     Used    Avail  Cap Mounted On'
 while read node fs blocks used avail capacity mount; do \
 	capacity=`echo "$capacity" | sed -e 's/\%//'`
-	if [ "$capacity" -gt "$marg" -a "$marg" ]; then \
+	if [ "$capacity" -gt "$marg" -a 'test -n "$marg"' ]; then \
 		printf "%-8s: %-19.19s %9d%9d%9d %3.3s%% %-17.17s\n" $node $fs $blocks $used $avail $capacity $mount; \
 	fi \
 done
