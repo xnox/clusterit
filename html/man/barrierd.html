@@ -1,0 +1,84 @@
+<html>
+<head>
+     <title>
+           October 14, 1998 BARRIERD 1
+
+     </title>
+        <style type="text/css">
+        <!--
+          body { margin-left:4%; }
+          H1 { color: maroon; padding: 4pt; margin-left: -4% }
+          H2 { color: maroon; padding: 4pt; margin-left: -4% }
+          H3 { color: maroon; padding: 4pt; margin-left: -4% }
+          H4 { color: maroon; padding: 4pt; margin-left: -4% }
+          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+        -->
+        </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+     <h3>
+     NAME
+     </h3>
+<b>barrierd</b>
+- syncronize a process on a number of machines.
+     <h3>
+     SYNOPSIS
+     </h3>
+<b>barrierd</b>
+[<b></b><b>-p</b><i></i><i> port</i>]
+     <h3>
+     DESCRIPTION
+     </h3>
+The
+<b>barrierd</b>
+daemon runs on a host, and accepts barrier connections from the client
+program barrier.  It handles the connections and syncronization of
+various barriers being set up and taken down across the cluster.
+<dl compact>
+<p><dt><b></b><b>-p</b><dd>
+Specifies a port number for the
+<b>barrierd</b>
+daemon to listen on.  Defaults
+to 1933, and overrides the
+<code></code><code>BARRIER_PORT</code>
+environment variable.
+     <h3>
+     ENVIRONMENT
+     </h3>
+<b>barrierd</b>
+utilizes the following environment variables.
+<dl compact>
+<p><dt><code></code><code>BARRIER_HOST</code><dd>
+Sets the default remote host to connect to.
+     <h3>
+     DIAGNOSTICS
+     </h3>
+Exit status is 0 on success, 1 if an error occurs.
+     <h3>
+     SEE ALSO
+     </h3>
+<code>barrier(1)</code>,
+<code>dsh(1)</code>,
+     <h3>
+     HISTORY
+     </h3>
+The
+<b>barrierd</b>
+command appeared in clusterit 1.1.
+     <h3>
+     AUTHOR
+     </h3>
+<b>Barrierd</b>
+was written by Tim Rightnour.
+     <h3>
+     BUGS
+     </h3>
+<b>Barrierd</b>
+can only handle up to 10 unique barrier tokens at any one
+time.  In addition, it can only handle a barrier size of up to 512
+nodes.  These values can be modified by recompiling the program.
+</font></body>
+</html>
+
+
+

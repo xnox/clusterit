@@ -1,0 +1,222 @@
+<html>
+<head>
+     <title>
+           January 14, 2000 PCP 1
+
+     </title>
+        <style type="text/css">
+        <!--
+          body { margin-left:4%; }
+          H1 { color: maroon; padding: 4pt; margin-left: -4% }
+          H2 { color: maroon; padding: 4pt; margin-left: -4% }
+          H3 { color: maroon; padding: 4pt; margin-left: -4% }
+          H4 { color: maroon; padding: 4pt; margin-left: -4% }
+          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+        -->
+        </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+     <h3>
+     NAME
+     </h3>
+<b>pcp</b>
+- copy a file to a cluster of machines
+     <h3>
+     SYNOPSIS
+     </h3>
+<b>pcp</b>
+[<b></b><b>-cerp</b>]
+[<b></b><b>-f</b><i></i><i> fanout</i>]
+[<b></b><b>-g</b><i></i><i> rungroup1,...,rungroupN</i>]
+[<b></b><b>-w</b><i></i><i> node1,...,nodeN</i>]
+[<b></b><b>-x</b><i></i><i> node1,...,nodeN</i>]
+<i></i><i>source_file1</i>
+[source_file2 ... source_fileN]
+[destination file]
+     <h3>
+     DESCRIPTION
+     </h3>
+The
+<b>pcp</b>
+utility can be used to copy a file, or directory to a group of machines.
+The group of machines can be listed on the command line, or default to
+the environment setting
+<code></code><code>CLUSTER</code>
+The following options are available:
+<dl compact>
+<p><dt><b></b><b>-c</b><dd>
+Normally
+<b>pcp</b>
+copies files serially, to all the nodes specified.  When the
+<b></b><b>-c</b>
+option is used,
+<b>pcp</b>
+will copy the files in parallel to the nodes, subject to the
+<code></code><code>FANOUT</code>
+environment setting and
+<b></b><b>-f</b>
+option.  Smaller files will benefit greatly from parallel copies,
+due to reduced latency in the initial authentication, and connection.
+However, large files, especially on a shared ethernet, will suffer
+tremendous speed degredation, because of the collisions the transfers
+will create.  This effect can be reduced, by lowering the fanout size
+of the cluster.
+<p><dt><b></b><b>-e</b><dd>
+Unless the
+<b></b><b>-e</b>
+option is specified, output from remote commands will not be reported
+to the user.
+<p><dt><b></b><b>-p</b><dd>
+The
+<b></b><b>-p</b>
+option causes
+<b>pcp</b>
+to attempt to preserve (duplicate) in its copies the modification
+times and modes of the source files, ignoring the
+<i></i><i>umask</i>.
+By default, the mode and owner of
+<i></i><i>file2</i>
+are preserved if it already existed; otherwise the mode of the source file
+modified by the
+<code>umask(2)</code>
+on the destination host is used.
+<p><dt><b></b><b>-r</b><dd>
+If any of the source files are directories,
+<b>pcp</b>
+copies each subtree rooted at that name; in this case
+the destination must be a directory.
+<p><dt><b></b><b>-f</b><dd>
+If the
+<b></b><b>-f</b>
+option is specified, followed by a number, it sets the fanout size of
+the cluster.  The fanout size is the number of nodes a command will
+run on in parallel at one time.  Thus a 80 node cluster, with a fanout
+size of 64, would run 64 nodes in parallel, then, when all have
+finished, it would execute the command on the last 16 nodes.  The
+fanout size defaults to 64.  This option overrides the
+<code></code><code>FANOUT</code>
+environment variable.
+<p><dt><b></b><b>-g</b><dd>
+If the
+<b></b><b>-g</b>
+option is specified, followed by a comma separated list of group
+names, the command will only be run on that group of nodes.  A node
+may be a part of more than one group if desired, however running
+without the
+<b></b><b>-g</b>
+option will run the command on the same node as many times as it
+appears in the file specified by the
+<code></code><code>CLUSTER</code>
+environment variable.  This option is silently ignored if used with the
+<b></b><b>-w</b>
+option.
+<p><dt><b></b><b>-w</b><dd>
+If the
+<b></b><b>-w</b>
+option is specified, followed by a comma delimited list of machine names,
+the
+<i></i><i>command</i>
+will be run on each node in the list.  Without this flag,
+<b>pcp</b>
+runs on the nodes listed in the file pointed to by the
+<code></code><code>CLUSTER</code>
+environment variable.
+<p><dt><b></b><b>-x</b><dd>
+The
+<b></b><b>-x</b>
+option can be used to exclude specific nodes from the cluster.  The
+format is the same as the
+<b></b><b>-w</b>
+option, a comma delimited list of machine names.  This option is
+silently ignored if used with the
+<b></b><b>-w</b>
+option.
+     <h3>
+     ENVIRONMENT
+     </h3>
+<b>pcp</b>
+utilizes the following environment variables.
+<dl compact>
+<p><dt><code></code><code>CLUSTER</code><dd>
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+<p><dt><code></code><code>RCP_CMD</code><dd>
+Command to use to copy files to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+<b></b><b>rcp</b>
+<p><dt><code></code><code>FANOUT</code><dd>
+When set, limits the maximum number of concurrent commands sent at
+once.  This can be used to keep from overloading a small host when
+sending out commands in parallel.  Defaults to 64.  This environment
+setting can be overridden by the
+<b></b><b>-f</b>
+option.
+     <h3>
+     EXAMPLES
+     </h3>
+The command:
+     <p>
+pcp file
+     <p>
+will copy the file
+`file'
+to the home directory of the current user on
+all machines listed in the file pointed to by the
+<code></code><code>CLUSTER</code>
+environment setting.
+     <p>
+     <p>
+The command:
+     <p>
+pcp -w hadar,rigel file
+     <p>
+will copy the file
+`file'
+to the home directory of the current user on the machines
+`hadar'
+and
+`rigel'.
+     <p>
+     <p>
+The command:
+     <p>
+pcp -w hadar,rigel /usr/bin/foo /usr/local/bin/foo
+     <p>
+will copy the file
+`/usr/bin/foo'
+to
+`/usr/local/bin/foo'
+on the machines
+`hadar'
+and
+`rigel'.
+     <p>
+     <p>
+     <h3>
+     DIAGNOSTICS
+     </h3>
+Exit status is 0 on success, 1 if an error occurs.
+     <h3>
+     SEE ALSO
+     </h3>
+<code>cp(1)</code>,
+<code>dsh(1)</code>,
+<code>rcp(1)</code>,
+<code>kerberos(3)</code>,
+<code>hosts.equiv(5)</code>,
+<code>rhosts(5)</code>
+     <h3>
+     HISTORY
+     </h3>
+The
+<b>pcp</b>
+command appeared in clusterit 1.0. It is based on the
+<b>pcp</b>
+command in IBM PSSP.
+     <h3>
+     AUTHOR
+     </h3>
+<b>Pcp</b>
+was written by Tim Rightnour.
+</font></body>
+</html>

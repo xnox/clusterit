@@ -1,0 +1,180 @@
+<html>
+<head>
+     <title>
+           May 5, 1999 PDF 1
+
+     </title>
+        <style type="text/css">
+        <!--
+          body { margin-left:4%; }
+          H1 { color: maroon; padding: 4pt; margin-left: -4% }
+          H2 { color: maroon; padding: 4pt; margin-left: -4% }
+          H3 { color: maroon; padding: 4pt; margin-left: -4% }
+          H4 { color: maroon; padding: 4pt; margin-left: -4% }
+          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+        -->
+        </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+     <h3>
+     NAME
+     </h3>
+<b>pdf</b>
+- display free disk space across a group of machines
+     <h3>
+     SYNOPSIS
+     </h3>
+<b>pdf</b>
+[<b></b><b>-ln</b>]
+[<b></b><b>-g</b><i></i><i> nodegroup1,...,nodegroupN</i>]
+[<b></b><b>-m</b><i></i><i> size</i>]
+[<b></b><b>-t</b><i></i><i> type</i>]
+[<b></b><b>-w</b><i></i><i> node1,...,nodeN</i>]
+[<b></b><b>-x</b><i></i><i> node1,...,nodeN</i>]
+[<i></i><i>file</i><i> |</i><i></i><i> file_system</i><i> ...</i>]
+     <h3>
+     DESCRIPTION
+     </h3>
+<b>pdf</b>
+displays statistics about the amount of free disk space on the specified
+<i></i><i>file_system</i>
+or on the file system of which
+<i></i><i>file</i>
+is a part on all machines in a cluster.
+If neither a file or a
+<i></i><i>file_system</i>
+operand is specified,
+statistics for all mounted file systems, on all machines are displayed
+(subject to the
+<b></b><b>-w</b>,
+<b></b><b>-x</b>,
+<b></b><b>-g</b>,
+<b></b><b>-m</b>,
+<b></b><b>-l</b>
+and
+<b></b><b>-t</b>
+options below).
+The following options are available:
+<dl compact>
+<p><dt><b></b><b>-w</b><dd>
+If the
+<b></b><b>-w</b>
+option is specified, followed by a comma delimited list of machine names,
+the
+<i></i><i>command</i>
+will be run on each node in the list.  Without this flag,
+<b>pdf</b>
+runs on the nodes listed in the file pointed to by the
+<code></code><code>CLUSTER</code>
+environment variable.
+<p><dt><b></b><b>-g</b><dd>
+If the
+<b></b><b>-g</b>
+option is specified, followed by a comma separated list of group
+names, the command will only be run on that group of nodes.  A node
+may be a part of more than one group if desired, however running
+without the
+<b></b><b>-g</b>
+option will run the command on the same node as many times as it
+appears in the file specified by the
+<code></code><code>CLUSTER</code>
+environment variable.  This option is silently ignored if used with the
+<b></b><b>-w</b>
+option.
+<p><dt><b></b><b>-x</b><dd>
+The
+<b></b><b>-x</b>
+option can be used to exclude specific nodes from the cluster.  The
+format is the same as the
+<b></b><b>-w</b>
+option, a comma delimited list of machine names.  This option is
+silently ignored if used with the
+<b></b><b>-w</b>
+option.
+<p><dt><b></b><b>-l</b><dd>
+Display statistics only about mounted file systems with the MNT_LOCAL
+flag set.  If a non-local file system is given as an argument, a
+warning is issued and no information is given on that file system.
+<p><dt><b></b><b>-n</b><dd>
+Print out the previously obtained statistics from the file systems.
+This option should be used if it is possible that one or more
+file systems are in a state such that they will not be able to provide
+statistics without a long delay.
+When this option is specified,
+<b>pdf</b>
+will not request new statistics from the file systems, but will respond
+with the possibly stale statistics that were previously obtained.
+<p><dt><b></b><b>-m</b><i></i><i> size</i><dd>
+Is used to limit the displayed file systems to only those with a
+size greater than the user-supplied
+<i></i><i>size</i>
+argument.
+<p><dt><b></b><b>-t</b><i></i><i> type</i><dd>
+Is used to indicate the actions should only be taken on
+filesystems of the specified type.
+More than one type may be specified in a comma separated list.
+The list of filesystem types can be prefixed with
+``no''
+to specify the filesystem types for which action should
+<em></em><em>not</em>
+be taken.  If a file system is given on the command line that is not of
+the specified type, a warning is issued and no information is given on
+that file system.
+</dl>
+     <p>
+     <h3>
+     ENVIRONMENT
+     </h3>
+<b>pdf</b>
+utilizes the following environment variables.
+<dl compact>
+<p><dt><code></code><code>CLUSTER</code><dd>
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+<p><dt><code></code><code>RCMD_CMD</code><dd>
+Command to use to connect to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+<b></b><b>rsh</b>
+     <h3>
+     DIAGNOSTICS
+     </h3>
+Exit status is 0 on success, 1 if an error occurs.
+     <h3>
+     SEE ALSO
+     </h3>
+<code>dsh(1)</code>,
+<code>df(1)</code>,
+<code>rsh(1)</code>,
+<code>kerberos(3)</code>,
+<code>hosts.equiv(5)</code>,
+<code>rhosts(5)</code>
+     <h3>
+     HISTORY
+     </h3>
+The
+<b>pdf</b>
+command appeared in clusterit 1.0. It is based on the
+<b>pdf</b>
+command in IBM PSSP.
+     <h3>
+     AUTHOR
+     </h3>
+<b>Pdf</b>
+was written by Tim Rightnour.
+     <h3>
+     BUGS
+     </h3>
+Output is formatted for 80 columns.  This means that mount points and
+filesystems with long names
+(> 20 characters)
+will be truncated.  In
+addition, numbers longer than 9 digits will be truncated as well.
+     <p>
+<b>pdf</b>
+will only work on nodes that produce the
+<code>df(1)</code>
+output that it expects.  It has been made to work on HP-UX, Solaris, and
+AIX, along with any BSD.
+</font></body>
+</html>
+

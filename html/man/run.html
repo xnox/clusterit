@@ -1,0 +1,150 @@
+<html>
+<head>
+     <title>
+           May 5, 1999 RUN 1
+
+     </title>
+        <style type="text/css">
+        <!--
+          body { margin-left:4%; }
+          H1 { color: maroon; padding: 4pt; margin-left: -4% }
+          H2 { color: maroon; padding: 4pt; margin-left: -4% }
+          H3 { color: maroon; padding: 4pt; margin-left: -4% }
+          H4 { color: maroon; padding: 4pt; margin-left: -4% }
+          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+        -->
+        </style>
+</head>
+<body bgcolor="#FFFFFF" text="#000000">
+     <h3>
+     NAME
+     </h3>
+<b>run</b>
+- run a command on a machine at random
+     <h3>
+     SYNOPSIS
+     </h3>
+<b>run</b>
+[<b></b><b>-aeiq</b>]
+[<b></b><b>-g</b><i></i><i> rungroup1,...,rungroupN</i>]
+[<b></b><b>-l</b><i></i><i> username</i>]
+[<b></b><b>-w</b><i></i><i> node1,...,nodeN</i>]
+[<b></b><b>-x</b><i></i><i> node1,...,nodeN</i>]
+[<i></i><i>command</i><i> ...</i>]
+     <h3>
+     DESCRIPTION
+     </h3>
+The
+<b>run</b>
+utility can be used to run a command, or group of commands on a cluster of
+machines.  The command or commands are run on a single node in the cluster,
+which is chosen at random.
+The following options are available:
+<dl compact>
+<p><dt><b></b><b>-a</b><dd>
+The
+<b></b><b>-a</b>
+option modifies the behavior of seq when dealing with stdin.  Normally
+all commands from stdin are run on the same machine.  Specifying the
+<b></b><b>-a</b>
+option causes each command to be run on a random node.
+<p><dt><b></b><b>-e</b><dd>
+Unless the
+<b></b><b>-e</b>
+option is specified, stderr from remote commands will not be reported
+to the user.
+<p><dt><b></b><b>-i</b><dd>
+The
+<b></b><b>-i</b>
+option will list information about the current cluster, and command groupings.
+It will also show you which command you are about to run, and your username if
+specified with the
+<b></b><b>-l</b>
+option.
+<p><dt><b></b><b>-q</b><dd>
+The
+<b></b><b>-q</b>
+option does not issue any commands, but displays information about the cluster.
+<p><dt><b></b><b>-g</b><dd>
+If the
+<b></b><b>-g</b>
+option is specified, followed by a comma separated list of group
+names, the command will only be run on that group of nodes.  A node
+may be a part of more than one group if desired, however running without the
+<b></b><b>-g</b>
+option will run the command on the same node as many times as it appears in the
+file specified by the
+<code></code><code>CLUSTER</code>
+environment variable.  This option is silently ignored if used with the
+<b></b><b>-w</b>
+option.
+<p><dt><b></b><b>-l</b><dd>
+If the
+<b></b><b>-l</b>
+option is specified, followed by a username, the commands will be run
+under that userid on the remote machines.  Consideration must be taken
+for proper authentication, for this to work.
+<p><dt><b></b><b>-w</b><dd>
+If the
+<b></b><b>-w</b>
+option is specified, followed by a comma delimited list of machine names,
+the
+<i></i><i>command</i>
+will be run on each node in the list.  Without this option,
+<b>run</b>
+runs on the nodes listed in the file pointed to by the
+<code></code><code>CLUSTER</code>
+environment variable.
+<p><dt><b></b><b>-x</b><dd>
+The
+<b></b><b>-x</b>
+option can be used to exclude specific nodes from the cluster.  The
+format is the same as
+the
+<b></b><b>-w</b>
+option, a comma delimited list of machine names.  This option is
+silently ignored if used with the
+<b></b><b>-w</b>
+option.
+     <h3>
+     ENVIRONMENT
+     </h3>
+<b>run</b>
+utilizes the following environment variables.
+<dl compact>
+<p><dt><code></code><code>CLUSTER</code><dd>
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+<p><dt><code></code><code>RCMD_CMD</code><dd>
+Command to use to connect to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+<b></b><b>rsh</b>
+     <h3>
+     DIAGNOSTICS
+     </h3>
+Exit status is 0 on success, 1 if an error occurs.
+     <h3>
+     SEE ALSO
+     </h3>
+<code>dsh(1)</code>,
+<code>rsh(1)</code>,
+<code>seq(1)</code>,
+<code>kerberos(3)</code>,
+<code>hosts.equiv(5)</code>,
+<code>rhosts(5)</code>
+     <h3>
+     HISTORY
+     </h3>
+The
+<b>run</b>
+command appeared in clusterit 1.1.
+     <h3>
+     AUTHOR
+     </h3>
+<b>Run</b>
+was written by Tim Rightnour.
+</font></body>
+</html>
+
+
+
