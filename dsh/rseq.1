@@ -1,4 +1,4 @@
-.\" $Id: rseq.1,v 1.9 2000/02/20 18:25:25 garbled Exp $
+.\" $Id: rseq.1,v 1.10 2000/02/20 19:05:20 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -132,11 +132,11 @@ be able to connect with no password to the remote host.  Defaults to
 .It Ev SEQ_FILE
 Specifies a specific sequence file.  This is a temporary file, which 
 saves the number of the last node run on.  It defaults to 
-.Pa /tmp/ Bq pid .seq .
+.Pa /tmp/ Ns Bo pid Bc Ns .seq .
 Where
 .Bq pid
 is the pid of the parent process of 
-.Nm .
+.Nm seq Ns .
 It may be useful to wire the
 .Ev SEQ_FILE
 to a particular file, in order to keep proper sequence when invoking
