@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 1999/05/04 20:03:56 garbled Exp $
+# $Id: Makefile,v 1.6 1999/05/05 07:50:24 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
 #Uncomment things for solaris.
@@ -20,6 +20,10 @@ ${PROG}: ${SRCS:.c=.o}
 
 scripts: ${SCRIPTS}
 
+dshbak.sh: dshbak.src
+	sed -e 's|@@@AWK@@@|/usr/bin/awk|' < $> > $@
+#	sed -e 's|@@@AWK@@@|/usr/xpg4/bin/awk|' < $> > $@
+
 install: ${PROG} ${SCRIPTS}
 	/usr/bin/install -c -s -o bin -g bin -m 0755 pcp ${PREFIX}/bin
 	/usr/bin/install -c -o bin -g bin -m 0755 pdf ${PREFIX}/bin
@@ -31,4 +35,4 @@ install: ${PROG} ${SCRIPTS}
 	/usr/bin/install -c -o bin -g bin -m 0444 dshbak.1 ${PREFIX}/man/man1
 
 clean:
-	rm -f ${PROG} ${SCRIPTS} *.o
+	rm -f ${PROG} ${SCRIPTS} *.o dshbak.sh
