@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.10 2000/02/17 07:54:42 garbled Exp $ */
+/* $Id: barrierd.c,v 1.11 2000/02/19 22:16:19 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <syslog.h>
 #include <varargs.h>
 #include "../common/sockcommon.h"
@@ -43,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.10 2000/02/17 07:54:42 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.11 2000/02/19 22:16:19 garbled Exp $");
 #endif
 
 #define MAX_TOKENS	10
@@ -86,12 +87,12 @@ int main(argc, argv)
 			break;
 	}
 
-	if (barrier_port == 0)
+	if (barrier_port == 0) {
 		if (getenv("BARRIER_PORT") != NULL)
 			barrier_port = atoi(getenv("BARRIER_PORT"));
 		else
 			barrier_port = BARRIER_SOCK;
-
+	}
 	return(sleeper());
 }
 
