@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.3 1998/10/20 07:32:58 garbled Exp $ */
+/* $Id: pcp.c,v 1.4 1998/12/14 16:33:16 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -31,6 +31,12 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -43,7 +49,7 @@ __COPYRIGHT(
 #endif /* not lint */
 
 #if !defined(lint) && defined(__NetBSD__)
-__RCSID("$Id: pcp.c,v 1.3 1998/10/20 07:32:58 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.4 1998/12/14 16:33:16 garbled Exp $");
 #endif
 
 #define MAX_CLUSTER 512
@@ -53,15 +59,22 @@ __RCSID("$Id: pcp.c,v 1.3 1998/10/20 07:32:58 garbled Exp $");
 extern int errno;
 #ifdef __NetBSD__
 void do_copy __P((char **argv, char *nodelist[], int recurse, int preserve, char *username));
+void paralell_copy __P((char *rcp, char *args, char *nodelist[], char *source_file, char *destination_file));
+void serial_copy __P((char *rcp, char *args, char *nodelist[], char *source_file, char *destination_file));
 int test_node __P((int count));
+void bailout __P((int));
 #else
 void do_copy(char **argv, char *nodelist[], int recurse, int preserve, char *username);
+void paralell_copy(char *rcp, char *args, char *nodelist[], char *source_file, char *destination_file);
+void serial_copy(char *rcp, char *args, char *nodelist[], char *source_file, char *destination_file);
 char * strsep(char **stringp, const char *delim);
 int test_node(int count);
+void bailout(int);
 #endif
 
 char *grouplist[MAX_CLUSTER];
 char *rungroup[MAX_GROUPS];
+int fanout, concurrent, quiet;
 
 /* 
  *  pcp is a cluster management tool based on the IBM tool of the
@@ -69,7 +82,8 @@ char *rungroup[MAX_GROUPS];
  *  to a cluster of machines with a single command.
  */
 
-void main(argc, argv) 
+int
+main(argc, argv) 
 	int argc;
 	char *argv[];
 {
@@ -82,6 +96,9 @@ void main(argc, argv)
 	char buf[256];
 	char *exclude[MAX_CLUSTER];
 
+	fanout = 0;
+	quiet = 1;
+	concurrent = 0;
 	someflag = 0;
 	preserve = 0;
 	recurse = 0;
@@ -91,8 +108,14 @@ void main(argc, argv)
 	for (i=0; i < MAX_GROUPS; i++)
 		rungroup[i] = NULL;
 
-	while ((ch = getopt(argc, argv, "?prg:l:w:x:")) != -1)
+	while ((ch = getopt(argc, argv, "?ceprf:g:l:w:x:")) != -1)
 		switch (ch) {
+		case 'c':		/* set concurrent mode */
+			concurrent = 1;
+			break;
+		case 'e':		/* display error messages */
+			quiet = 0;
+			break;
 		case 'p':		/* preserve file modes */
 			preserve = 1;
 			break;
@@ -101,6 +124,9 @@ void main(argc, argv)
 			break;
 		case 'l':               /* invoke me as some other user */
 			username = strdup(optarg);
+			break;
+		case 'f':		/* set the fanout size */
+			fanout = atoi(optarg);
 			break;
 		case 'g':		/* pick a group to run on */
 			i = 0;
@@ -133,11 +159,17 @@ void main(argc, argv)
 			nodelist[i] = '\0';
 			break;
 		case '?':
-			(void)fprintf(stderr, "usage: pcp [-pr] [-g rungroup1,...,rungroupN] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] source_file [desitination_file]\n");
+			(void)fprintf(stderr, "usage: pcp [-cepr] [-f fanout] [-g rungroup1,...,rungroupN] [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] source_file [desitination_file]\n");
 			exit(EXIT_FAILURE);
 			break;
 		default:
 			break;
+	}
+	if (fanout == 0) {
+		if (getenv("FANOUT"))
+			fanout = atoi(getenv("FANOUT"));
+		else
+			fanout = DEFAULT_FANOUT;
 	}
 	if (!someflag) {
 		clusterfile = getenv("CLUSTER");
@@ -149,7 +181,7 @@ void main(argc, argv)
 		i = 0;
 		while ((nodename = fgets(buf, sizeof(buf), fd)) && i < MAX_CLUSTER - 1) {
 			p = (char *)strsep(&nodename, "\n");
-			if (strcmp(p, "") != 0)
+			if (strcmp(p, "") != 0) {
 				if (exclusion) {		/* this handles the -x args */
 					fail = 0;
 					for (j = 0; exclude[j] != NULL; j++)
@@ -179,6 +211,7 @@ void main(argc, argv)
 						nodelist[i++] = (char *)strdup(p);
 					}
 				}
+			}
 		}
 		nodelist[i] = '\0';
 		grouplist[i] = '\0';
@@ -187,7 +220,7 @@ void main(argc, argv)
 	argc -= optind;
 	argv += optind;
 	do_copy(argv, nodelist, recurse, preserve, username);
-	exit(EXIT_SUCCESS);
+	return(EXIT_SUCCESS);
 }
 
 /* 
@@ -201,12 +234,12 @@ void do_copy(argv, nodelist, recurse, preserve, username)
 	int recurse, preserve;
 	char *username;
 {
-	char buf[256];
-	char args[8];
-	int i;
-	char *command, *source_file, *destination_file, *rcp;
+	char args[64];
+	char *cargs, *source_file, *destination_file, *rcp;
 
 #ifdef DEBUG
+	int i;
+
 	printf ("On nodes: ");
 	for (i=0; nodelist[i] != NULL; i++)
 		printf("%s ", nodelist[i]);
@@ -222,34 +255,156 @@ void do_copy(argv, nodelist, recurse, preserve, username)
 		destination_file = strdup(source_file);
 
 #ifdef DEBUG
-	printf ("\nDo Copy: %s %s\n", source_file, destination_file);
+	printf("\nDo Copy: %s %s\n", source_file, destination_file);
 #endif
-	for (i=0; nodelist[i] != NULL; i++) 
-		if (test_node(i)) {
-			rcp = getenv("RCP_CMD");
-			if (rcp == NULL)
-				rcp = "rcp";
-			(void)sprintf(args, " ");
-			if (recurse)
-				strcat(args, "-r ");
-			if (preserve)
-				strcat(args, "-p ");
-			if (username != NULL) {
-				strcat(args, "-l ");
-				strcat(args, username);
-			}
-			(void)sprintf(buf,"%s %s %s %s:%s", rcp, args, source_file, nodelist[i], destination_file);
-			command = strdup(buf);
+	rcp = getenv("RCP_CMD");
+	if (rcp == NULL)
+		rcp = "rcp";
+	(void)sprintf(args, " ");
+	if (recurse)
+		strcat(args, "-r ");
+	if (preserve)
+		strcat(args, "-p ");
+	if (username != NULL) {
+		strcat(args, "-l ");
+		strcat(args, username);
+		strcat(args, " ");
+	}
+	cargs = strdup(args);
+
+	if (concurrent)
+		paralell_copy(rcp, cargs, nodelist, source_file, destination_file);
+	else
+		serial_copy(rcp, cargs, nodelist, source_file, destination_file);
+}
+
+/* Copy files in paralell.  This is preferred with smaller files, because
+   the initial connection and authentication latency is longer than the
+   file transfer.  With large files, you generate more collisions than
+   good packets, and actually slow it down, thus serial is faster. */
+
+void
+paralell_copy(rcp, args, nodelist, source_file, destination_file)
+	char *rcp, *args, *nodelist[], *source_file, *destination_file;
+{
+	int i, j, n, g, status;
+	char buf[512], pipebuf[2048], *cd, *dfile, *p;
+	FILE *fd, *in;
+	int out[fanout+1][2];
+	int err[fanout+1][2];
+	char *argz[51], **aps;
+
+	j = i = 0;
+	in = NULL;
+	cd = pipebuf;
+
+	for (i=0; nodelist[i] != NULL; i++)             /* just count the nodes */
+		;
+	j = i / fanout;
+	if (i % fanout)
+		j++;
+
+	for (n=0; n <= j; n++) {
+		for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
+			if (test_node(i)) {
+				g = i - n * fanout;
+/*
+ * we set up pipes for each node, to prepare for the oncoming barrage of data.
+ * Close on exec must be set here, otherwise children spawned after other
+ * children, inherit the open file descriptors, and cause the pipes to remain open
+ * forever.
+ */
+				if (pipe(out[g]) != 0)
+					bailout(__LINE__);
+				if (pipe(err[g]) != 0)
+					bailout(__LINE__);
+				if (fcntl(out[g][0], F_SETFD, 1) == -1)
+					bailout(__LINE__);
+				if (fcntl(out[g][1], F_SETFD, 1) == -1)
+					bailout(__LINE__);
+				if (fcntl(err[g][0], F_SETFD, 1) == -1)
+					bailout(__LINE__);
+				if (fcntl(err[g][1], F_SETFD, 1) == -1)
+					bailout(__LINE__);
 #ifdef DEBUG
-			printf("%s\n", command);
+				(void)sprintf(buf, "%s:%s", nodelist[i], destination_file);
+				dfile = strdup(buf);
+				printf("%s%s %s %s\n", rcp, args, source_file, dfile);
 #endif
+				switch (fork()) {
+					case -1:
+						bailout(__LINE__);
+						break;
+					case 0:
+						if (dup2(out[g][1], STDOUT_FILENO) != STDOUT_FILENO)
+							bailout(__LINE__);
+						if (dup2(err[g][1], STDERR_FILENO) != STDERR_FILENO)
+							bailout(__LINE__);
+						if (close(out[g][0]) != 0)
+							bailout(__LINE__);
+						if (close(err[g][0]) != 0)
+							bailout(__LINE__);
+						(void)sprintf(buf, "%s %s %s %s:%s", rcp, args, source_file, nodelist[i], destination_file);
+						p = strdup(buf);
+						for (aps = argz; (*aps = strsep(&p, " ")) != NULL;)
+							if (**aps != '\0')
+								++aps;
+						execvp(rcp, argz);
+						bailout(__LINE__);
+					default:
+						break;
+				} /* switch */
+			} /* test */
+		} /* for i */
+		for (i=n * fanout; ((nodelist[i] != NULL) && (i < (n + 1) * fanout)); i++) {
+			if (test_node(i)) {
+				g = i - n * fanout;
+				if (close(out[g][1]) != 0)  /* now close off the useless stuff, and read the goodies */
+					bailout(__LINE__);
+				if (close(err[g][1]) != 0)
+					bailout(__LINE__);
+				fd = fdopen(out[g][0], "r"); /* stdout */
+					if (fd == NULL)
+				while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
+					if (cd != NULL && !quiet)
+						(void)printf("%-12s: %s", nodelist[i], cd);
+				fclose(fd);
+				fd = fdopen(err[g][0], "r"); /* stderr */
+				if (fd == NULL)
+					bailout(__LINE__);
+				while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
+					if (cd != NULL && !quiet)
+						(void)printf("%-12s: %s", nodelist[i], cd);
+				fclose(fd);
+				(void)wait(&status);
+			} /* test */
+		} /* pipe read */
+	} /* for n */	
+}
+
+/* serial copy */
+
+void
+serial_copy(rcp, args, nodelist, source_file, destination_file)
+	char *rcp, *args, *nodelist[], *source_file, *destination_file;
+{
+	int i;
+	char buf[512], *command;
+
+	for (i=0; nodelist[i] != NULL; i++)
+		if (test_node(i)) {
+			(void)sprintf(buf, "%s %s %s %s:%s", rcp, args, source_file, nodelist[i], destination_file);
+			command = strdup(buf);
 			system(command);
 		}
 }
 
+
 /* test routine, saves a ton of repetive code */
 
-int test_node(int count)
+int 
+test_node(count)
+	int count;
 {
 	int i;
 
@@ -262,3 +417,21 @@ int test_node(int count)
 					return(1);
 	return(0);
 }
+
+/* Simple error handling routine, needs severe work.  Its almost totally useless. */
+
+void
+bailout(line) 
+	int line;
+{
+/*ARGSUSED*/
+extern int errno;
+
+#ifdef DEBUG
+	(void)fprintf(stderr, "Failed on line %d: %s %d\n", line, strerror(errno), errno);
+#else
+	(void)fprintf(stderr, "Internal error, aborting: %s\n", strerror(errno));
+#endif
+	_exit(EXIT_FAILURE);
+}
+
