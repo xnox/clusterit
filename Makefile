@@ -1,12 +1,13 @@
-# $Id: Makefile,v 1.10 2000/02/25 21:47:11 garbled Exp $
+# $Id: Makefile,v 1.11 2001/08/13 20:52:15 garbled Exp $
 # Makefile for clusterit:  Tim Rightnour
 
-INSTALL=	/usr/bin/install
 OPSYS!=		uname
 #CC=		/usr/local/bin/gcc
+#CC=		/usr/vac/bin/cc
 PREFIX?=	/usr/local
+INSTALL?=	/usr/bin/install
 
-SUBDIR=		dsh pcp barrier jsd tools
+SUBDIR=		dsh pcp barrier jsd rvt dvt
 
 all:
 	@for dir in ${SUBDIR} ; do \
@@ -19,10 +20,15 @@ clean:
 		(cd $$dir && make clean OPSYS=${OPSYS}) ;\
 	done
 
+lint:
+	@for dir in ${SUBDIR} ; do \
+		(cd $$dir && make lint OPSYS=${OPSYS}) ;\
+	done
+
 install:
 	@for dir in ${SUBDIR} ; do \
-		(cd $$dir && make install INSTALL=${INSTALL} OPSYS=${OPSYS} \
-		 PREFIX=${PREFIX}) ;\
+		(cd $$dir && make install INSTALL=${INSTALL} \
+		 OPSYS=${OPSYS} PREFIX=${PREFIX}) ;\
 	done
 
 catmans:
@@ -30,6 +36,7 @@ catmans:
 	for dir in ${SUBDIR} ; do \
 		(cd $$dir ; \
 		for i in `ls *.1` ; do \
+			echo "nroff -man $$i >../catman/`/usr/bin/basename $$i .1`.0" ; \
 			nroff -man $$i >../catman/`/usr/bin/basename $$i .1`.0 ; \
 		done );\
 	done
@@ -39,6 +46,8 @@ htmlmans:
 	for dir in ${SUBDIR} ; do \
 		(cd $$dir ; \
 		for i in `ls *.1` ; do \
+			echo "groff -mdoc2html -dformat=HTML -P-b -P-u -P-o -Tascii \
+			-ww $$i >../html/man/`/usr/bin/basename $$i .1`.html" ; \
 			groff -mdoc2html -dformat=HTML -P-b -P-u -P-o -Tascii \
 			-ww $$i >../html/man/`/usr/bin/basename $$i .1`.html ; \
 		done );\

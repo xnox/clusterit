@@ -1,96 +1,130 @@
-$Id: make.aix.gcc,v 1.6 2000/02/25 21:47:11 garbled Exp $
-diff -r -C 3 ../src/Makefile ./Makefile
-*** ../src/Makefile	Sun Feb 20 11:11:55 2000
---- ./Makefile	Sun Feb 20 13:27:02 2000
+diff -r -C 3 ./Makefile ../gcc/Makefile
+*** ./Makefile	Sun Jan 21 16:37:27 2001
+--- ../gcc/Makefile	Sun Jan 21 16:38:03 2001
 ***************
-*** 2,9 ****
+*** 2,11 ****
   # Makefile for clusterit:  Tim Rightnour
   
   OPSYS!=		uname
 ! #CC=		/usr/local/bin/gcc
+  #CC=		/usr/vac/bin/cc
 ! PREFIX?=	/usr/local
+! INSTALL?=	/usr/bin/install
   
-  SUBDIR=		dsh pcp barrier jsd tools
+  SUBDIR=		dsh pcp barrier jsd rvt dvt
   
---- 2,9 ----
+--- 2,11 ----
   # Makefile for clusterit:  Tim Rightnour
   
   OPSYS!=		uname
 ! CC=		/usr/local/bin/gcc
+  #CC=		/usr/vac/bin/cc
 ! PREFIX=		/usr/local
+! INSTALL=	/usr/bin/installbsd
   
-  SUBDIR=		dsh pcp barrier jsd tools
+  SUBDIR=		dsh pcp barrier jsd rvt dvt
   
-Only in .: Makefile.orig
-diff -r -C 3 ../src/barrier/Makefile ./barrier/Makefile
-*** ../src/barrier/Makefile	Thu Feb 17 01:12:43 2000
---- ./barrier/Makefile	Sun Feb 20 13:27:02 2000
+diff -r -C 3 ./barrier/Makefile ../gcc/barrier/Makefile
+*** ./barrier/Makefile	Sun Jan 21 16:29:02 2001
+--- ../gcc/barrier/Makefile	Sun Jan 21 16:34:34 2001
 ***************
-*** 4,17 ****
-  # Some options need to be uncommented for Solaris
-  
-  #CC=		/usr/local/bin/gcc
-! CFLAGS?=	-Wall -O2
-  PROGS= 		barrierd barrier
-  #LIBS=		-lsocket -lnsl
+*** 10,17 ****
   #
   SSRCS=		../common/sockcommon.c ../common/common.c
   BSRCS=		barrier.c ${SSRCS}
 ! DSRCS=		barrierd.c ${SSRCS}
-! #DSRCS+=		strsep.c
+! #DSRCS=		barrierd.c ${SSRCS} ../common/netbsd.c
   
   MAN= barrierd.1 barrier.1
   
---- 4,16 ----
-  # Some options need to be uncommented for Solaris
-  
-  #CC=		/usr/local/bin/gcc
-! CFLAGS=		-Wall -O2
-  PROGS= 		barrierd barrier
-  #LIBS=		-lsocket -lnsl
+--- 10,16 ----
   #
   SSRCS=		../common/sockcommon.c ../common/common.c
   BSRCS=		barrier.c ${SSRCS}
-! DSRCS=		barrierd.c ${SSRCS} ../common/strsep.c
+! DSRCS=		barrierd.c ${SSRCS} ../common/netbsd.c
   
   MAN= barrierd.1 barrier.1
   
-Only in ./barrier: Makefile.orig
-diff -r -C 3 ../src/dsh/Makefile ./dsh/Makefile
-*** ../src/dsh/Makefile	Thu Feb 17 00:59:23 2000
---- ./dsh/Makefile	Sun Feb 20 13:27:02 2000
+diff -r -C 3 ./dsh/Makefile ../gcc/dsh/Makefile
+*** ./dsh/Makefile	Sun Jan 21 16:29:14 2001
+--- ../gcc/dsh/Makefile	Sun Jan 21 16:34:34 2001
 ***************
-*** 5,17 ****
-  
-  #CC=		/usr/vac/bin/cc
+*** 7,18 ****
   #CC=		/usr/local/bin/gcc
-! CFLAGS?=	-O2 -Wall #-DDEBUG -g
-! CFLAGS+=	-DCLUSTERS
+  CFLAGS?=	-O2 -Wall #-DDEBUG -g
+  CFLAGS+=	-DCLUSTERS
+! #CFLAGS=		-DCLUSTERS
   PROGS=		dsh seq run
   
   OBJS= dsh.o seq.o run.o
-! #SSRCS= ../common/strsep.o ../common/common.o
+! #SSRCS= ../common/netbsd.o ../common/common.o
 ! SSRCS= ../common/common.o
   #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
   
   MAN= dsh.1 seq.1 run.1
---- 5,16 ----
-  
-  #CC=		/usr/vac/bin/cc
+--- 7,18 ----
   #CC=		/usr/local/bin/gcc
-! CFLAGS=		-O2 -Wall -DCLUSTERS
+  CFLAGS?=	-O2 -Wall #-DDEBUG -g
+  CFLAGS+=	-DCLUSTERS
+! CFLAGS=		-DCLUSTERS
   PROGS=		dsh seq run
   
   OBJS= dsh.o seq.o run.o
-! SSRCS= ../common/strsep.o ../common/common.o
+! SSRCS= ../common/netbsd.o ../common/common.o
 ! #SSRCS= ../common/common.o
   #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
   
   MAN= dsh.1 seq.1 run.1
-Only in ./dsh: Makefile.orig
-diff -r -C 3 ../src/jsd/Makefile ./jsd/Makefile
-*** ../src/jsd/Makefile	Sat Feb 19 21:46:11 2000
---- ./jsd/Makefile	Sun Feb 20 13:27:02 2000
+diff -r -C 3 ./dvt/Makefile ../gcc/dvt/Makefile
+*** ./dvt/Makefile	Sun Jan 21 16:28:16 2001
+--- ../gcc/dvt/Makefile	Sun Jan 21 16:34:34 2001
+***************
+*** 1,20 ****
+  # $Id: make.aix.gcc,v 1.7 2001/08/13 20:52:16 garbled Exp $
+! # dvt Makefile: Tim Rightnour
+  
+  # Some of the below needs to be uncommented for Solaris to work.
+  
+  #CC=		/usr/vac/bin/cc
+  #CC=		/usr/local/bin/gcc
+! CFLAGS=		-O2 -Wall -I/usr/X11R6/include #-DDEBUG -g
+  CFLAGS+=	-DCLUSTERS -DUSE_X11
+! #CFLAGS=		-O2 -DCLUSTERS -DUSE_X11
+  PROGS=		dvt
+  
+  OBJS= dvt.o
+  SSRCS= ../common/netbsd.o ../common/common.o
+  #SSRCS= ../common/common.o
+! LIBS= -L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib -lX11
+! #LIBS= -lX11
+  
+  MAN= dvt.1
+  
+--- 1,21 ----
+  # $Id: make.aix.gcc,v 1.7 2001/08/13 20:52:16 garbled Exp $
+! # dsh Makefile: Tim Rightnour
+  
+  # Some of the below needs to be uncommented for Solaris to work.
+  
+  #CC=		/usr/vac/bin/cc
+  #CC=		/usr/local/bin/gcc
+! CFLAGS?=	-O2 -Wall -I/usr/X11R6/include #-DDEBUG -g
+  CFLAGS+=	-DCLUSTERS -DUSE_X11
+! CFLAGS=		-O2 -DCLUSTERS -DUSE_X11
+  PROGS=		dvt
+  
+  OBJS= dvt.o
+  SSRCS= ../common/netbsd.o ../common/common.o
+  #SSRCS= ../common/common.o
+! #LIBS= -L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib -lX11
+! LIBS= -lX11
+! #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
+  
+  MAN= dvt.1
+  
+diff -r -C 3 ./jsd/Makefile ../gcc/jsd/Makefile
+*** ./jsd/Makefile	Sun Jan 21 16:29:31 2001
+--- ../gcc/jsd/Makefile	Sun Jan 21 16:34:34 2001
 ***************
 *** 5,17 ****
   
@@ -101,7 +135,7 @@ diff -r -C 3 ../src/jsd/Makefile ./jsd/Makefile
   PROGS=		jsd jsh
   
   OBJS= jsh.o jsd.o
-! #SSRCS= ../common/strsep.o ../common/common.o ../common/sockcommon.o
+! #SSRCS= ../common/netbsd.o ../common/common.o ../common/sockcommon.o
 ! SSRCS= ../common/common.o ../common/sockcommon.o
   #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
   
@@ -110,40 +144,64 @@ diff -r -C 3 ../src/jsd/Makefile ./jsd/Makefile
   
   #CC=		/usr/vac/bin/cc
   #CC=		/usr/local/bin/gcc
-! CFLAGS=		-O2 -Wall -DCLUSTERS
+! CFLAGS=		-O2 -DCLUSTERS #-DDEBUG -g
   PROGS=		jsd jsh
   
   OBJS= jsh.o jsd.o
-! SSRCS= ../common/strsep.o ../common/common.o ../common/sockcommon.o
+! SSRCS= ../common/netbsd.o ../common/common.o ../common/sockcommon.o
 ! #SSRCS= ../common/common.o ../common/sockcommon.o
   #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
   
   MAN=	jsh.1 jsd.1
-Only in ./jsd: Makefile.orig
-diff -r -C 3 ../src/pcp/Makefile ./pcp/Makefile
-*** ../src/pcp/Makefile	Thu Feb 17 01:01:08 2000
---- ./pcp/Makefile	Sun Feb 20 13:27:03 2000
+diff -r -C 3 ./pcp/Makefile ../gcc/pcp/Makefile
+*** ./pcp/Makefile	Sun Jan 21 16:30:08 2001
+--- ../gcc/pcp/Makefile	Sun Jan 21 16:34:34 2001
 ***************
-*** 5,15 ****
-  
-  #CC= /usr/local/bin/gcc
+*** 8,17 ****
   PROG=		pcp
-! CFLAGS?=	-O2 -Wall
-! CFLAGS+=	-DCLUSTERS
+  CFLAGS?=	-O2 -Wall
+  CFLAGS+=	-DCLUSTERS
+! #CFLAGS=		-DCLUSTERS
   
-! #SRCS= pcp.c ../common/strsep.c ../common/common.c
+! #SRCS= pcp.c ../common/netbsd.c ../common/common.c
 ! SRCS= pcp.c ../common/common.c
   
-  MAN=		pcp.1
-
---- 5,14 ----
-  
-  #CC= /usr/local/bin/gcc
+  SCRIPTS=	prm pdf dshbak
+  MAN=		pcp.1 prm.1 pdf.1
+--- 8,17 ----
   PROG=		pcp
-! CFLAGS=		-O2 -Wall -DCLUSTERS
+  CFLAGS?=	-O2 -Wall
+  CFLAGS+=	-DCLUSTERS
+! CFLAGS=		-DCLUSTERS
   
-! SRCS= pcp.c ../common/strsep.c ../common/common.c
+! SRCS= pcp.c ../common/netbsd.c ../common/common.c
 ! #SRCS= pcp.c ../common/common.c
   
-  MAN=		pcp.1
-
+  SCRIPTS=	prm pdf dshbak
+  MAN=		pcp.1 prm.1 pdf.1
+diff -r -C 3 ./rvt/Makefile ../gcc/rvt/Makefile
+*** ./rvt/Makefile	Sun Jan 21 16:30:31 2001
+--- ../gcc/rvt/Makefile	Sun Jan 21 16:34:34 2001
+***************
+*** 5,14 ****
+  
+  #CC=		/usr/vac/bin/cc
+  #CC=		/usr/local/bin/gcc
+! CFLAGS?=	-g -O2 -Wall #-DDEBUG -g
+! CFLAGS+=	-DCLUSTERS -DNEED_PTY -I/usr/X11R6/include
+! #CFLAGS=		-O2 -DCLUSTERS -DNEED_PTY
+! LDFLAGS=	-L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib
+  PROGS=		rvt
+  
+  OBJS= command.o rvt.o sbar.o screen.o xsetup.o
+--- 5,14 ----
+  
+  #CC=		/usr/vac/bin/cc
+  #CC=		/usr/local/bin/gcc
+! #CFLAGS?=	-O2 #-DDEBUG -g
+! #CFLAGS+=	-DCLUSTERS -DNEED_PTY -I/usr/X11R6/include
+! CFLAGS=		-O2 -DCLUSTERS -DNEED_PTY 
+! #LDFLAGS=	-L/usr/X11R6/lib -Wl,-R/usr/X11R6/lib
+  PROGS=		rvt
+  
+  OBJS= command.o rvt.o sbar.o screen.o xsetup.o
