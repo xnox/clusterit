@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2000/02/17 08:03:57 garbled Exp $
+# $Id: Makefile,v 1.3 2000/02/20 04:46:11 garbled Exp $
 # jsd Makefile: Tim Rightnour
 
 # Some of the below needs to be uncommented for Solaris to work.
@@ -14,7 +14,7 @@ OBJS= jsh.o jsd.o
 SSRCS= ../common/common.o ../common/sockcommon.o
 #LIBS= -L/usr/pkg/lib -lefence  # this is for my debugging only.
 
-MAN= #empty
+MAN=	jsh.1 jsd.1
 
 all: ${OBJS} ${SSRCS} ../common/common.h ../common/sockcommon.h
 	@for prog in ${PROGS} ; do \

@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.4 2000/02/19 23:26:42 garbled Exp $ */
+/* $Id: jsh.c,v 1.5 2000/02/20 04:46:12 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.4 2000/02/19 23:26:42 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.5 2000/02/20 04:46:12 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -133,7 +133,7 @@ main(argc, argv)
 			break;			
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
-			    "usage: %s [-aei] [-l username] [-p portnum] [-o portnum] "
+			    "usage: %s [-aei] [-l username] [-p port] [-o port] "
 				"[-h hostname] [command ...]\n", progname);
 			exit(EXIT_FAILURE);
 			break;

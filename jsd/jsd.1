@@ -1,0 +1,243 @@
+.\" $Id: jsd.1,v 1.1 2000/02/20 04:46:11 garbled Exp $
+.\" Copyright (c) 1998, 1999, 2000
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd February 19, 2000
+.Dt JSD 1
+.Sh NAME
+.Nm jsd
+.Nd simple command scheduling daemon for remote execution
+.Sh SYNOPSIS
+.Nm
+.Op Fl iq
+.Op Fl f Ar fanout
+.Op Fl g Ar rungroup1,...,rungroupN
+.Op Fl l Ar username
+.Op Fl p Ar port
+.Op Fl o Ar port
+.Op Fl w Ar node1,...,nodeN
+.Op Fl x Ar node1,...,nodeN
+.Op Ar command ...
+.Sh DESCRIPTION
+The
+.Nm
+daemon is used to schedule remote execution of jobs across a
+heterogenous cluster of machines.  Upon starting the daemon, it will
+attempt to run a benchmark on all machines under it's control.
+Once the daemon is active it listens for connections from a
+.Em jsh
+process, and gives each connecting process the name of a remote host
+to execute a command on.  Faster hosts are preferred by the
+.Nm
+daemon, and the fastest of all remaining hosts will allways be given
+out first.  Once a remote
+.Em jsh
+process has completed it's use of the remote host, it will again
+contact the
+.Nm
+daemon, and return the node to service.  The daemon will never give
+the same node out to more than one process at a time.
+.Pp
+.Nm
+logs errors and critical conditions to the syslog with the facility
+.Dv LOG_DAEMON .
+.Pp
+The following options are available:
+.Bl -tag -width www
+.It Fl i
+The
+.Fl i
+option will list information about the current cluster, and command groupings. 
+It will print out the current value of the fanout, and how many groups of 
+machines there are within the cluster. It will also show you which command 
+you are about to run, and your username if specified with the
+.Fl l
+option.
+.It Fl q
+The
+.Fl q
+option does not issue any commands, but displays information about the 
+cluster, and the fanout groupings.
+.It Fl f
+If the
+.Fl f
+option is specified, followed by a number, it sets the fanout size of the 
+cluster.  The fanout size is the number of nodes a command will run on in 
+parallel at one time.  Thus a 80 node cluster, with a fanout size of 64, 
+would run 64 nodes in parallel, then, when all have finished, it would 
+execute the command on the last 16 nodes.  The fanout size defaults to 64. 
+This option overrides the
+.Ev FANOUT
+environment variable.
+.It Fl g
+If the
+.Fl g
+option is specified, followed by a comma separated list of group names, the 
+command will only be run on that group of nodes.  A node may be a part of 
+more than one group if desired, however running without the
+.Fl g
+option will run the command on the same node as many times as it appears in the
+file specified by the
+.Ev CLUSTER
+environment variable.  This option is silently ignored if used with the
+.Fl w
+option.
+.It Fl l
+If the
+.Fl l
+option is specified, followed by a username, the commands will be run under 
+that userid on the remote machines.  Consideration must be taken for proper 
+authentication, for this to work.
+.It Fl o
+The
+.Fl o
+option can be used to set the port number which jsd will listen to
+requests from
+.Em jsh
+processes for remote nodes.  This option overrides the
+.Ev JSD_OPORT
+environment variable.  The default listen port is 2002.
+.It Fl p
+The
+.Fl p
+option can be used to set the port number which jsd will listen to
+replies from
+.Em jsh
+processes indicating completion of processing on remote nodes.  This
+option overrides the
+.Ev JSD_IPORT
+environment variable.  The default listen port is 2001.
+.It Fl w
+If the
+.Fl w
+option is specified, followed by a comma delimited list of machine names,
+the
+.Ar command
+will be run on each node in the list.  Without this option,
+.Nm
+runs on the nodes listed in the file pointed to by the
+.Ev CLUSTER
+environment variable.
+.It Fl x
+The
+.Fl x
+option can be used to exclude specific nodes from the cluster.  The format 
+is the same as the
+.Fl w
+option, a comma delimited list of machine names.  This option is silently 
+ignored if used with the
+.Fl w
+option.
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "JSD_BENCH_CMD"
+.It Ev CLUSTER
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+.It Ev RCMD_CMD
+Command to use to connect to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+.Ic rsh .
+This is only used by jsd when issuing the benchmark at startup, and has no
+effect on how
+.Em jsh
+processes will connect to the remote nodes.
+.It Ev JSD_BENCH_CMD
+This is the name of a command, which when run on the remote nodes of
+the cluster will give some indication of the relative speed of the
+machines.  It does not need to be precise.  If no benchmark command is 
+specified, all machines are considered to be the same speed, and will
+not be wieghted.  The bench command expects a single floating point
+number as the only output to the remote command.  Larger numbers are
+to indicate faster machines.  See the
+.Em EXAMPLES
+section for more details.
+.It Ev FANOUT
+When set, limits the maximum number of concurrent commands sent at once.  
+This can be used to keep from overloading a small host when sending out 
+commands in parallel.  Defaults to 64.  This environment setting can be 
+overridden by the
+.Fl f
+option.
+.It Ev JSD_OPORT
+When set, overrides the default port which jsd listens on for
+.Em jsh
+processes requesting nodes.  This environment setting can be overriden 
+by the
+.Fl o
+option.
+.It Ev JSD_IPORT
+When set, overrides the default port which jsd listens on for
+.Em jsh
+processes reporting back that it has completed processing on a node.
+This environment setting can be overriden
+by the
+.Fl p
+option.
+.Sh EXAMPLES
+In order to generate a benchmark figure useful to
+.Nm
+you will most likely need to process the ouput of a benchmark command
+in some way.  There are two simple ways of doing this:
+.Pp
+The first way is to build a script, which exists on each machine, and
+run that as your benchmark command.  The below script shows how to
+process the output of the
+.Xr whetstone 1
+command into a format useable by
+.Nm :
+.Bd -literal -offset indent
+#!/bin/sh
+ ./whetstone 100000 | grep MIPS | sed -e 's|.*: \\(.*\\) MIPS|\\1|'
+.Ed
+.Pp
+The other way, would be to run a more involved benchmark on each
+machine, (or assign numbers arbitrarily) and place them in a file on
+the remote machines.  A benchmark command could then simply be
+.Ic cat /etc/benchmark
+or some other similar setup.
+.Sh SEE ALSO
+.Xr dsh 1 ,
+.Xr jsh 1 ,
+.Xr syslogd 8 .
+.Sh HISTORY
+The
+.Nm
+command first appeared in clusterit 2.0.  It should be pronounced
+.Qq jez-dee ,
+and stands for
+.So
+Job Scheduling Daemon
+.Sc .
+.Sh AUTHOR
+.Nm Jsd
+was written by Tim Rightnour.

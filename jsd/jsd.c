@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.6 2000/02/19 23:26:42 garbled Exp $ */
+/* $Id: jsd.c,v 1.7 2000/02/20 04:46:11 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -49,7 +49,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.6 2000/02/19 23:26:42 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.7 2000/02/20 04:46:11 garbled Exp $");
 #endif
 
 extern int errno;
@@ -191,10 +191,9 @@ main(argc, argv)
 			break;
 		case '?':		/* you blew it */
 			(void)fprintf(stderr,
-			    "usage: jsd [-iq] [-p port] [-f fanout] "
-				"[-g rungroup1,...,rungroupN] "
-			    "[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
-			    "[command ...]\n");
+			    "usage: jsd [-iq] [-f fanout] [-g rungroup1,...,rungroupN] "
+				"[-l username] [-p port] [-o port] [-w node1,..,nodeN] "
+				"[-x node1,...,nodeN] [command ...]\n");
 			return(EXIT_FAILURE);
 			/*NOTREACHED*/
 			break;

@@ -1,0 +1,174 @@
+.\" $Id: jsh.1,v 1.1 2000/02/20 04:46:11 garbled Exp $
+.\" Copyright (c) 1998, 1999, 2000
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd February 19, 2000
+.Dt JSH 1
+.Sh NAME
+.Nm jsh
+.Nd run scheduled commands on remote machines
+.Sh SYNOPSIS
+.Nm
+.Op Fl aei
+.Op Fl l Ar username
+.Op Fl p Ar port
+.Op Fl o Ar port
+.Op Fl h Ar hostname
+.Op Ar command ...
+.Sh DESCRIPTION
+The
+.Nm
+program connects to a
+.Em jsd
+daemon, and requests a node for processing.  It will then connect to
+that remote node and execute the command or commands given to it.
+Once it has completed work on the remote machine, it will return the
+node to the
+.Em jsd
+daemon for future use by other
+.Nm
+processes.  The primary use of this is to ensure that no more than one 
+remote process is running on any single machine at a point in time.
+This can be used to better facilitate bulk parallel compiling.
+.Pp
+The following options are available:
+.Bl -tag -width www
+.It Fl a
+The
+.Fl a
+option modifies the behavior of
+.Nm
+when dealing with stdin.  Normally all commands from stdin are run on
+the same machine.  Specifying the
+.Fl a
+option causes each command to be run on the next node in the seqence.
+.It Fl e
+Unless the
+.Fl e
+option is specified, stderr from remote commands will not be reported
+to the user.
+.It Fl h
+The
+.Fl h
+option can be used to set the remote hostname where a
+.Em jsd
+daemon is running.
+.Nm
+defaults to contacting a
+.Em jsd
+daemon on the local machine, but can be set up to talk to a remote
+daemon.  The
+.Fl h
+option will override the
+.Ev JSD_HOST
+environment variable.
+.It Fl i
+The
+.Fl i
+option will list information about the current cluster, and command
+groupings. It will also show you which command you are about to run,
+and your username if specified with the
+.Fl l
+option.
+.It Fl l
+If the
+.Fl l
+option is specified, followed by a username, the commands will be run under 
+that userid on the remote machines.  Consideration must be taken for proper 
+authentication, for this to work.
+.It Fl o
+The
+.Fl o
+option can be used to set the port number which jsd will listen to
+requests from
+.Em jsh
+processes for remote nodes.  This option overrides the
+.Ev JSD_OPORT
+environment variable.  The default listen port is 2002.
+.It Fl p
+The
+.Fl p
+option can be used to set the port number which jsd will listen to
+replies from
+.Em jsh
+processes indicating completion of processing on remote nodes.  This
+option overrides the
+.Ev JSD_IPORT
+environment variable.  The default listen port is 2001.
+.It Fl q
+The
+.Fl q
+option does not issue any commands, but displays information about the
+cluster.
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "JSD_BENCH_CMD"
+.It Ev RCMD_CMD
+Command to use to connect to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+.Ic rsh .
+.It Ev JSD_OPORT
+When set, overrides the default port which jsd listens on for
+.Em jsh
+processes requesting nodes.  This environment setting can be overriden 
+by the
+.Fl o
+option.
+.It Ev JSD_IPORT
+When set, overrides the default port which jsd listens on for
+.Em jsh
+processes reporting back that it has completed processing on a node.
+This environment setting can be overriden
+by the
+.Fl p
+option.
+.It Ev JSD_HOST
+When set, contains the hostname of the remote machine that the
+.Em jsd
+daemon is listening on.  This environment setting can be overriden by
+the
+.Fl h
+option.
+.Sh SEE ALSO
+.Xr dsh 1 ,
+.Xr rsh 1 ,
+.Xr kerberos 3 ,
+.Xr hosts.equiv 5 ,
+.Xr rhosts 5 ,
+.Xr jsd 1 .
+.Sh HISTORY
+The
+.Nm
+command first appeared in clusterit 2.0.
+.Sh AUTHOR
+.Nm Jsh
+was written by Tim Rightnour.
