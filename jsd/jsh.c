@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.2 2000/02/17 08:03:58 garbled Exp $ */
+/* $Id: jsh.c,v 1.3 2000/02/17 08:09:01 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -32,6 +32,8 @@
  */
 
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "../common/common.h"
 #include "../common/sockcommon.h"
 
@@ -39,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.2 2000/02/17 08:03:58 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.3 2000/02/17 08:09:01 garbled Exp $");
 #endif
 
 #ifndef __P
@@ -57,9 +59,10 @@ void log_bailout __P((int));
 
 int debug, exclusion, grouping;
 int errorflag, iportnum, oportnum;
-char **grouplist;
 char **rungroup;
+char **lumplist;
 char *progname, *jsd_host;
+group_t *grouplist;
 node_t *nodelink;
 
 /* 

@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.4 2000/02/17 08:03:57 garbled Exp $ */
+/* $Id: jsd.c,v 1.5 2000/02/17 08:09:01 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -39,6 +39,8 @@
 #include <syslog.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "../common/common.h"
 #include "../common/sockcommon.h"
@@ -47,7 +49,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.4 2000/02/17 08:03:57 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.5 2000/02/17 08:09:01 garbled Exp $");
 #endif
 
 extern int errno;
@@ -59,9 +61,10 @@ extern int errno;
 int debug, errorflag, exclusion, grouping, iportnum, oportnum;
 int gotsigterm;
 jmp_buf jmpenv;
-char **grouplist;
+group_t *grouplist;
 node_t *nodelink;
 char **rungroup;
+char **lumplist;
 pid_t currentchild;
 char *progname;
 
@@ -285,18 +288,16 @@ void
 main_loop()
 {
 	char *buf;
-	pid_t *pid;
 	node_t *nodeptr, *fastnode;
 	double topspeed;
-	int osock, isock, new, i;
+	int osock, isock, new;
 	struct sockaddr_in clientname;
 	size_t size;
 	fd_set node_fd_set, free_fd_set, full_fd_set;
 	struct timeval timeout;
 	struct sigaction signaler;
 
-	extern int gotsigterm, gotsigusr1, gotsigusr2;
-	extern jmp_buf jmpenv;
+	extern int gotsigterm;
 
 	buf = NULL;
 
@@ -559,7 +560,7 @@ void
 sig_handler(i)
 	int i;
 {
-	extern int gotsigterm, gotsigusr1, gotsigusr2;
+	extern int gotsigterm;
 
 	switch (i) {
 	case SIGTERM:
