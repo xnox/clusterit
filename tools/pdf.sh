@@ -1,5 +1,5 @@
-#!/bin/sh 
-# $Id: pdf.sh,v 1.2 1998/12/14 16:33:17 garbled Exp $
+#!/bin/sh
+# $Id: pdf.sh,v 1.3 1998/12/14 18:20:07 garbled Exp $
 args=`getopt lng:m:t:w:x: $*`
 if test $? != 0
 then
@@ -38,7 +38,7 @@ if test -n "$xarg"; then
 fi
 
 (
-dsh $dshargs 'if [ `uname` = "AIX" ]; then df -kI '$flag $*'; elif [ `uname` = "HP-UX" ]; then bdf '$flag $*'; else df -k '$flag $*'; fi'
+dsh $dshargs 'sh -c "if [ `uname` = "AIX" ]; then df -kI '$flag $*'; elif [ `uname` = "HP-UX" ]; then bdf '$flag $*'; else df -k '$flag $*'; fi"'
 )| grep -v Filesystem | awk '{print $1 " " $3 " " $4 " " $5 " " $6 " " $7 " " $8}' |(
 echo 'Node      Filesystem            1K-Blks     Used    Avail  Cap Mounted On'
 while read node fs blocks used avail capacity mount; do \
