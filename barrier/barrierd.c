@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.3 1998/10/14 20:43:51 garbled Exp $ */
+/* $Id: barrierd.c,v 1.4 1998/10/20 07:26:34 garbled Exp $ */
 /*
  * Copyright (c) 1998
  *	Tim Rightnour.  All rights reserved.
@@ -41,14 +41,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef lint
+#if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998\n\
         Tim Rightnour.  All rights reserved\n");
 #endif /* not lint */
 
-#ifndef lint
-__RCSID("$Id: barrierd.c,v 1.3 1998/10/14 20:43:51 garbled Exp $");
+#if !defined(lint) && defined(__NetBSD__)
+__RCSID("$Id: barrierd.c,v 1.4 1998/10/20 07:26:34 garbled Exp $");
 #endif
 
 #define BARRIER_SOCK	1933	/* default socket for barrier */
@@ -63,6 +63,11 @@ int make_socket __P((void));
 int sleeper __P((void));
 int write_to_client __P((int filedes, char *buf));
 int read_from_client __P((int filedes, char **j));
+#else
+int make_socket(void);
+int sleeper(void);
+int write_to_client(int filedes, char *buf);
+int read_from_client(int filedes, char **j);
 #endif
 
 int main(argc, argv)
@@ -212,11 +217,11 @@ int sleeper(void)
 #endif
 						FD_SET(new, &active_fd_set);
 						if (read_from_client(new, &buf) > 0) {
-							key = strsep(&buf, " ");
+							key = (char *)strsep(&buf, " ");
 							found = 0;
 							for (k=0; (found == 0 && k < MAX_TOKENS); ) {
 								if (tokens[k] != NULL)
-									if (strcmp(tokens[k],key) == 0)
+									if (strcmp(tokens[k], key) == 0)
 										found = 1;
 								if (!found)
 									k++;
