@@ -1,4 +1,4 @@
-.\" $Id: dsh.1,v 1.5 1998/10/15 19:40:28 garbled Exp $
+.\" $Id: rseq.1,v 1.1 1998/10/15 19:40:28 garbled Exp $
 .\" Copyright (c) 1998
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -31,14 +31,13 @@
 .\"
 .\" The following requests are required for all man pages.
 .Dd October 6, 1998
-.Dt DSH 1
+.Dt SEQ 1
 .Sh NAME
-.Nm dsh
-.Nd run a command on a cluster of machines
+.Nm seq
+.Nd run a command on a cluster in sequence
 .Sh SYNOPSIS
 .Nm
-.Op Fl eiq
-.Op Ar -f fanout
+.Op Fl aeiq
 .Op Ar -g rungroup
 .Op Ar -l username
 .Op Ar -w node1,...,nodeN
@@ -47,9 +46,18 @@
 The 
 .Nm
 utility can be used to run a command, or group of commands on a cluster of 
-machines.  All commands are run in parallel, on the cluster.
+machines.  The command or commands are run on a single node in the cluster,
+which is incremented in sequence on each invocation of
+.Nm
 The following options are available:
 .Bl -tag -width www
+.It Fl a
+The
+.Fl a
+option modifies the behavior of seq when dealing with stdin.  Normally 
+all commands from stdin are run on the same machine.  Specifying the
+.Fl a
+option causes each command to be run on the next node in the seqence.
 .It Fl e
 Unless the
 .Fl e
@@ -57,27 +65,15 @@ option is specified, stderr from remote commands will not be reported to the use
 .It Fl i
 The
 .Fl i
-option will list information about the current cluster, and command groupings.  It will
-print out the current value of the fanout, and how many groups of machines there are within
-the cluster. It will also show you which command you are about to run, and your username if
+option will list information about the current cluster, and command groupings.
+It will also show you which command you are about to run, and your username if
 specified with the
 .Fl l
 option.
 .It Fl q
 The
 .Fl q
-option does not issue any commands, but displays information about the cluster, and the
-fanout groupings.
-.It Fl f
-If the
-.Fl f
-option is specified, followed by a number, it sets the fanout size of the cluster.  The
-fanout size is the number of nodes a command will run on in parallel at one time.  Thus
-a 80 node cluster, with a fanout size of 64, would run 64 nodes in parallel, then, when
-all have finished, it would execute the command on the last 16 nodes.  The fanout size
-defaults to 64.  This option overrides the
-.Ev FANOUT
-environment variable.
+option does not issue any commands, but displays information about the cluster.
 .It Fl g
 If the
 .Fl g
@@ -125,67 +121,17 @@ in the cluster.
 Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 .Ic rsh
-.It Ev FANOUT
-When set, limits the maximum number of concurrent commands sent at once.  This can be
-used to keep from overloading a small host when sending out commands in parallel.  Defaults to
-64.  This environment setting can be overridden by the
-.Fl f
-option.
-.Sh FILES
-The file pointed to by the
-.Ev CLUSTER
-environment variable has the following format:
-.Bd -literal -offset indent
-pollux
-castor
-GROUP:alpha
-rigel
-kent
-GROUP:sparc
-alshain
-altair
-.Ed
-.Pp
-This example would have pollux and castor a member of no groups, rigel and kent a member of group 'alpha', 
-and alshain and altair a member of group 'sparc'.  Note the format of the GROUP command,
-it is in all capital letters, followed by a colon, and the group name.  There can be no spaces 
-following the GROUP command, or in the name of the group.
-.Sh EXAMPLES
-The command:
-.Bd -literal -offset indent
-dsh hostname
-.Ed
-.Pp
-will display:
-.Bd -literal -offset indent
-pollux:	pollux
-castor:	castor
-.Ed
-.Pp
-if the file pointed to by
-.Ev CLUSTER
-contains:
-.Bd -literal -offset indent
-pollux
-castor
-.Ed
-.Pp
-The command:
-.Bd -literal -offset indent
-dsh -w hadar,rigel hostname
-.Ed
-.Pp
-will display:
-.Bd -literal -offset indent
-hadar:	hadar
-rigel:	rigel
+.It Ev SEQ_FILE
+Specifies a specific sequence file.  This is a temporary file, which saves
+the number of the last node run on.  It defaults to /tmp/[pid].seq.  Where [pid]
+is the pid of the parent process of seq.  It may be useful to wire the SEQ_FILE to
+a particular file, in order to keep proper sequence when invoking seq from subshells
+or scripts.
+.\" .Sh FILES
 .Sh DIAGNOSTICS
 Exit status is 0 on success, 1 if an error occurs.
 .Sh SEE ALSO
-.Xr dshbak 1 ,
-.Xr pcp 1 ,
-.Xr pdf 1 ,
-.Xr prm 1 ,
+.Xr dsh 1 ,
 .Xr rsh 1 ,
 .Xr kerberos 3 ,
 .Xr hosts.equiv 5 ,
@@ -193,14 +139,27 @@ Exit status is 0 on success, 1 if an error occurs.
 .Sh HISTORY
 The
 .Nm
-command appeared in clusterit 1.0. It is based on the
+command appeared in clusterit 1.1. It is based on the
 .Nm
 command in IBM PSSP.
 .Sh AUTHOR
-.Nm Dsh
+.Nm Seq
 was written by Tim Rightnour.
 .Sh BUGS
 Error handling could use some work.
 .Pp
 The maximum number of nodes in a cluster is hardwired to 512.  This
 can be modified by recompiling the program.
+.Pp
+The
+.Nm
+command works fine when used with the
+.Fl w
+and
+.Fl x
+flags.  However the user may find that if the arguments are changed, or
+the flags are omitted on a subsequent run, the next node picked may not be
+predictable.  The sequence is calculated on each invocation of
+.Nm
+and the sequence numbers recorded in the temporary file may not match up to a new
+sequence placed on the command line.
