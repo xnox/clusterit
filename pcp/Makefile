@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.12 2001/08/13 23:04:13 garbled Exp $
+# $Id: Makefile,v 1.13 2001/08/13 23:17:01 garbled Exp $
 # Makefile for dsh:  Tim Rightnour
 
 #Uncomment things for solaris.
@@ -21,7 +21,7 @@ ${PROG}: ${SRCS:.c=.o}
 	${CC} ${CFLAGS} -o $@ ${SRCS:.c=.o}
 
 ${SRCS:.c=.o}: ${SRCS}
-	${CC} ${CFLAGS} -c $*.c -o $*.o
+	${CC} ${CFLAGS} -c $< -o $@
 
 ${SRCS:.c=.ln}: ${SRCS}
 	${LINT} ${LINTFLAGS} -o $*.ln -i $*.c
