@@ -1,4 +1,4 @@
-.\" $Id: run.1,v 1.7 2000/02/20 04:45:48 garbled Exp $
+.\" $Id: run.1,v 1.8 2000/02/20 18:25:24 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -116,6 +116,7 @@ option, a comma delimited list of machine names.  This option is
 silently ignored if used with the
 .Fl w
 option.
+.El
 .Sh ENVIRONMENT
 .Nm
 utilizes the following environment variables.
@@ -127,6 +128,7 @@ in the cluster.
 Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 .Ic rsh
+.El
 .\" .Sh FILES
 .Sh DIAGNOSTICS
 Exit status is 0 on success, 1 if an error occurs.

@@ -1,4 +1,4 @@
-.\" $Id: barrier.1,v 1.5 2000/02/20 04:45:25 garbled Exp $
+.\" $Id: barrier.1,v 1.6 2000/02/20 18:25:18 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -71,6 +71,7 @@ environment variable.
 Sets the size of the cluster.  A barrier condition is met, when the number of
 barrier clients connected to the remote daemon, sharing the same unique key, is
 equal to this number.
+.El
 .Sh ENVIRONMENT
 .Nm
 utilizes the following environment variables.
@@ -79,6 +80,7 @@ utilizes the following environment variables.
 Sets the default remote port to connect to.
 .It Ev BARRIER_HOST
 Sets the default remote host to connect to.
+.El
 .\" .Sh FILES
 .Sh DIAGNOSTICS
 Exit status is 0 on successful syncronization.  Exit status will be set to 1 if

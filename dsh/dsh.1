@@ -1,4 +1,4 @@
-.\" $Id: dsh.1,v 1.13 2000/02/20 04:45:48 garbled Exp $
+.\" $Id: dsh.1,v 1.14 2000/02/20 18:25:24 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -123,6 +123,7 @@ option, a comma delimited list of machine names.  This option is silently
 ignored if used with the
 .Fl w
 option.
+.El
 .Sh ENVIRONMENT
 .Nm
 utilizes the following environment variables.
@@ -170,6 +171,7 @@ There is also a LUMP command, which is identical in syntax to the GROUP
 command.  This command allows you to create a named group of groups.  Each
 member of the lump is the name of a group.  The LUMP command is terminated
 by another LUMP or GROUP command, or the EOF marker.
+.El
 .Sh EXAMPLES
 The command:
 .Bd -literal -offset indent
@@ -199,6 +201,7 @@ will display:
 .Bd -literal -offset indent
 hadar:	hadar
 rigel:	rigel
+.Ed
 .Sh DIAGNOSTICS
 Exit status is 0 on success, 1 if an error occurs.
 .Sh SEE ALSO
