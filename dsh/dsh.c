@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.19 2004/10/04 18:22:25 garbled Exp $ */
+/* $Id: dsh.c,v 1.20 2005/05/23 05:36:59 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -36,9 +36,11 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 
+
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <poll.h>
 
 #include "../common/common.h"
 
@@ -46,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.19 2004/10/04 18:22:25 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.20 2005/05/23 05:36:59 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -54,6 +56,7 @@ void sig_handler(int i);
 
 /* globals */
 int debug, errorflag, gotsigint, gotsigterm, exclusion, grouping;
+int testflag, rshport, porttimeout;
 node_t *nodelink;
 group_t *grouplist;
 char **rungroup;
@@ -76,11 +79,13 @@ main(int argc, char *argv[])
     int someflag, ch, i, fanout, showflag, fanflag;
     char *p, *q, *group, *nodename, *username;
     char **exclude, **grouptemp;
-    struct rlimit	limit;
+    struct rlimit limit;
     node_t *nodeptr;
 
     someflag = showflag = fanflag = 0;
     exclusion = debug = errorflag = 0;
+    testflag = rshport = 0;
+    porttimeout = 5; /* 5 seconds to port timeout */
     gotsigint = gotsigterm = grouping = 0;
     fanout = DEFAULT_FANOUT;
     nodename = NULL;
@@ -103,97 +108,137 @@ main(int argc, char *argv[])
     }
     progname = strdup(q);
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?deiqf:g:l:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?deiqtf:g:l:o:p:w:x:")) != -1)
 #else
-	while ((ch = getopt(argc, argv, "?deiqf:g:l:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?deiqtf:g:l:o:p:w:x:")) != -1)
 #endif
-	    switch (ch) {
-	    case 'd':		/* we want to debug dsh (hidden)*/
-		debug = 1;
-		break;
-	    case 'e':		/* we want stderr to be printed */
-		errorflag = 1;
-		break;
-	    case 'i':		/* we want tons of extra info */
-		debug = 1;
-		break;
-	    case 'l':		/* invoke me as some other user */
-		username = strdup(optarg);
-		break;
-	    case 'q':		/* just show me some info and quit */
-		showflag = 1;
-		break;
-	    case 'f':		/* set the fanout size */
-		fanout = atoi(optarg);
-		fanflag = 1;
-		break;
-	    case 'g':		/* pick a group to run on */
-		i = 0;
-		grouping = 1;
-		for (p = optarg; p != NULL; ) {
-		    group = (char *)strsep(&p, ",");
-		    if (group != NULL) {
-			if (((i+1) % GROUP_MALLOC) != 0) {
-			    rungroup[i++] = strdup(group);
-			} else {
-			    grouptemp = realloc(rungroup,
-				i*sizeof(char **) +
-				GROUP_MALLOC*sizeof(char *));
-			    if (grouptemp != NULL)
-				rungroup = grouptemp;
-			    else
-				bailout();
-			    rungroup[i++] = strdup(group);
-			}
+	switch (ch) {
+	case 'd':		/* we want to debug dsh (hidden)*/
+	    debug = 1;
+	    break;
+	case 'e':		/* we want stderr to be printed */
+	    errorflag = 1;
+	    break;
+	case 'i':		/* we want tons of extra info */
+	    debug = 1;
+	    break;
+	case 'l':		/* invoke me as some other user */
+	    username = strdup(optarg);
+	    break;
+	case 'q':		/* just show me some info and quit */
+	    showflag = 1;
+	    break;
+	case 't':           /* test the nodes before connecting */
+	    testflag = 1;
+	    break;
+	case 'p':           /* what is the rsh port number? */
+	    rshport = atoi(optarg);
+	    break;
+	case 'f':		/* set the fanout size */
+	    fanout = atoi(optarg);
+	    fanflag = 1;
+	    break;
+	case 'o':               /* set the test timeout in seconds */
+	    porttimeout = atoi(optarg);
+	    break;
+	case 'g':		/* pick a group to run on */
+	    i = 0;
+	    grouping = 1;
+	    for (p = optarg; p != NULL; ) {
+		group = (char *)strsep(&p, ",");
+		if (group != NULL) {
+		    if (((i+1) % GROUP_MALLOC) != 0) {
+			rungroup[i++] = strdup(group);
+		    } else {
+			grouptemp = realloc(rungroup,
+					    i*sizeof(char **) +
+					    GROUP_MALLOC*sizeof(char *));
+			if (grouptemp != NULL)
+			    rungroup = grouptemp;
+			else
+			    bailout();
+			rungroup[i++] = strdup(group);
 		    }
 		}
-		group = NULL;
-		break;			
-	    case 'x':		/* exclude nodes, w overrides this */
-		exclusion = 1;
-		i = 0;
-		for (p = optarg; p != NULL; ) {
-		    nodename = (char *)strsep(&p, ",");
-		    if (nodename != NULL) {
-			if (((i+1) % GROUP_MALLOC) != 0) {
-			    exclude[i++] = strdup(nodename);
-			} else {
-			    grouptemp = realloc(exclude,
-				i*sizeof(char **) +
-				GROUP_MALLOC*sizeof(char *));
-			    if (grouptemp != NULL)
-				exclude = grouptemp;
-			    else
-				bailout();
-			    exclude[i++] = strdup(nodename);
-			}
-		    }
-		}
-		break;
-	    case 'w':		/* perform operation on these nodes */
-		someflag = 1;
-		for (p = optarg; p != NULL; ) {
-		    nodename = (char *)strsep(&p, ",");
-		    if (nodename != NULL)
-			(void)nodealloc(nodename);
-		}
-		break;
-	    case '?':		/* you blew it */
-		(void)fprintf(stderr,
-		    "usage: %s [-eiq] [-f fanout] [-g rungroup1,...,rungroupN] "
-		    "[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
-		    "[command ...]\n", progname);
-		return(EXIT_FAILURE);
-		/*NOTREACHED*/
-		break;
-	    default:
-		break;
 	    }
+	    group = NULL;
+	    break;			
+	case 'x':		/* exclude nodes, w overrides this */
+	    exclusion = 1;
+	    i = 0;
+	    for (p = optarg; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL) {
+		    if (((i+1) % GROUP_MALLOC) != 0) {
+			exclude[i++] = strdup(nodename);
+		    } else {
+			grouptemp = realloc(exclude,
+					    i*sizeof(char **) +
+					    GROUP_MALLOC*sizeof(char *));
+			if (grouptemp != NULL)
+			    exclude = grouptemp;
+			else
+			    bailout();
+			exclude[i++] = strdup(nodename);
+		    }
+		}
+	    }
+	    break;
+	case 'w':		/* perform operation on these nodes */
+	    someflag = 1;
+	    for (p = optarg; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL)
+		    (void)nodealloc(nodename);
+	    }
+	    break;
+	case '?':		/* you blew it */
+	    (void)fprintf(stderr,
+	        "usage: %s [-eiqt] [-f fanout] [-p portnum] [-o timeout]"
+		"[-g rungroup1,...,rungroupN] [-l username] "
+		"[-x node1,...,nodeN] [-w node1,..,nodeN] "
+		"[command ...]\n", progname);
+	    return(EXIT_FAILURE);
+	    /*NOTREACHED*/
+	    break;
+	default:
+	    break;
+	}
 
+    /* Check for various environment variables and use them if they exist */
     if (!fanflag)
-/* check for a fanout var, and use it if the fanout isn't on the commandline */
 	if (getenv("FANOUT"))
 	    fanout = atoi(getenv("FANOUT"));
+    if (!rshport)
+	if (getenv("RCMD_PORT"))
+	    rshport = atoi(getenv("RCMD_PORT"));
+    if (!testflag)
+	if (getenv("RCMD_TEST"))
+	    testflag = 1;
+    if (porttimeout == 5)
+	if (getenv("RCMD_TEST_TIMEOUT"))
+	    porttimeout = atoi(getenv("RCMD_TEST_TIMEOUT"));
+    if (username == NULL)
+	if (getenv("RCMD_USER"))
+	    username = strdup(getenv("RCMD_USER"));
+
+    /* we need to find or guess the port number */
+    if (testflag && rshport == 0) {
+	if (!getenv("RCMD_CMD"))
+	    rshport = 514;
+	else if (strcmp("ssh", getenv("RCMD_CMD")) == 0)
+	    rshport = 22;
+	else {
+	    (void)fprintf(stderr, "-t argument given, but port number to test "
+			  "could not be guessed.  Please set RSHPORT "
+			  "environment variable to the portnumber of the "
+			  "protocol you are using, or supply it with the "
+			  "-p argument to dsh.");
+	    return(EXIT_FAILURE);
+	}
+	if (debug)
+	    printf("Test port: %d\n", rshport);
+    }
 
     if (!someflag)
 	parse_cluster(exclude);
@@ -233,13 +278,14 @@ do_command(char **argv, int fanout, char *username)
 {
     struct sigaction signaler;
 
-    FILE *fd, *in;
+    FILE *fd, *fda, *in;
     char buf[MAXBUF];
     char pipebuf[2048];
-    int status, i, j, n, g, piping;
+    int status, i, j, n, g, piping, pollret;
     size_t maxnodelen;
     char *p, *command, *rsh, *cd;
     node_t *nodeptr, *nodehold;
+    struct pollfd fds[2];
 
     maxnodelen = 0;
     j = i = 0;
@@ -297,9 +343,19 @@ do_command(char **argv, int fanout, char *username)
     }
 
     signaler.sa_handler = sig_handler;
-    signaler.sa_flags |= SA_RESTART;
+    signaler.sa_flags = SA_RESTART;
     sigaction(SIGTERM, &signaler, NULL);
     sigaction(SIGINT, &signaler, NULL);
+    sigaction(SIGALRM, &signaler, NULL);
+
+    /* gather the rsh data */
+    rsh = getenv("RCMD_CMD");
+    if (rsh == NULL)
+	rsh = strdup("rsh");
+    if (rsh == NULL)
+	bailout();
+
+    /* begin the processing loop */
     g = 0;
     nodeptr = nodelink;
     while (command != NULL) {
@@ -356,20 +412,17 @@ do_command(char **argv, int fanout, char *username)
 			bailout();
 		    if (close(nodeptr->err.fds[0]) != 0)
 			bailout();
-		    rsh = getenv("RCMD_CMD");
-		    if (rsh == NULL)
-			rsh = strdup("rsh");
-		    if (rsh == NULL)
-			bailout();
-		    if (debug)
-			(void)printf("%s %s %s\n", rsh, nodeptr->name,
-			    command);
 		    if (username != NULL)
-/* interestingly enough, this -l thing works great with ssh */
-			execlp(rsh, rsh, "-l", username, nodeptr->name,
-			    command, (char *)0);
+			(void)sprintf(buf, "%s@%s", username, nodeptr->name);
 		    else
-			execlp(rsh, rsh, nodeptr->name, command, (char *)0);
+			(void)sprintf(buf, "%s", nodeptr->name);
+		    if (debug)
+			(void)printf("%s %s %s\n", rsh, buf, command);
+		    if (testflag && rshport > 0 && porttimeout > 0)
+			if (!test_node_connection(rshport, porttimeout,
+						  nodeptr))
+			    exit(EXIT_SUCCESS);
+		    execlp(rsh, rsh, buf, command, (char *)0);
 		    bailout();
 		    break;
 		default:
@@ -383,37 +436,67 @@ do_command(char **argv, int fanout, char *username)
 		    exit(EXIT_FAILURE);
 		if (debug)
 		    (void)printf("Printing node: %d, fangroup %d,"
-			" fanout part: %d\n", g-fanout+i, n, i);
+				 " fanout part: %d\n", ((n) ? g-fanout+i : i),
+				 n, i);
 		currentchild = nodeptr->childpid;
 		/* now close off the useless stuff, and read the goodies */
 		if (close(nodeptr->out.fds[1]) != 0)
 		    bailout();
 		if (close(nodeptr->err.fds[1]) != 0)
 		    bailout();
-		fd = fdopen(nodeptr->out.fds[0], "r"); /* stdout */
-		if (fd == NULL)
+		fda = fdopen(nodeptr->out.fds[0], "r"); /* stdout */
+		if (fda == NULL)
 		    bailout();
-		while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
-		    if (cd != NULL)
-			(void)printf("%*s: %s",
-			    -maxnodelen, nodeptr->name, cd);
-		}
-		fclose(fd);
 		fd = fdopen(nodeptr->err.fds[0], "r"); /* stderr */
 		if (fd == NULL)
 		    bailout();
-		while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
-		    if (errorflag && cd != NULL)
-			(void)printf("%*s: %s",
-			    -maxnodelen, nodeptr->name, cd);
+		fds[0].fd = nodeptr->out.fds[0];
+		fds[1].fd = nodeptr->err.fds[0];
+		fds[0].events = POLLIN|POLLPRI;
+		fds[1].events = POLLIN|POLLPRI;
+		pollret = 1;
+
+		while (pollret >= 0) {
+		    int gotdata;
+
+		    pollret = poll(fds, 2, 5);
+		    gotdata = 0;
+		    if ((fds[0].revents&POLLIN) == POLLIN ||
+		        (fds[0].revents&POLLPRI) == POLLPRI) {
+		    	cd = fgets(pipebuf, sizeof(pipebuf), fda);
+		    	if (cd != NULL) {
+			    (void)printf("%*s: %s",
+			                 -maxnodelen, nodeptr->name, cd);
+			    gotdata++;
+			}
+		    }
+		    if ((fds[1].revents&POLLIN) == POLLIN ||
+			(fds[1].revents&POLLPRI) == POLLPRI) {
+		    	cd = fgets(pipebuf, sizeof(pipebuf), fd);
+		    	if (errorflag && cd != NULL) {
+			    (void)printf("%*s: %s",
+			                 -maxnodelen, nodeptr->name, cd);
+			    gotdata++;
+			} else if (!errorflag && cd != NULL)
+			    gotdata++;
+		    }
+		    if (!gotdata)
+			if (((fds[0].revents&POLLHUP) == POLLHUP ||
+			     (fds[0].revents&POLLERR) == POLLERR ||
+			     (fds[0].revents&POLLNVAL) == POLLNVAL) &&
+			    ((fds[1].revents&POLLHUP) == POLLHUP ||
+			     (fds[1].revents&POLLERR) == POLLERR ||
+			     (fds[1].revents&POLLNVAL) == POLLNVAL))
+			    break;
 		}
+		fclose(fda);
 		fclose(fd);
 		(void)wait(&status);
 		nodeptr = nodeptr->next;
 	    } /* for pipe read */			
 	} /* for n */
 	if (piping) {
-/* yes, this is code repetition, no need to adjust your monitor */
+	    /* yes, this is code repetition, no need to adjust your monitor */
 	    if (isatty(STDIN_FILENO) && piping)
 		(void)printf("%s>", progname);
 	    command = fgets(buf, sizeof(buf), in);
@@ -438,6 +521,8 @@ sig_handler(int i)
 	break;
     case SIGTERM:
 	gotsigterm = 1;
+	break;
+    case SIGALRM:
 	break;
     default:
 	bailout();

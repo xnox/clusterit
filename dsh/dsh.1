@@ -1,4 +1,4 @@
-.\" $Id: dsh.1,v 1.15 2000/02/20 19:05:20 garbled Exp $
+.\" $Id: dsh.1,v 1.16 2005/05/23 05:36:59 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -37,10 +37,12 @@
 .Nd run a command on a cluster of machines
 .Sh SYNOPSIS
 .Nm
-.Op Fl eiq
+.Op Fl eiqt
 .Op Fl f Ar fanout
 .Op Fl g Ar rungroup1,...,rungroupN
 .Op Fl l Ar username
+.Op Fl o Ar porttimeout
+.Op Fl p Ar portnum
 .Op Fl w Ar node1,...,nodeN
 .Op Fl x Ar node1,...,nodeN
 .Op Ar command ...
@@ -72,6 +74,28 @@ The
 .Fl q
 option does not issue any commands, but displays information about the 
 cluster, and the fanout groupings.
+.It Fl t
+The
+.Fl t
+option causes
+.Nm
+to attempt a connection test to each node prior to attempting to run the
+remote command.  If the test fails for any reason, the remote command will
+not be attempted.  This can be useful when clusterfiles have suffered bitrot
+and some nodes no longer exist, or might be down for maintenance.  The default
+timeout is 5 seconds.  The timeout can be changed with the
+.Fl o
+option.
+.Nm
+will attempt to guess the port number of the remote service based on your
+.Ev RCMD_CMD
+setting.  It knows about ssh and rsh.  If
+.Nm
+fails to guess your port correctly, you may use the
+.Fl p
+argument to set the remote port number.  If the
+.Ev RCMD_TEST
+environment variable exists, the testing will automatically take place.
 .It Fl f
 If the
 .Fl f
@@ -102,6 +126,17 @@ If the
 option is specified, followed by a username, the commands will be run under 
 that userid on the remote machines.  Consideration must be taken for proper 
 authentication, for this to work.
+.It Fl o
+The
+.Fl o
+option is used to set the timeout in seconds to be used when testing remote
+connections.  The default is five seconds.
+.It Fl p
+The
+.Fl p
+option can be used to set the port number that testing should occur on when
+testing remote connections.  The default behavior is to guess based on the
+remote command name.
 .It Fl w
 If the
 .Fl w
@@ -135,6 +170,20 @@ in the cluster.
 Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 .Ic rsh
+.It Ev RCMD_PORT
+The port number used to test remote connections.  See the
+.Fl p
+flag.
+.It Ev RCMD_TEST
+When set,
+.Nm
+will automatically test all hosts before launching the remote command. See the
+.Fl t
+option for more information.
+.It Ev RCMD_TEST_TIMEOUT
+The timeout in seconds to use when testing for remote connections.
+.It Ev RCMD_USER
+The username to connect to remote machines as by default.
 .It Ev FANOUT
 When set, limits the maximum number of concurrent commands sent at once.  
 This can be used to keep from overloading a small host when sending out 

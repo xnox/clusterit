@@ -1,4 +1,4 @@
-.\" $Id: rseq.1,v 1.11 2000/02/20 19:13:23 garbled Exp $
+.\" $Id: rseq.1,v 1.12 2005/05/23 05:36:59 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -129,6 +129,8 @@ in the cluster.
 Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 .Ic rsh
+.It Ev RCMD_USER
+The username to connect to remote machines as by default.
 .It Ev SEQ_FILE
 Specifies a specific sequence file.  This is a temporary file, which 
 saves the number of the last node run on.  It defaults to 
