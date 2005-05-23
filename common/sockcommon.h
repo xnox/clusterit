@@ -1,4 +1,4 @@
-/* $Id: sockcommon.h,v 1.7 2004/10/04 18:21:43 garbled Exp $ */
+/* $Id: sockcommon.h,v 1.8 2005/05/23 05:34:42 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -61,6 +61,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/uio.h>
+#include <sys/socket.h>
 
 #define MAXMSG		512
 #define JSDIPORT	2001

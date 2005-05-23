@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.8 2004/10/04 18:21:43 garbled Exp $ */
+/* $Id: common.h,v 1.9 2005/05/23 05:34:42 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,6 +42,11 @@
 #ifdef HAVE_TERMIOS_H
 #include <termios.h>
 #endif /* HAVE_TERMIOS_H */
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <time.h>
+#include <sys/time.h>
 
 #ifdef USE_X11
 #include <X11/Xlib.h>
@@ -98,6 +103,7 @@ int openpty(int *amaster, int *aslave, char *name, struct termios *termp,
 void do_showcluster(int fanout);
 int parse_cluster(char **exclude);
 node_t *nodealloc(char *nodename);
+int test_node_connection(int rshport, int timeout, node_t *nodeptr);
 
 extern char **lumplist;
 extern char **rungroup;
