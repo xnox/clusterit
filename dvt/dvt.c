@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.4 2004/10/04 18:23:27 garbled Exp $ */
+/* $Id: dvt.c,v 1.5 2005/05/23 05:37:08 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -56,7 +56,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.4 2004/10/04 18:23:27 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.5 2005/05/23 05:37:08 garbled Exp $");
 #endif /* not lint */
 
 #ifndef __P
@@ -138,93 +138,93 @@ main(int argc, char **argv)
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?deiqf:g:l:w:x:")) != -1)
 #else
-	while ((ch = getopt(argc, argv, "?deiqf:g:l:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?deiqf:g:l:w:x:")) != -1)
 #endif
-	    switch (ch) {
-	    case 'd':		/* we want to debug dsh (hidden)*/
-		debug = 1;
-		break;
-	    case 'e':		/* we want stderr to be printed */
-		errorflag = 1;
-		break;
-	    case 'i':		/* we want tons of extra info */
-		debug = 1;
-		break;
-	    case 'l':		/* invoke me as some other user */
-		username = strdup(optarg);
-		break;
-	    case 'q':		/* just show me some info and quit */
-		showflag = 1;
-		break;
-	    case 'f':		/* set the fanout size */
-		fanout = atoi(optarg);
-		fanflag = 1;
-		break;
-	    case 'g':		/* pick a group to run on */
-		i = 0;
-		grouping = 1;
-		for (p = optarg; p != NULL; ) {
-		    group = (char *)strsep(&p, ",");
-		    if (group != NULL) {
-			if (((i+1) % GROUP_MALLOC) != 0) {
-			    rungroup[i++] = strdup(group);
-			} else {
-			    grouptemp = realloc(rungroup,
-				i*sizeof(char **) +
-				GROUP_MALLOC*sizeof(char *));
-			    if (grouptemp != NULL)
-				rungroup = grouptemp;
-			    else
-				bailout();
-			    rungroup[i++] = strdup(group);
-			}
+	switch (ch) {
+	case 'd':		/* we want to debug dvt (hidden)*/
+	    debug = 1;
+	    break;
+	case 'e':		/* we want stderr to be printed */
+	    errorflag = 1;
+	    break;
+	case 'i':		/* we want tons of extra info */
+	    debug = 1;
+	    break;
+	case 'l':		/* invoke me as some other user */
+	    username = strdup(optarg);
+	    break;
+	case 'q':		/* just show me some info and quit */
+	    showflag = 1;
+	    break;
+	case 'f':		/* set the fanout size */
+	    fanout = atoi(optarg);
+	    fanflag = 1;
+	    break;
+	case 'g':		/* pick a group to run on */
+	    i = 0;
+	    grouping = 1;
+	    for (p = optarg; p != NULL; ) {
+		group = (char *)strsep(&p, ",");
+		if (group != NULL) {
+		    if (((i+1) % GROUP_MALLOC) != 0) {
+			rungroup[i++] = strdup(group);
+		    } else {
+			grouptemp = realloc(rungroup,
+					    i*sizeof(char **) +
+					    GROUP_MALLOC*sizeof(char *));
+			if (grouptemp != NULL)
+			    rungroup = grouptemp;
+			else
+			    bailout();
+			rungroup[i++] = strdup(group);
 		    }
 		}
-		group = NULL;
-		break;			
-	    case 'x':		/* exclude nodes, w overrides this */
-		exclusion = 1;
-		i = 0;
-		for (p = optarg; p != NULL; ) {
-		    nodename = (char *)strsep(&p, ",");
-		    if (nodename != NULL) {
-			if (((i+1) % GROUP_MALLOC) != 0) {
-			    exclude[i++] = strdup(nodename);
-			} else {
-			    grouptemp = realloc(exclude,
-				i*sizeof(char **) +
-				GROUP_MALLOC*sizeof(char *));
-			    if (grouptemp != NULL)
-				exclude = grouptemp;
-			    else
-				bailout();
-			    exclude[i++] = strdup(nodename);
-			}
-		    }
-		}
-		break;
-	    case 'w':		/* perform operation on these nodes */
-		someflag = 1;
-		for (p = optarg; p != NULL; ) {
-		    nodename = (char *)strsep(&p, ",");
-		    if (nodename != NULL)
-			(void)nodealloc(nodename);
-		}
-		break;
-	    case '?':		/* you blew it */
-		(void)fprintf(stderr,
-		    "usage: %s [-eiq] [-f fanout] [-g rungroup1,...,rungroupN] "
-		    "[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN]\n",
-		    progname);
-		return(EXIT_FAILURE);
-		/*NOTREACHED*/
-		break;
-	    default:
-		break;
 	    }
+	    group = NULL;
+	    break;			
+	case 'x':		/* exclude nodes, w overrides this */
+	    exclusion = 1;
+	    i = 0;
+	    for (p = optarg; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL) {
+		    if (((i+1) % GROUP_MALLOC) != 0) {
+			exclude[i++] = strdup(nodename);
+		    } else {
+			grouptemp = realloc(exclude,
+					    i*sizeof(char **) +
+					    GROUP_MALLOC*sizeof(char *));
+			if (grouptemp != NULL)
+			    exclude = grouptemp;
+			else
+			    bailout();
+			exclude[i++] = strdup(nodename);
+		    }
+		}
+	    }
+	    break;
+	case 'w':		/* perform operation on these nodes */
+	    someflag = 1;
+	    for (p = optarg; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL)
+		    (void)nodealloc(nodename);
+	    }
+	    break;
+	case '?':		/* you blew it */
+	    (void)fprintf(stderr,
+		"usage: %s [-eiq] [-f fanout] [-g rungroup1,...,rungroupN] "
+		"[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN]\n",
+		progname);
+	    return(EXIT_FAILURE);
+	    /*NOTREACHED*/
+	    break;
+	default:
+	    break;
+	}
 
-    if (!fanflag)
 /* check for a fanout var, and use it if the fanout isn't on the commandline */
+    if (!fanflag)
 	if (getenv("FANOUT"))
 	    fanout = atoi(getenv("FANOUT"));
 
@@ -258,8 +258,8 @@ main(int argc, char **argv)
 #define MAX_POPUP_STRING_LENGTH 11
 #define MAX_MAPPED_STRING_LENGTH 11
 
-    void
-    setup_xlib(void)
+void
+setup_xlib(void)
 {
     unsigned int x = 0, y = 0; /* window position */
     unsigned int border_width = 4;  /* four pixels */
@@ -268,8 +268,7 @@ main(int argc, char **argv)
 
     /* connect to X server */
 	
-    if ( (display=XOpenDisplay(display_name)) == NULL )
-    {
+    if ((display=XOpenDisplay(display_name)) == NULL ) {
 	(void)fprintf(stderr, "dvt: cannot connect to X server %s\n",
 	    XDisplayName(display_name));
 	exit(EXIT_FAILURE);
@@ -364,8 +363,7 @@ main(int argc, char **argv)
 }
 
 void
-getGC(ingc)
-    GC *ingc;
+getGC(GC *ingc)
 {
     unsigned long valuemask = 0; /* ignore XGCvalues and use defaults */
     XGCValues values;
@@ -395,8 +393,7 @@ getGC(ingc)
 }
 
 void
-load_font(infont_info)
-    XFontStruct **infont_info;
+load_font(XFontStruct **infont_info)
 {
     const char *fontname = "9x15";
 
@@ -414,13 +411,11 @@ load_font(infont_info)
  */
 
 void
-do_command(fanout, username)
-    char *username;
-    int fanout;
+do_command(int fanout, char *username)
 {
     struct sigaction signaler;
     FILE *fd, *in;
-    char pipebuf[2048];
+    char pipebuf[2048], buf[MAXBUF];
     int count, status, i, j, g, l, piping;
     size_t maxnodelen;
     char *rsh, *cd;
@@ -487,6 +482,11 @@ do_command(fanout, username)
     nodehold = nodeptr;
     if (gotsigterm || gotsigint)
 	exit(EXIT_FAILURE);
+    rsh = getenv("RVT_CMD");
+    if (rsh == NULL)
+	rsh = strdup("rvt");
+    if (rsh == NULL)
+	bailout();
     for (i=0; (i < fanout && nodeptr != NULL); i++) {
 	g++;
 	if (gotsigterm)
@@ -536,19 +536,13 @@ do_command(fanout, username)
 		bailout();
 	    if (close(nodeptr->err.fds[0]) != 0)
 		bailout();
-	    rsh = getenv("RVT_CMD");
-	    if (rsh == NULL)
-		rsh = strdup("rvt");
-	    if (rsh == NULL)
-		bailout();
-	    if (debug)
-		(void)printf("%s %s\n", rsh, nodeptr->name);
 	    if (username != NULL)
-/* interestingly enough, this -l thing works great with ssh */
-		execlp(rsh, rsh, "-l", username, nodeptr->name,
-		    (char *)0);
+		(void)sprintf(buf, "%s@%s", username, nodeptr->name);
 	    else
-		execlp(rsh, rsh, nodeptr->name, (char *)0);
+		(void)sprintf(buf, "%s", nodeptr->name);
+	    if (debug)
+		(void)printf("%s %s\n", rsh, buf);
+	    execlp(rsh, rsh, buf, (char *)0);
 	    bailout();
 	    break;
 	default:
@@ -697,9 +691,7 @@ do_command(fanout, username)
 }
 
 int
-x_error_handler(dpy, evp)
-    Display *dpy;
-    XErrorEvent *evp;
+x_error_handler(Display *dpy, XErrorEvent *evp)
 {
     node_t *nodeptr;
 
@@ -709,14 +701,12 @@ x_error_handler(dpy, evp)
 	    if (nodeptr->win_id == evp->resourceid)
 		nodeptr->win_id = 0;
     } else
-
 	old_handler(dpy, evp);
     return(0);
 }
 
 void
-sig_handler(i)
-    int i;
+sig_handler(int i)
 {
     switch (i) {
     case SIGINT:

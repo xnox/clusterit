@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.9 2004/10/04 18:24:11 garbled Exp $ */
+/* $Id: jsh.c,v 1.10 2005/05/23 05:37:17 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -33,6 +33,7 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <poll.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "../common/common.h"
@@ -42,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.9 2004/10/04 18:24:11 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.10 2005/05/23 05:37:17 garbled Exp $");
 #endif
 
 void do_command(char **argv, int allrun, char *username);
@@ -99,42 +100,42 @@ main(int argc, char **argv)
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?adeil:k:p:")) != -1)
 #else
-	while ((ch = getopt(argc, argv, "?adeil:k:p:")) != -1)
+    while ((ch = getopt(argc, argv, "?adeil:k:p:")) != -1)
 #endif
-	    switch (ch) {
-	    case 'a':		/* set the allrun flag */
-		allflag = 1;
-		break;
-	    case 'd':       /* set the debug flag */
-		debug = 1;
-		break;
-	    case 'e':		/* we want stderr to be printed */
-		errorflag = 1;
-		break;
-	    case 'i':		/* we want tons of extra info */
-		debug = 1;
-		break;
-	    case 'l':		/* invoke me as some other user */
-		username = strdup(optarg);
-		break;
-	    case 'o':		/* port to get nodes from jsd on */
-		oportnum = atoi(optarg);
-		break;
-	    case 'p':		/* port to release nodes to jsd on */
-		iportnum = atoi(optarg);
-		break;
-	    case 'h':		/* host to connect to jsd on */
-		jsd_host = strdup(optarg);
-		break;			
-	    case '?':		/* you blew it */
-		(void)fprintf(stderr,
-		    "usage: %s [-aei] [-l username] [-p port] [-o port] "
-		    "[-h hostname] [command ...]\n", progname);
-		exit(EXIT_FAILURE);
-		break;
-	    default:
-		break;
-	    }
+	switch (ch) {
+	case 'a':		/* set the allrun flag */
+	    allflag = 1;
+	    break;
+	case 'd':               /* set the debug flag */
+	    debug = 1;
+	    break;
+	case 'e':		/* we want stderr to be printed */
+	    errorflag = 1;
+	    break;
+	case 'i':		/* we want tons of extra info */
+	    debug = 1;
+	    break;
+	case 'l':		/* invoke me as some other user */
+	    username = strdup(optarg);
+	    break;
+	case 'o':		/* port to get nodes from jsd on */
+	    oportnum = atoi(optarg);
+	    break;
+	case 'p':		/* port to release nodes to jsd on */
+	    iportnum = atoi(optarg);
+	    break;
+	case 'h':		/* host to connect to jsd on */
+	    jsd_host = strdup(optarg);
+	    break;			
+	case '?':		/* you blew it */
+	    (void)fprintf(stderr,
+			  "usage: %s [-aei] [-l username] [-p port] [-o port] "
+			  "[-h hostname] [command ...]\n", progname);
+	    exit(EXIT_FAILURE);
+	    break;
+	default:
+	    break;
+	}
 
     argc -= optind;
     argv += optind;
@@ -159,6 +160,10 @@ main(int argc, char **argv)
 	else
 	    jsd_host = strdup("localhost");
     }
+    if (username == NULL)
+        if (getenv("RCMD_USER"))
+            username = strdup(getenv("RCMD_USER"));
+
     if (jsd_host == NULL)
 	bailout();
 
@@ -247,13 +252,13 @@ free_node(char *nodename)
 void
 do_command(char **argv, int allrun, char *username)
 {
-    FILE *fd, *in;
-    char buf[MAXBUF];
-    char *nodename;
-    int status, i, piping;
-    char *p, *command, *rsh;
+    FILE *fd, *fda, *in;
+    char buf[MAXBUF], pipebuf[2048];
+    char *nodename, *p, *command, *rsh, *cd;
+    int status, i, piping, pollret;
     pipe_t out, err;
     pid_t childpid;
+    struct pollfd fds[2];
 
     i = 0;
     piping = 0;
@@ -276,12 +281,12 @@ do_command(char **argv, int allrun, char *username)
     }
     if (strcmp(command,"") == 0) {
 	piping = 1;
+	/* are we a terminal?  then go interactive! */
 	if (isatty(STDIN_FILENO) && piping)
-/* are we a terminal?  then go interactive! */
 	    (void)printf("%s>", progname);
 	in = fdopen(STDIN_FILENO, "r");
+	/* start reading stuff from stdin and process */
 	command = fgets(buf, sizeof(buf), in);
-/* start reading stuff from stdin and process */
 	if (command != NULL)
 	    if (strcmp(command,"\n") == 0)
 		command = NULL;
@@ -290,31 +295,38 @@ do_command(char **argv, int allrun, char *username)
 	if (open("/dev/null", O_RDONLY, NULL) != 0)
 	    bailout();
     }
+    rsh = getenv("RCMD_CMD");
+    if (rsh == NULL)
+	rsh = strdup("rsh");
+    if (rsh == NULL)
+	bailout();
+
     if (allrun)
 	nodename = check_node();
+
     while (command != NULL) {
 	if (!allrun)
 	    nodename = check_node();
 	if (debug)
 	    printf("Working node: %s\n", nodename);
+	/* we set up pipes for each node, to prepare
+	 * for the oncoming barrage of data.
+	 */
 	if (pipe(out.fds) != 0)
 	    bailout();
 	if (pipe(err.fds) != 0)
 	    bailout();
-/* we set up pipes for each node, to prepare
- * for the oncoming barrage of data.
- */
+	/* its the ol fork and switch routine eh? */
 	childpid = fork();
 	switch (childpid) {
-/* its the ol fork and switch routine eh? */
 	case -1:
 	    bailout();
 	    break;
 	case 0:
 	    if (piping)
 		close(STDIN_FILENO);
+	    /* stupid unix tricks vol 1 */
 	    if (dup2(out.fds[1], STDOUT_FILENO) != STDOUT_FILENO)
-/* stupid unix tricks vol 1 */
 		bailout();
 	    if (dup2(err.fds[1], STDERR_FILENO) != STDERR_FILENO)
 		bailout();
@@ -322,39 +334,71 @@ do_command(char **argv, int allrun, char *username)
 		bailout();
 	    if (close(err.fds[0]) != 0)
 		bailout();
-	    rsh = getenv("RCMD_CMD");
-	    if (rsh == NULL)
-		rsh = strdup("rsh");
-	    if (rsh == NULL)
-		bailout();
-	    if (debug)
-		printf("%s %s %s\n", rsh, nodename, command);
 	    if (username != NULL)
-/* interestingly enough, this -l thing works great with ssh */
-		execlp(rsh, rsh, "-l", username, nodename,
-		    command, (char *)0);
+		(void)sprintf(buf, "%s@%s", username, nodename);
 	    else
-		execlp(rsh, rsh, nodename, command, (char *)0);
+		(void)sprintf(buf, "%s", nodename);
+	    if (debug)
+		(void)printf("%s %s %s\n", rsh, buf, command);
+	    execlp(rsh, rsh, buf, command, (char *)0);
 	    bailout();
 	} /* end switch */
+	/* now close off the useless stuff, and read the goodies */
 	if (close(out.fds[1]) != 0)
-/* now close off the useless stuff, and read the goodies */
 	    bailout();
 	if (close(err.fds[1]) != 0)
 	    bailout();
-	fd = fdopen(out.fds[0], "r"); /* stdout */
-	while ((p = fgets(buf, sizeof(buf), fd)))
-	    (void)printf("%s: %s", nodename, p);
-	fclose(fd);
+
+	fda = fdopen(out.fds[0], "r"); /* stdout */
+	if (fda == NULL)
+	    bailout();
 	fd = fdopen(err.fds[0], "r"); /* stderr */
-	while ((p = fgets(buf, sizeof(buf), fd)))
-	    if (errorflag)
-		(void)printf("%s: %s", nodename, p);
+	if (fd == NULL)
+	    bailout();
+	fds[0].fd = out.fds[0];
+	fds[1].fd = err.fds[0];
+	fds[0].events = POLLIN|POLLPRI;
+	fds[1].events = POLLIN|POLLPRI;
+	pollret = 1;
+	
+	while (pollret >= 0) {
+	    int gotdata;
+	    
+	    pollret = poll(fds, 2, 5);
+	    gotdata = 0;
+	    if ((fds[0].revents&POLLIN) == POLLIN ||
+		(fds[0].revents&POLLPRI) == POLLPRI) {
+		cd = fgets(pipebuf, sizeof(pipebuf), fda);
+		if (cd != NULL) {
+		    (void)printf("%s: %s", nodename, cd);
+		    gotdata++;
+		}
+	    }
+	    if ((fds[1].revents&POLLIN) == POLLIN ||
+		(fds[1].revents&POLLPRI) == POLLPRI) {
+		cd = fgets(pipebuf, sizeof(pipebuf), fd);
+		if (errorflag && cd != NULL) {
+		    (void)printf("%s: %s", nodename, cd);
+		    gotdata++;
+		} else if (!errorflag && cd != NULL)
+		    gotdata++;
+	    }
+	    if (!gotdata)
+		if (((fds[0].revents&POLLHUP) == POLLHUP ||
+		     (fds[0].revents&POLLERR) == POLLERR ||
+		     (fds[0].revents&POLLNVAL) == POLLNVAL) &&
+		    ((fds[1].revents&POLLHUP) == POLLHUP ||
+		     (fds[1].revents&POLLERR) == POLLERR ||
+		     (fds[1].revents&POLLNVAL) == POLLNVAL))
+		    break;
+	}
+	fclose(fda);
 	fclose(fd);
 	(void)wait(&status);
+
+	/* yes, this is code repetition, no need to adjust your monitor */
 	if (piping) {
 	    if (isatty(STDIN_FILENO) && piping)
-/* yes, this is code repetition, no need to adjust your monitor */
 		(void)printf("%s>", progname);
 	    command = fgets(buf, sizeof(buf), in);
 	    if (command != NULL)

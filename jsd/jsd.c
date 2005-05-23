@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.11 2004/10/04 18:24:11 garbled Exp $ */
+/* $Id: jsd.c,v 1.12 2005/05/23 05:37:17 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -50,7 +50,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.11 2004/10/04 18:24:11 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.12 2005/05/23 05:37:17 garbled Exp $");
 #endif
 
 /* globals */
@@ -82,7 +82,7 @@ main(int argc, char **argv)
     int someflag, ch, i, fanout, showflag, fanflag;
     char *p, *q, *group, *nodename, *username, *benchcmd;
     char **grouptemp, **exclude;
-    struct rlimit	limit;
+    struct rlimit limit;
     pid_t pid;
 
     someflag = showflag = fanflag = 0;
@@ -111,104 +111,107 @@ main(int argc, char **argv)
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?diqf:g:l:w:x:p:")) != -1)
 #else
-	while ((ch = getopt(argc, argv, "?diqf:g:l:w:x:p:")) != -1)
+    while ((ch = getopt(argc, argv, "?diqf:g:l:w:x:p:")) != -1)
 #endif
-	    switch (ch) {
-	    case 'd':		/* we want to debug jsd (hidden)*/
-		debug = 1;
-		break;
-	    case 'i':		/* we want tons of extra info */
-		debug = 1;
-		break;
-	    case 'l':		/* invoke me as some other user */
-		username = strdup(optarg);
-		break;
-	    case 'q':		/* just show me some info and quit */
-		showflag = 1;
-		break;
-	    case 'f':		/* set the fanout size */
-		fanout = atoi(optarg);
-		fanflag = 1;
-		break;
-	    case 'g':		/* pick a group to run on */
-		i = 0;
-		grouping = 1;
-		for (p = optarg; p != NULL; ) {
-		    group = (char *)strsep(&p, ",");
-		    if (group != NULL) {
-			if (((i+1) % GROUP_MALLOC) != 0) {
-			    rungroup[i++] = strdup(group);
-			} else {
-			    grouptemp = realloc(rungroup,
-				i*sizeof(char **) +
-				GROUP_MALLOC*sizeof(char *));
-			    if (grouptemp != NULL)
-				rungroup = grouptemp;
-			    else
-				bailout();
-			    rungroup[i++] = strdup(group);
-			}
+	switch (ch) {
+	case 'd':		/* we want to debug jsd (hidden)*/
+	    debug = 1;
+	    break;
+	case 'i':		/* we want tons of extra info */
+	    debug = 1;
+	    break;
+	case 'l':		/* invoke me as some other user */
+	    username = strdup(optarg);
+	    break;
+	case 'q':		/* just show me some info and quit */
+	    showflag = 1;
+	    break;
+	case 'f':		/* set the fanout size */
+	    fanout = atoi(optarg);
+	    fanflag = 1;
+	    break;
+	case 'g':		/* pick a group to run on */
+	    i = 0;
+	    grouping = 1;
+	    for (p = optarg; p != NULL; ) {
+		group = (char *)strsep(&p, ",");
+		if (group != NULL) {
+		    if (((i+1) % GROUP_MALLOC) != 0) {
+			rungroup[i++] = strdup(group);
+		    } else {
+			grouptemp = realloc(rungroup,
+					    i*sizeof(char **) +
+					    GROUP_MALLOC*sizeof(char *));
+			if (grouptemp != NULL)
+			    rungroup = grouptemp;
+			else
+			    bailout();
+			rungroup[i++] = strdup(group);
 		    }
 		}
-		group = NULL;
-		break;			
-	    case 'x':		/* exclude nodes, w overrides this */
-		exclusion = 1;
-		i = 0;
-		for (p = optarg; p != NULL; ) {
-		    nodename = (char *)strsep(&p, ",");
-		    if (nodename != NULL) {
-			if (((i+1) % GROUP_MALLOC) != 0) {
-			    exclude[i++] = strdup(nodename);
-			} else {
-			    grouptemp = realloc(exclude,
-				i*sizeof(char **) +
-				GROUP_MALLOC*sizeof(char *));
-			    if (grouptemp != NULL)
-				exclude = grouptemp;
-			    else
-				bailout();
-			    exclude[i++] = strdup(nodename);
-			}
-		    }
-		}
-		break;
-	    case 'w':		/* perform operation on these nodes */
-		someflag = 1;
-		for (p = optarg; p != NULL; ) {
-		    nodename = (char *)strsep(&p, ",");
-		    if (nodename != NULL)
-			(void)nodealloc(nodename);
-		}
-		break;
-	    case 'o':		/* port to listen to requests on */
-		oportnum = atoi(optarg);
-		break;
-	    case 'p':		/* port to listen to completions on */
-		iportnum = atoi(optarg);
-		break;
-	    case '?':		/* you blew it */
-		(void)fprintf(stderr,
-		    "usage: jsd [-iq] [-f fanout] [-g rungroup1,...,rungroupN] "
-		    "[-l username] [-p port] [-o port] [-w node1,..,nodeN] "
-		    "[-x node1,...,nodeN] [command ...]\n");
-		return(EXIT_FAILURE);
-		/*NOTREACHED*/
-		break;
-	    default:
-		break;
 	    }
+	    group = NULL;
+	    break;			
+	case 'x':		/* exclude nodes, w overrides this */
+	    exclusion = 1;
+	    i = 0;
+	    for (p = optarg; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL) {
+		    if (((i+1) % GROUP_MALLOC) != 0) {
+			exclude[i++] = strdup(nodename);
+		    } else {
+			grouptemp = realloc(exclude,
+					    i*sizeof(char **) +
+					    GROUP_MALLOC*sizeof(char *));
+			if (grouptemp != NULL)
+			    exclude = grouptemp;
+			else
+			    bailout();
+			exclude[i++] = strdup(nodename);
+		    }
+		}
+	    }
+	    break;
+	case 'w':		/* perform operation on these nodes */
+	    someflag = 1;
+	    for (p = optarg; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL)
+		    (void)nodealloc(nodename);
+	    }
+	    break;
+	case 'o':		/* port to listen to requests on */
+	    oportnum = atoi(optarg);
+	    break;
+	case 'p':		/* port to listen to completions on */
+	    iportnum = atoi(optarg);
+	    break;
+	case '?':		/* you blew it */
+	    (void)fprintf(stderr,
+		 "usage: jsd [-iq] [-f fanout] [-g rungroup1,...,rungroupN] "
+		 "[-l username] [-p port] [-o port] [-w node1,..,nodeN] "
+       		 "[-x node1,...,nodeN] [command ...]\n");
+	    return(EXIT_FAILURE);
+	    /*NOTREACHED*/
+	    break;
+	default:
+	    break;
+	}
+
 /* check for a fanout var, and use it if the fanout isn't on the commandline */
     if (!fanflag)
 	if (getenv("FANOUT"))
 	    fanout = atoi(getenv("FANOUT"));
-
     if (!iportnum) {
 	if (getenv("JSD_IPORT"))
 	    iportnum = atoi(getenv("JSD_IPORT"));
 	else
 	    iportnum = JSDIPORT;
     }
+    if (username == NULL)
+        if (getenv("RCMD_USER"))
+            username = strdup(getenv("RCMD_USER"));
     if (!oportnum) {
 	if (getenv("JSD_OPORT"))
 	    oportnum = atoi(getenv("JSD_OPORT"));
@@ -254,7 +257,6 @@ main(int argc, char **argv)
 
 	/* jump to the loop */
 	main_loop();
-
     } else if (pid > 0) {
 	(void)printf("%d\n", pid); /* spit the pid out */
 	return(EXIT_SUCCESS);
@@ -329,12 +331,12 @@ void main_loop(void)
 	if (debug)
 	    syslog(LOG_DEBUG, "We have a connection");
 	if (select(FD_SETSIZE, &free_fd_set, &free_fd_set, NULL, &timeout)) {
-/* jsh wants to free a node */
+	    /* jsh wants to free a node */
 	    if (debug)
 		syslog(LOG_DEBUG, "Someone wants to free a node");
 	    free_node(isock);
 	} else if (select(FD_SETSIZE, &node_fd_set, NULL, NULL, &timeout)) {
-/* jsh wants a node */
+	    /* jsh wants a node */
 	    if (debug)
 		syslog(LOG_DEBUG, "Someone wants a node");
 	    new = accept(osock, (struct sockaddr *) &clientname, &size);
@@ -405,7 +407,7 @@ void
 do_bench_command(char *argv, int fanout, char *username)
 {
     FILE *fd, *in;
-    char pipebuf[2048];
+    char pipebuf[2048], buf[MAXBUF];
     int status, i, j, n, g;
     char *q, *rsh, *cd;
     node_t *nodeptr, *nodehold;
@@ -446,6 +448,11 @@ do_bench_command(char *argv, int fanout, char *username)
 	syslog(LOG_DEBUG, "Fanout: %d Groups:%d", fanout, j);
     }
 
+    rsh = getenv("RCMD_CMD");
+    if (rsh == NULL)
+	rsh = strdup("rsh");
+    if (rsh == NULL)
+	bailout();
     g = 0;
     nodeptr = nodelink;
     for (n=0; n <= j; n++) {
@@ -483,21 +490,14 @@ do_bench_command(char *argv, int fanout, char *username)
 		    log_bailout();
 		if (close(nodeptr->out.fds[0]) != 0)
 		    log_bailout();
-		rsh = getenv("RCMD_CMD");
-		if (rsh == NULL)
-		    rsh = strdup("rsh");
-		if (rsh == NULL)
-		    bailout();
-		if (debug)
-		    syslog(LOG_DEBUG, "%s %s %s", rsh, nodeptr->name,
-			argv);
 
 		if (username != NULL)
-/* interestingly enough, this -l thing works great with ssh */
-		    execlp(rsh, rsh, "-l", username, nodeptr->name,
-			argv, (char *)0);
+		    (void)sprintf(buf, "%s@%s", username, nodeptr->name);
 		else
-		    execlp(rsh, rsh, nodeptr->name, argv, (char *)0);
+		    (void)sprintf(buf, "%s", nodeptr->name);
+		if (debug)
+		    syslog(LOG_DEBUG, "%s %s %s", rsh, buf, argv);
+		execlp(rsh, rsh, buf, argv, (char *)0);
 		log_bailout();
 		break;
 	    default:

@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.12 2004/10/04 18:24:38 garbled Exp $ */
+/* $Id: pcp.c,v 1.13 2005/05/23 05:37:31 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -32,6 +32,7 @@
  */
 
 #include <fcntl.h>
+#include <poll.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/resource.h>
@@ -42,16 +43,16 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.12 2004/10/04 18:24:38 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.13 2005/05/23 05:37:31 garbled Exp $");
 #endif
 
 extern int errno;
 
 void do_copy(char **argv, int recurse, int preserve, char *username);
-void paralell_copy(char *rcp, char *args, char *source_file,
-	char *destination_file);
-void serial_copy(char *rcp, char *args, char *source_file,
-	char *destination_file);
+void paralell_copy(char *rcp, char *args, char *username, char *source_file,
+		   char *destination_file);
+void serial_copy(char *rcp, char *args, char *username, char *source_file,
+		 char *destination_file);
 
 char **lumplist;
 char **rungroup;
@@ -107,103 +108,107 @@ main(int argc, char **argv)
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?cdeprf:g:l:w:x:")) != -1)
 #else
-	while ((ch = getopt(argc, argv, "?cdeprf:g:l:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?cdeprf:g:l:w:x:")) != -1)
 #endif
-	    switch (ch) {
-	    case 'c':		/* set concurrent mode */
-		concurrent = 1;
-		break;
-	    case 'd':		/* hidden debug mode */
-		debug = 1;
-		break;
-	    case 'e':		/* display error messages */
-		quiet = 0;
-		break;
-	    case 'p':		/* preserve file modes */
-		preserve = 1;
-		break;
-	    case 'r':		/* recursive directory operations */
-		recurse = 1;
-		break;
-	    case 'l':               /* invoke me as some other user */
-		username = strdup(optarg);
-		break;
-	    case 'f':		/* set the fanout size */
-		fanout = atoi(optarg);
-		break;
-	    case 'g':		/* pick a group to run on */
-		i = 0;
-		grouping = 1;
-		for (p = optarg; p != NULL; ) {
-		    group = (char *)strsep(&p, ",");
-		    if (group != NULL) {
-			if (((i+1) % GROUP_MALLOC) != 0) {
-			    rungroup[i++] = strdup(group);
-			} else {
-			    grouptemp = realloc(rungroup,
-				i*sizeof(char **) +
-				GROUP_MALLOC*sizeof(char *));
-			    if (grouptemp != NULL)
-				rungroup = grouptemp;
-			    else
-				bailout();
-			    rungroup[i++] = strdup(group);
-			}
+	switch (ch) {
+	case 'c':		/* set concurrent mode */
+	    concurrent = 1;
+	    break;
+	case 'd':		/* hidden debug mode */
+	    debug = 1;
+	    break;
+	case 'e':		/* display error messages */
+	    quiet = 0;
+	    break;
+	case 'p':		/* preserve file modes */
+	    preserve = 1;
+	    break;
+	case 'r':		/* recursive directory operations */
+	    recurse = 1;
+	    break;
+	case 'l':               /* invoke me as some other user */
+	    username = strdup(optarg);
+	    break;
+	case 'f':		/* set the fanout size */
+	    fanout = atoi(optarg);
+	    break;
+	case 'g':		/* pick a group to run on */
+	    i = 0;
+	    grouping = 1;
+	    for (p = optarg; p != NULL; ) {
+		group = (char *)strsep(&p, ",");
+		if (group != NULL) {
+		    if (((i+1) % GROUP_MALLOC) != 0) {
+			rungroup[i++] = strdup(group);
+		    } else {
+			grouptemp = realloc(rungroup,
+					    i*sizeof(char **) +
+					    GROUP_MALLOC*sizeof(char *));
+			if (grouptemp != NULL)
+			    rungroup = grouptemp;
+			else
+			    bailout();
+			rungroup[i++] = strdup(group);
 		    }
 		}
-		group = NULL;
-		break;
-	    case 'x':		/* exclude nodes, w overrides this */
-		exclusion = 1;
-		i = 0;
-		for (p = optarg; p != NULL; ) {
-		    nodename = (char *)strsep(&p, ",");
-		    if (nodename != NULL) {
-			if (((i+1) % GROUP_MALLOC) != 0) {
-			    exclude[i++] = strdup(nodename);
-			} else {
-			    grouptemp = realloc(exclude,
-				i*sizeof(char **) +
-				GROUP_MALLOC*sizeof(char *));
-			    if (grouptemp != NULL)
-				exclude = grouptemp;
-			    else
-				bailout();
-			    exclude[i++] = strdup(nodename);
-			}
-		    }
-		}
-		break;
-	    case 'w':		/* perform operation on these nodes */
-		someflag = 1;
-		i = 0;
-		for (p = optarg; p != NULL; ) {
-		    nodename = (char *)strsep(&p, ",");
-		    if (nodename != NULL)
-			(void)nodealloc(nodename);
-		}
-		break;
-	    case '?':
-		(void)fprintf(stderr,
-		    "usage: %s [-cepr] [-f fanout] [-g rungroup1,...,rungroupN] "
-		    "[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
-		    "source_file1 [source_file2 ... source_fileN] "
-		    "[desitination_file]\n", progname);
-		return(EXIT_FAILURE);
-		/* NOTREACHED */
-		break;
-	    default:
-		break;
 	    }
+	    group = NULL;
+	    break;
+	case 'x':		/* exclude nodes, w overrides this */
+	    exclusion = 1;
+	    i = 0;
+	    for (p = optarg; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL) {
+		    if (((i+1) % GROUP_MALLOC) != 0) {
+			exclude[i++] = strdup(nodename);
+		    } else {
+			grouptemp = realloc(exclude,
+					    i*sizeof(char **) +
+					    GROUP_MALLOC*sizeof(char *));
+			if (grouptemp != NULL)
+			    exclude = grouptemp;
+			else
+			    bailout();
+			exclude[i++] = strdup(nodename);
+		    }
+		}
+	    }
+	    break;
+	case 'w':		/* perform operation on these nodes */
+	    someflag = 1;
+	    i = 0;
+	    for (p = optarg; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL)
+		    (void)nodealloc(nodename);
+	    }
+	    break;
+	case '?':
+	    (void)fprintf(stderr,
+		"usage: %s [-cepr] [-f fanout] [-g rungroup1,...,rungroupN] "
+		"[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
+		"source_file1 [source_file2 ... source_fileN] "
+		"[desitination_file]\n", progname);
+	    return(EXIT_FAILURE);
+	    /* NOTREACHED */
+	    break;
+	default:
+	    break;
+	}
     if (fanout == 0) {
 	if (getenv("FANOUT"))
 	    fanout = atoi(getenv("FANOUT"));
 	else
 	    fanout = DEFAULT_FANOUT;
     }
+    if (username == NULL)
+	if (getenv("RCP_USER"))
+	    username = strdup(getenv("RCP_USER"));
+
     if (!someflag)
 	parse_cluster(exclude);
-
+    
     argc -= optind;
     argv += optind;
     do_copy(argv, recurse, preserve, username);
@@ -272,17 +277,12 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
 	strcat(args, "-r ");
     if (preserve)
 	strcat(args, "-p ");
-    if (username != NULL) {
-	strcat(args, "-l ");
-	strcat(args, username);
-	strcat(args, " ");
-    }
     cargs = strdup(args);
 
     if (concurrent)
-	paralell_copy(rcp, cargs, source_file, destination_file);
+	paralell_copy(rcp, cargs, username, source_file, destination_file);
     else
-	serial_copy(rcp, cargs, source_file, destination_file);
+	serial_copy(rcp, cargs, username, source_file, destination_file);
 }
 
 /* Copy files in paralell.  This is preferred with smaller files, because
@@ -291,15 +291,17 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
    good packets, and actually slow it down, thus serial is faster. */
 
 void
-paralell_copy(char *rcp, char *args, char *source_file, char *destination_file)
+paralell_copy(char *rcp, char *args, char *username, char *source_file,
+	      char *destination_file)
 {
-    int i, j, n, g, status;
+    int i, j, n, g, status, pollret;
     char buf[MAXBUF], pipebuf[2048], *cd, *p;
-    FILE *fd, *in;
+    FILE *fd, *fda, *in;
     char *argz[51], **aps;
     node_t *nodeptr, *nodehold;
     size_t maxnodelen;
     pid_t currentchild;
+    struct pollfd fds[2];
 
     j = i = maxnodelen = 0;
     in = NULL;
@@ -322,12 +324,12 @@ paralell_copy(char *rcp, char *args, char *source_file, char *destination_file)
 	nodehold = nodeptr;
 	for (i=0; (i < fanout && nodeptr != NULL); i++) {
 	    g++;
-/*
- * we set up pipes for each node, to prepare for the oncoming barrage of data.
- * Close on exec must be set here, otherwise children spawned after other
- * children, inherit the open file descriptors, and cause the pipes to remain
- * open forever.
- */
+	    /*
+	     * we set up pipes for each node, to prepare for the oncoming
+	     * barrage of data. Close on exec must be set here, otherwise
+	     * children spawned after other children, inherit the open file
+	     * descriptors, and cause the pipes to remain  open forever.
+	     */
 	    if (pipe(nodeptr->out.fds) != 0)
 		bailout();
 	    if (pipe(nodeptr->err.fds) != 0)
@@ -340,9 +342,15 @@ paralell_copy(char *rcp, char *args, char *source_file, char *destination_file)
 		bailout();
 	    if (fcntl(nodeptr->err.fds[1], F_SETFD, 1) == -1)
 		bailout();
+	    if (username != NULL)
+		(void)sprintf(buf, "%s %s %s %s@%s:%s", rcp, args,
+			      source_file, username, nodeptr->name,
+			      destination_file);
+	    else
+		(void)sprintf(buf, "%s %s %s %s:%s", rcp, args, source_file,
+			      nodeptr->name, destination_file);
 	    if (debug)
-		printf("%s %s %s %s:%s\n", rcp, args, source_file,
-		    nodeptr->name, destination_file);
+		printf("Running command: %s\n", buf);
 	    nodeptr->childpid = fork();
 	    switch (nodeptr->childpid) {
 	    case -1:
@@ -357,8 +365,6 @@ paralell_copy(char *rcp, char *args, char *source_file, char *destination_file)
 		    bailout();
 		if (close(nodeptr->err.fds[0]) != 0)
 		    bailout();
-		(void)sprintf(buf, "%s %s %s %s:%s", rcp, args,
-		    source_file, nodeptr->name, destination_file);
 		p = strdup(buf);
 		for (aps = argz; (*aps = strsep(&p, " ")) != NULL;)
 		    if (**aps != '\0')
@@ -378,21 +384,53 @@ paralell_copy(char *rcp, char *args, char *source_file, char *destination_file)
 		bailout();
 	    if (close(nodeptr->err.fds[1]) != 0)
 		bailout();
-	    fd = fdopen(nodeptr->out.fds[0], "r"); /* stdout */
-	    if (fd == NULL)
+	    fda = fdopen(nodeptr->out.fds[0], "r"); /* stdout */
+	    if (fda == NULL)
 		bailout();
-	    while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
-		if (cd != NULL && !quiet)
-		    (void)printf("%*s: %s",
-			-maxnodelen, nodeptr->name, cd);
-	    fclose(fd);
 	    fd = fdopen(nodeptr->err.fds[0], "r"); /* stderr */
 	    if (fd == NULL)
 		bailout();
-	    while ((cd = fgets(pipebuf, sizeof(pipebuf), fd)))
-		if (cd != NULL && !quiet)
-		    (void)printf("%*s: %s",
-			-maxnodelen, nodeptr->name, cd);
+	    fds[0].fd = nodeptr->out.fds[0];
+	    fds[1].fd = nodeptr->err.fds[0];
+	    fds[0].events = POLLIN|POLLPRI;
+	    fds[1].events = POLLIN|POLLPRI;
+	    pollret = 1;
+
+	    while (pollret >= 0) {
+		int gotdata;
+		
+		pollret = poll(fds, 2, 5);
+		gotdata = 0;
+		if ((fds[0].revents&POLLIN) == POLLIN ||
+		    (fds[0].revents&POLLPRI) == POLLPRI) {
+		    cd = fgets(pipebuf, sizeof(pipebuf), fda);
+		    if (cd != NULL && !quiet) {
+			(void)printf("%*s: %s",
+				     -maxnodelen, nodeptr->name, cd);
+			gotdata++;
+		    } else if (cd != NULL && quiet)
+			gotdata++;
+		}
+		if ((fds[1].revents&POLLIN) == POLLIN ||
+		    (fds[1].revents&POLLPRI) == POLLPRI) {
+		    cd = fgets(pipebuf, sizeof(pipebuf), fd);
+		    if (cd != NULL && !quiet) {
+			(void)printf("%*s: %s",
+				     -maxnodelen, nodeptr->name, cd);
+			gotdata++;
+		    } else if (cd != NULL && quiet)
+			gotdata++;
+		}
+		if (!gotdata)
+		    if (((fds[0].revents&POLLHUP) == POLLHUP ||
+			 (fds[0].revents&POLLERR) == POLLERR ||
+			 (fds[0].revents&POLLNVAL) == POLLNVAL) &&
+			((fds[1].revents&POLLHUP) == POLLHUP ||
+			 (fds[1].revents&POLLERR) == POLLERR ||
+			 (fds[1].revents&POLLNVAL) == POLLNVAL))
+			break;
+	    }
+	    fclose(fda);
 	    fclose(fd);
 	    (void)wait(&status);
 	    nodeptr = nodeptr->next;
@@ -403,15 +441,22 @@ paralell_copy(char *rcp, char *args, char *source_file, char *destination_file)
 /* serial copy */
 
 void
-serial_copy(char *rcp, char *args, char *source_file, char *destination_file)
+serial_copy(char *rcp, char *args, char *username, char *source_file,
+	    char *destination_file)
 {
     node_t *nodeptr;
     char buf[MAXBUF], *command;
 
     for (nodeptr=nodelink; nodeptr != NULL; nodeptr = nodeptr->next) {
-	(void)sprintf(buf, "%s %s %s %s:%s", rcp, args, source_file,
-	    nodeptr->name, destination_file);
+	if (username != NULL)
+	    (void)sprintf(buf, "%s %s %s %s@%s:%s", rcp, args, source_file,
+			  username, nodeptr->name, destination_file);
+	else
+	    (void)sprintf(buf, "%s %s %s %s:%s", rcp, args, source_file,
+			  nodeptr->name, destination_file);
 	command = strdup(buf);
+	if (debug)
+	    printf("Running command: %s\n", buf);
 	system(command);
     }
 }

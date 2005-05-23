@@ -1,4 +1,4 @@
-.\"	$Id: pcp.1,v 1.12 2001/08/13 22:36:26 garbled Exp $
+.\"	$Id: pcp.1,v 1.13 2005/05/23 05:37:31 garbled Exp $
 .\"
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
@@ -156,6 +156,8 @@ in the cluster.
 Command to use to copy files to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 .Ic rcp
+.It Ev RCP_USER
+The username to connect to remote machines as by default.
 .It Ev FANOUT
 When set, limits the maximum number of concurrent commands sent at
 once.  This can be used to keep from overloading a small host when
