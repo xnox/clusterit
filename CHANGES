@@ -1,4 +1,38 @@
-$Id: CHANGES,v 1.7 2001/08/14 04:49:30 garbled Exp $
+$Id: CHANGES,v 1.8 2005/05/23 22:54:54 garbled Exp $
+
+* Release 2.3 *
+Made all remote commands use poll instead of a while loop to read the incoming
+stream of data from stdout and stderr.  This fixes bug where linux ssh will
+hang up.
+
+Fixed linux command line argument processing.
+
+Changed the -l <username> processing to invoke RCMD_CMD with user@host rather
+than -l user host.  This makes it much more reliable.
+
+Added an option to dsh to test remote ports before connecting.  This can be
+useful where a remote host might be down, and a long timeout would occur
+waiting for a response.
+
+Updated rvt to use a newer set of sources from xvt.  Fixes questionable
+licensing in xvt, and makes it more reliable.
+
+Converted makefiles to autoconf for ease of porting.  No more stupid patch
+sets which were a terrible burden to maintain and generate.
+
+ANSIfyed most of the code (other than rvt). Nobody uses KNF anymore.. sigh..
+
+Incorporated many patches sent by users from the internet.  I have
+unfortunately lost track of what patch came from who, but thier help is
+greatly appreciated.  Most of these patches either fixed bugs, added stability
+or fixed porting bugs.  The xvt conversion was based mainly on a patch sent
+in by a user.  My thanks go out to those of you who have sent them in.
+
+# changes since 2.2
+
+* Release 2.2 *
+Missing this data, sorry
+* Release 2.0 *
 
 Added dvt and rvt..  an interactive form of dsh with xterms.
 
