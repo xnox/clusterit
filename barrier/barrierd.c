@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.15 2004/10/04 18:20:33 garbled Exp $ */
+/* $Id: barrierd.c,v 1.16 2005/05/23 05:34:24 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.15 2004/10/04 18:20:33 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.16 2005/05/23 05:34:24 garbled Exp $");
 #endif
 
 #define MAX_TOKENS	10
@@ -73,19 +73,19 @@ main(int argc, char **argv)
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?p:")) != -1)
 #else
-	while ((ch = getopt(argc, argv, "?p:")) != -1)
+    while ((ch = getopt(argc, argv, "?p:")) != -1)
 #endif
-	    switch (ch) {
-	    case 'p':
-		barrier_port = atoi(optarg);
-		break;
-	    case '?':
-		(void)fprintf(stderr, "usage: barrierd [-p port]\n");
-		exit(EXIT_FAILURE);
-		break;
-	    default:
-		break;
-	    }
+	switch (ch) {
+	case 'p':
+	    barrier_port = atoi(optarg);
+	    break;
+	case '?':
+	    (void)fprintf(stderr, "usage: barrierd [-p port]\n");
+	    exit(EXIT_FAILURE);
+	    break;
+	default:
+	    break;
+	}
 
     if (barrier_port == 0) {
 	if (getenv("BARRIER_PORT") != NULL)
@@ -169,7 +169,7 @@ sleeper(void)
 			    }
 			    if (!found) /* we didn't find a matching token,
 					   now make a new one */
-				for (k=0; (k < MAX_TOKENS && tokens[k] != NULL);
+				for (k=0;(k < MAX_TOKENS && tokens[k] != NULL);
 				     k++);
 
 			    if (k > MAX_TOKENS - 1) {

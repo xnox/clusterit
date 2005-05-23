@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.15 2004/10/04 18:20:33 garbled Exp $ */
+/* $Id: barrier.c,v 1.16 2005/05/23 05:34:24 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrier.c,v 1.15 2004/10/04 18:20:33 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.16 2005/05/23 05:34:24 garbled Exp $");
 #endif
 
 int quietflag, barrier_port, debug;
@@ -75,32 +75,32 @@ main(int argc, char **argv)
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?dh:k:p:s:")) != -1)
 #else
-	while ((ch = getopt(argc, argv, "?dh:k:p:s:")) != -1)
+    while ((ch = getopt(argc, argv, "?dh:k:p:s:")) != -1)
 #endif
-	    switch (ch) {
-	    case 'q':
-		quietflag = 0;
-		break;
-	    case 'h':
-		barrier_host = strdup(optarg);
-		break;
-	    case 'k':
-		key = strdup(optarg);
-		break;
-	    case 'p':
-		barrier_port = atoi(optarg);
-		break;
-	    case 's':
-		nodes = atoi(optarg);
-		break;
-	    case '?':
-		(void)fprintf(stderr, "usage: barrier [-q] [-h barrier_host]"
-		    " [-k key] [-p port] -s cluster_size\n");
-		exit(EXIT_FAILURE);
-		break;
-	    default:
-		break;
-	    }
+	switch (ch) {
+	case 'q':
+	    quietflag = 0;
+	    break;
+	case 'h':
+	    barrier_host = strdup(optarg);
+	    break;
+	case 'k':
+	    key = strdup(optarg);
+	    break;
+	case 'p':
+	    barrier_port = atoi(optarg);
+	    break;
+	case 's':
+	    nodes = atoi(optarg);
+	    break;
+	case '?':
+	    (void)fprintf(stderr, "usage: barrier [-q] [-h barrier_host]"
+			  " [-k key] [-p port] -s cluster_size\n");
+	    exit(EXIT_FAILURE);
+	    break;
+	default:
+	    break;
+	}
     if (nodes < 1) {
 	(void)fprintf(stderr, "usage: barrier [-q] [-h barrier_host] "
 	    "[-k key] [-p port] -s cluster_size\n");
