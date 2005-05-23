@@ -1,16 +1,9 @@
-# $Id: TODO,v 1.6 2001/08/14 04:50:43 garbled Exp $
+# $Id: TODO,v 1.7 2005/05/23 05:32:55 garbled Exp $
 # no particular order:
 
 Port interrupt handling to seq and run.
 
 Break apart do_command in dsh.c to something sane.
-
-create makefile patch for SUNWpro C, and SUN gnu C.  (assistance here would 
-be greatly appreciated)
-
-instead of showing stdout, followed by stderr in dsh, use poll or select to
-multiplex the input and show it like it would actually appear on the remote
-servers.
 
 make dshbak more useful.  The IBM format is nasty.
 
@@ -20,6 +13,10 @@ COMPLETED
 ---------
 
 Fixed post 1.3
+	Instead of showing stdout, followed by stderr in dsh, use poll
+	or select to multiplex the input and show it like it would
+	actually appear on the remote servers.
+
 	LUMPS, which would be groups of GROUPS, to allow a sort of virtual
 	group.  ie: you could have functions in groups, like mail, www, etc..
 	and have machine type lumps, for example, all NetBSD, all hpux, for

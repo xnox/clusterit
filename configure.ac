@@ -18,6 +18,8 @@ AC_CHECK_LIB([util], [openpty], [AC_DEFINE(HAVE_OPENPTY)
 	ADDLIBS="$ADDLIBS -lutil"])
 AC_CHECK_LIB([util], [login_tty], [AC_DEFINE(HAVE_LOGIN_TTY)
 	ADDLIBS="$ADDLIBS -lutil"])
+AC_CHECK_LIB([socket], [listen])
+AC_CHECK_LIB([nsl], [gethostbyname])
 
 # Checks for header files.
 AC_PATH_XTRA
