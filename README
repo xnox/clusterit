@@ -1,6 +1,6 @@
-$Id: README,v 1.7 2001/08/14 04:58:32 garbled Exp $
+$Id: README,v 1.8 2005/05/24 05:22:51 garbled Exp $
 
-Welcome to clusterit-2.0 !
+Welcome to clusterit-2.3 !
 
 This is a collection of clustering tools, to turn your ordinary
 everyday pile of UNIX workstations into a speedy parallel beast.
