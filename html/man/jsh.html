@@ -1,39 +1,39 @@
 <html>
 <head>
-     <title>
-           February 19, 2000 JSH 1
+        <title>
+                 February 19, 2000 JSH 1
 
-     </title>
+        </title>
         <style type="text/css">
         <!--
-          body { margin-left:4%; }
-          H1 { color: maroon; padding: 4pt; margin-left: -4% }
-          H2 { color: maroon; padding: 4pt; margin-left: -4% }
-          H3 { color: maroon; padding: 4pt; margin-left: -4% }
-          H4 { color: maroon; padding: 4pt; margin-left: -4% }
-          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+                body { margin-left:4%; }
+                H1, H2, H3, H4, H5 {
+                        color: maroon; padding: 4pt; margin-left: -4%;
+                        border: solid; border-width: thin; width: 100%;
+                        background: rgb(204,204,255)
+                }
         -->
         </style>
 </head>
 <body bgcolor="#FFFFFF" text="#000000">
-     <h3>
-     NAME
-     </h3>
+        <h3>
+        NAME
+        </h3>
 <b>jsh</b>
 - run scheduled commands on remote machines
-     <h3>
-     SYNOPSIS
-     </h3>
+        <h3>
+        SYNOPSIS
+        </h3>
 <b>jsh</b>
-[<b></b><b>-aei</b>]
-[<b></b><b>-l</b><i></i><i> username</i>]
-[<b></b><b>-p</b><i></i><i> port</i>]
-[<b></b><b>-o</b><i></i><i> port</i>]
-[<b></b><b>-h</b><i></i><i> hostname</i>]
+[<b>-</b><b></b><b>aei</b>]
+[<b>-</b><b></b><b>l</b><i></i><i> username</i>]
+[<b>-</b><b></b><b>p</b><i></i><i> port</i>]
+[<b>-</b><b></b><b>o</b><i></i><i> port</i>]
+[<b>-</b><b></b><b>h</b><i></i><i> hostname</i>]
 [<i></i><i>command</i><i> ...</i>]
-     <h3>
-     DESCRIPTION
-     </h3>
+        <h3>
+        DESCRIPTION
+        </h3>
 The
 <b>jsh</b>
 program connects to a
@@ -48,40 +48,40 @@ daemon for future use by other
 processes.  The primary use of this is to ensure that no more than one
 remote process is running on any single machine at a point in time.
 This can be used to better facilitate bulk parallel compiling.
-     <p>
+        <p>
 The following options are available:
 <dl compact>
-<p><dt><b></b><b>-a</b><dd>
+<p><dt><b>-</b><b></b><b>a</b><dd>
 The
-<b></b><b>-a</b>
+<b>-</b><b></b><b>a</b>
 option modifies the behavior of
 <b>jsh</b>
 when dealing with stdin.  Normally all commands from stdin are run on
 the same machine.  Specifying the
-<b></b><b>-a</b>
+<b>-</b><b></b><b>a</b>
 option causes each command to be run on the next node in the seqence.
-<p><dt><b></b><b>-e</b><dd>
+<p><dt><b>-</b><b></b><b>e</b><dd>
 Unless the
-<b></b><b>-e</b>
+<b>-</b><b></b><b>e</b>
 option is specified, stderr from remote commands will not be reported
 to the user.
-<p><dt><b></b><b>-i</b><dd>
+<p><dt><b>-</b><b></b><b>i</b><dd>
 The
-<b></b><b>-i</b>
+<b>-</b><b></b><b>i</b>
 option will list information about the current cluster, and command
 groupings. It will also show you which command you are about to run,
 and your username if specified with the
-<b></b><b>-l</b>
+<b>-</b><b></b><b>l</b>
 option.
-<p><dt><b></b><b>-l</b><dd>
+<p><dt><b>-</b><b></b><b>l</b><dd>
 If the
-<b></b><b>-l</b>
+<b>-</b><b></b><b>l</b>
 option is specified, followed by a username, the commands will be run under
 that userid on the remote machines.  Consideration must be taken for proper
 authentication, for this to work.
-<p><dt><b></b><b>-p</b><dd>
+<p><dt><b>-</b><b></b><b>p</b><dd>
 The
-<b></b><b>-p</b>
+<b>-</b><b></b><b>p</b>
 option can be used to set the port number which jsd will listen to
 replies from
 <em></em><em>jsh</em>
@@ -89,18 +89,18 @@ processes indicating completion of processing on remote nodes.  This
 option overrides the
 <code></code><code>JSD_IPORT</code>
 environment variable.  The default listen port is 2001.
-<p><dt><b></b><b>-o</b><dd>
+<p><dt><b>-</b><b></b><b>o</b><dd>
 The
-<b></b><b>-o</b>
+<b>-</b><b></b><b>o</b>
 option can be used to set the port number which jsd will listen to
 requests from
 <em></em><em>jsh</em>
 processes for remote nodes.  This option overrides the
 <code></code><code>JSD_OPORT</code>
 environment variable.  The default listen port is 2002.
-<p><dt><b></b><b>-h</b><dd>
+<p><dt><b>-</b><b></b><b>h</b><dd>
 The
-<b></b><b>-h</b>
+<b>-</b><b></b><b>h</b>
 option can be used to set the remote hostname where a
 <em></em><em>jsd</em>
 daemon is running.
@@ -109,14 +109,14 @@ defaults to contacting a
 <em></em><em>jsd</em>
 daemon on the local machine, but can be set up to talk to a remote
 daemon.  The
-<b></b><b>-h</b>
+<b>-</b><b></b><b>h</b>
 option will override the
 <code></code><code>JSD_HOST</code>
 environment variable.
 </dl>
-     <h3>
-     ENVIRONMENT
-     </h3>
+        <h3>
+        ENVIRONMENT
+        </h3>
 <b>jsh</b>
 utilizes the following environment variables:
 <dl compact>
@@ -129,7 +129,7 @@ When set, overrides the default port which jsd listens on for
 <em></em><em>jsh</em>
 processes requesting nodes.  This environment setting can be overriden
 by the
-<b></b><b>-o</b>
+<b>-</b><b></b><b>o</b>
 option.
 <p><dt><code></code><code>JSD_IPORT</code><dd>
 When set, overrides the default port which jsd listens on for
@@ -137,34 +137,34 @@ When set, overrides the default port which jsd listens on for
 processes reporting back that it has completed processing on a node.
 This environment setting can be overriden
 by the
-<b></b><b>-p</b>
+<b>-</b><b></b><b>p</b>
 option.
 <p><dt><code></code><code>JSD_HOST</code><dd>
 When set, contains the hostname of the remote machine that the
 <em></em><em>jsd</em>
 daemon is listening on.  This environment setting can be overriden by
 the
-<b></b><b>-h</b>
+<b>-</b><b></b><b>h</b>
 option.
 </dl>
-     <h3>
-     SEE ALSO
-     </h3>
-<code>dsh(1)</code>,
-<code>rsh(1)</code>,
-<code>kerberos(3)</code>,
-<code>hosts.equiv(5)</code>,
-<code>rhosts(5)</code>,
-<code>jsd(1)</code>.
-     <h3>
-     HISTORY
-     </h3>
+        <h3>
+        SEE ALSO
+        </h3>
+<a href="dsh.html">dsh(1)</a>,
+<a href="rsh.html">rsh(1)</a>,
+<a href="../html3/kerberos.html">kerberos(3)</a>,
+<a href="../html5/hosts.equiv.html">hosts.equiv(5)</a>,
+<a href="../html5/rhosts.html">rhosts(5)</a>,
+<a href="jsd.html">jsd(1)</a>.
+        <h3>
+        HISTORY
+        </h3>
 The
 <b>jsh</b>
 command first appeared in clusterit 2.0.
-     <h3>
-     AUTHOR
-     </h3>
+        <h3>
+        AUTHOR
+        </h3>
 <b>Jsh</b>
 was written by Tim Rightnour.
 </font></body>

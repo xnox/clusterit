@@ -1,175 +1,175 @@
 <html>
 <head>
-     <title>
-           January 7, 2001 RVT 1
+        <title>
+                 January 7, 2001 RVT 1
 
-     </title>
+        </title>
         <style type="text/css">
         <!--
-          body { margin-left:4%; }
-          H1 { color: maroon; padding: 4pt; margin-left: -4% }
-          H2 { color: maroon; padding: 4pt; margin-left: -4% }
-          H3 { color: maroon; padding: 4pt; margin-left: -4% }
-          H4 { color: maroon; padding: 4pt; margin-left: -4% }
-          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+                body { margin-left:4%; }
+                H1, H2, H3, H4, H5 {
+                        color: maroon; padding: 4pt; margin-left: -4%;
+                        border: solid; border-width: thin; width: 100%;
+                        background: rgb(204,204,255)
+                }
         -->
         </style>
 </head>
 <body bgcolor="#FFFFFF" text="#000000">
-     <h3>
-     NAME
-     </h3>
+        <h3>
+        NAME
+        </h3>
 <b>rvt</b>
 - a specialized VT100 emulator for the X window system
-     <h3>
-     SYNOPSIS
-     </h3>
+        <h3>
+        SYNOPSIS
+        </h3>
 <b>rvt</b>
-[<b></b><b>-l</b><i></i><i> username</i>]
-[<b></b><b>-display</b><i></i><i> display-name</i>]
-[<b></b><b>-geometry</b><i></i><i> window-geometry</i>]
-[<b></b><b>-bg</b><i></i><i> color</i>]
-[<b></b><b>-fg</b><i></i><i> color</i>]
-[<b></b><b>-bd</b><i></i><i> color</i>]
-[<b></b><b>-bw</b><i></i><i> number</i>]
-[<b></b><b>-font</b><i></i><i> fontname</i>]
-[<b></b><b>-fb</b><i></i><i> fontname</i>]
-[<b></b><b>-name</b><i></i><i> name</i>]
-[<b></b><b>-sl</b><i></i><i> number</i>]
-[<b></b><b>-cc</b><i></i><i> char-class</i>]
-[<b></b><b>-sb</b>]
-[<b></b><b>-rw</b>]
-[<b></b><b>-msg</b>]
-[<b></b><b>-iconic</b>]
+[<b>-</b><b></b><b>l</b><i></i><i> username</i>]
+[<b>-</b><b></b><b>display</b><i></i><i> display-name</i>]
+[<b>-</b><b></b><b>geometry</b><i></i><i> window-geometry</i>]
+[<b>-</b><b></b><b>bg</b><i></i><i> color</i>]
+[<b>-</b><b></b><b>fg</b><i></i><i> color</i>]
+[<b>-</b><b></b><b>bd</b><i></i><i> color</i>]
+[<b>-</b><b></b><b>bw</b><i></i><i> number</i>]
+[<b>-</b><b></b><b>font</b><i></i><i> fontname</i>]
+[<b>-</b><b></b><b>fb</b><i></i><i> fontname</i>]
+[<b>-</b><b></b><b>name</b><i></i><i> name</i>]
+[<b>-</b><b></b><b>sl</b><i></i><i> number</i>]
+[<b>-</b><b></b><b>cc</b><i></i><i> char-class</i>]
+[<b>-</b><b></b><b>sb</b>]
+[<b>-</b><b></b><b>rw</b>]
+[<b>-</b><b></b><b>msg</b>]
+[<b>-</b><b></b><b>iconic</b>]
 <i></i><i>remote-machine</i>
-     <h3>
-     DESCRIPTION
-     </h3>
+        <h3>
+        DESCRIPTION
+        </h3>
 The
 <b>rvt</b>
 program is a VT100 terminal emulator for X.  It is intended as
 a partial replacement for
-<code>xterm(1)</code>
+<a href="xterm.html">xterm(1)</a>
 for users who do not require the more esoteric features of
-<code>xterm(1)</code>.
+<a href="xterm.html">xterm(1)</a>.
 Specifically
 <b>rvt</b>
 does not implement the Tektronix 4014 emulation, session logging
 and toolkit style configurability. As a result,
 <b>rvt</b>
 uses much less swap space than
-<code>xterm(1)</code>,
+<a href="xterm.html">xterm(1)</a>,
 a significant advantage on a machine serving many X sessions.
-     <p>
+        <p>
 The
 <b>rvt</b>
 program is based on the
-<code>xvt(1)</code>
+<a href="xvt.html">xvt(1)</a>
 terminal emulator.  However, it has been modified specificly for use
 with the
-<code>dvt(1)</code>
+<a href="dvt.html">dvt(1)</a>
 program.  It may be used as a stand-alone application, but it is not
 suggested that the user do so. The following options are available:
 <dl compact>
-<p><dt><b></b><b>-l</b><i></i><i> username</i><dd>
+<p><dt><b>-</b><b></b><b>l</b><i></i><i> username</i><dd>
 If the program specified by the
 <code></code><code>RLOGIN_CMD</code>
 environment variable allows the user to pass a username with a
-<b></b><b>-l</b>
+<b>-</b><b></b><b>l</b>
 option
-<code>ssh(1)</code>
-(Such    as    some    versions    of    <code>rsh(1)</code>    or)
+or <a href="ssh.html">ssh(1)</a>
+(Such  as  some versions of <a href="rsh.html">rsh(1)</a>)
 then the
 <b>rvt</b>
 program will pass the appropriate flags to the remote-connection
 command to attempt to connect to the remote machine as the username
 specified.
-<p><dt><b></b><b>-display</b><i></i><i> display-name</i><dd>
+<p><dt><b>-</b><b></b><b>display</b><i></i><i> display-name</i><dd>
 Attempt to open the
 <b>rvt</b>
 window on the named X display.  In the absence of this option, the
 display specified by the
 <code></code><code>DISPLAY</code>
 environment variable will be used.
-<p><dt><b></b><b>-geometry</b><i></i><i> window-geometry</i><dd>
+<p><dt><b>-</b><b></b><b>geometry</b><i></i><i> window-geometry</i><dd>
 Create the window with the specified X window geometry.
-<p><dt><b></b><b>-background</b><i></i><i> color</i><dd>
+<p><dt><b>-</b><b></b><b>background</b><i></i><i> color</i><dd>
 Use the specified color as the window's background color.
-<p><dt><b></b><b>-bg</b><i></i><i> color</i><dd>
+<p><dt><b>-</b><b></b><b>bg</b><i></i><i> color</i><dd>
 This option is a synonym for
-<b></b><b>-background</b>
-<p><dt><b></b><b>-foreground</b><i></i><i> color</i><dd>
+<b>-</b><b></b><b>background</b>
+<p><dt><b>-</b><b></b><b>foreground</b><i></i><i> color</i><dd>
 Use the specified color as the window's foreground color.
-<p><dt><b></b><b>-fg</b><i></i><i> color</i><dd>
+<p><dt><b>-</b><b></b><b>fg</b><i></i><i> color</i><dd>
 This option is a synonym for
-<b></b><b>-foreground</b>
-<p><dt><b></b><b>-bd</b><i></i><i> color</i><dd>
+<b>-</b><b></b><b>foreground</b>
+<p><dt><b>-</b><b></b><b>bd</b><i></i><i> color</i><dd>
 Set the border color.  As with border width, this option will usually
 be disregarded with respect to the window's outer border.  It does,
 however, set the color of the line separating the scroll bar from the
 main part of the window.
-<p><dt><b></b><b>-bw</b><i></i><i> number</i><dd>
+<p><dt><b>-</b><b></b><b>bw</b><i></i><i> number</i><dd>
 Set the window border width to
 <i></i><i>number</i>
 pixels.  Many window managers ignore existing window borders and
 contruct their own.  If you are using such a window manager, this
 option will be ignored.
-<p><dt><b></b><b>-font</b><i></i><i> fontname</i><dd>
+<p><dt><b>-</b><b></b><b>font</b><i></i><i> fontname</i><dd>
 Set the main text font to be used by
 <b>rvt</b>
-<p><dt><b></b><b>-fb</b><i></i><i> fontname</i><dd>
+<p><dt><b>-</b><b></b><b>fb</b><i></i><i> fontname</i><dd>
 Set the font used for the vt100 bold rendition style.  Unlike
-<code>xterm(1)</code>,
+<a href="xterm.html">xterm(1)</a>,
 the current version of
 <b>rvt</b>
 will not try and create bold text by displacing and or'ing an
 ordinary font.  Therefore if you want bold highlighting to work, you
 need to use this option to specify a suitable bold font.
-<p><dt><b></b><b>-name</b><i></i><i> name</i><dd>
+<p><dt><b>-</b><b></b><b>name</b><i></i><i> name</i><dd>
 Set the name that is used when looking up X resource values for this
 instance of
 <b>.</b>
-<p><dt><b></b><b>-sl</b><i></i><i> number</i><dd>
+<p><dt><b>-</b><b></b><b>sl</b><i></i><i> number</i><dd>
 Set an upper bound for the number of lines of text that will be saved
 when they have scrolled off the top of the window.
-<p><dt><b></b><b>-cc</b><i></i><i> char-class</i><dd>
+<p><dt><b>-</b><b></b><b>cc</b><i></i><i> char-class</i><dd>
 Input or modify the character classes that are used to determine what
 is a word when a double-click is used to select a word of displayed
 text.  This is identical to the same option in
-<code>xterm(1)</code>.
+<a href="xterm.html">xterm(1)</a>.
 See the
-<code>xterm(1)</code>
+<a href="xterm.html">xterm(1)</a>
 manual page for a description of the syntax of
 <i></i><i>string</i>.
-<p><dt><b></b><b>-sb</b><dd>
+<p><dt><b>-</b><b></b><b>sb</b><dd>
 Start up with the scrollbar visible.  The scrollbar can be displayed
 or hidden at any time, simply by holding down the CONTROL key on the
 keyboard and pressing any mouse button.  The visibility of the
 scrollbar does not determine whether scrolled text is saved or not, as
 with
-<code>xterm(1)</code>,
+<a href="xterm.html">xterm(1)</a>,
 text scrolled off the top of the window is always saved up to the
 current maximum number of lines.
-<p><dt><b></b><b>-rw</b><dd>
+<p><dt><b>-</b><b></b><b>rw</b><dd>
 Enable reverse wrapping of the cursor, so that lines typed to a shell
 that are longer than the width of the screen can be edited.  This is
 the same as the
-<code>xterm(1)</code>
+<a href="xterm.html">xterm(1)</a>
 reverse wrap option.
-<p><dt><b></b><b>-msg</b><dd>
+<p><dt><b>-</b><b></b><b>msg</b><dd>
 Enable messages to the terminal window from programs like
-<code>write(1)</code>.
+<a href="write.html">write(1)</a>.
 By default,
 <b>rvt</b>
 windows have messages disabled.  Executing an
 <b>rvt</b>
 window with the
-<b></b><b>-msg</b>
+<b>-</b><b></b><b>msg</b>
 option has the same effect as running it normally, and executing the
 command
 `mesg y'
 to enable messages.
-<p><dt><b></b><b>-iconic</b><dd>
+<p><dt><b>-</b><b></b><b>iconic</b><dd>
 Start up with the window already iconized.
 <i></i><i>remote-machine</i>
 The name of a remote machine to connect to.  The connection attempt is
@@ -177,46 +177,46 @@ made via the program specified by the
 <code></code><code>RLOGIN_CMD</code>
 environment variable.
 </dl>
-     <h3>
-     X RESOURCES
-     </h3>
+        <h3>
+        X RESOURCES
+        </h3>
 Most of the command line options have X resource counterparts and
 these are listed in the following table.  Like
-<code>xterm(1)</code>,
+<a href="xterm.html">xterm(1)</a>,
 <b>rvt</b>
 uses the class name XTerm, so resource options set for XTerm will work
 for both
-<code>xterm(1)</code>
+<a href="xterm.html">xterm(1)</a>
 and
 <b>rvt</b>
 windows.
-     <h4>
-        <a name="Command line options and X resources">
-     Command line options and X resources
-        </a>
-     </h4>
+        <h4>
+           <a name="Command line options and X resources">
+        Command line options and X resources
+           </a>
+        </h4>
 <center><table>
-<tr><td>  X resource
-<tr><td><em></em><em>Commandline   Instance  Class</em>
-<tr><td><code></code><b></b><b>-l<td></b><b> -<td></b><b> -</b>
-<tr><td><code></code><b></b><b>-display<td></b><b> -<td></b><b> -</b>
-<tr><td><code></code><b></b><b>-geometry<td></b><b> geometry<td></b><b> Geometry</b>
-<tr><td><code></code><b></b><b>-bg<td></b><b> background<td></b><b> Background</b>
-<tr><td><code></code><b></b><b>-fg<td></b><b> foreground<td></b><b> Foreground</b>
-<tr><td><code></code><b></b><b>-bd<td></b><b> borderColor<td></b><b> BorderColor</b>
-<tr><td><code></code><b></b><b>-bw<td></b><b> borderWidth<td></b><b> BorderWidth</b>
-<tr><td><code></code><b></b><b>-font<td></b><b> font<td></b><b> Font</b>
-<tr><td><code></code><b></b><b>-fb<td></b><b> boldFont<td></b><b> BoldFont</b>
-<tr><td><code></code><b></b><b>-sl<td></b><b> saveLines<td></b><b> SaveLines</b>
-<tr><td><code></code><b></b><b>-sb<td></b><b> scrollBar<td></b><b> ScrollBar</b>
-<tr><td><code></code><b></b><b>-rw<td></b><b> reverseWrap<td></b><b> ReverseWrap</b>
-<tr><td><code></code><b></b><b>-cc<td></b><b> charClass<td></b><b> CharClass</b>
-<tr><td><code></code><b></b><b>-msg<td></b><b> messages<td></b><b> Messages</b>
-<tr><td><code></code><b></b><b>-iconic<td></b><b> iconic<td></b><b> Iconic</b>
+<tr><td>        X resource
+<tr><td><em></em><em>Commandline        Instance        Class</em>
+<tr><td><code><b>-</b></code><b></b><b>l<td></b><b> -<td></b><b> -</b>
+<tr><td><code><b>-</b></code><b></b><b>display<td></b><b> -<td></b><b> -</b>
+<tr><td><code><b>-</b></code><b></b><b>geometry<td></b><b> geometry<td></b><b> Geometry</b>
+<tr><td><code><b>-</b></code><b></b><b>bg<td></b><b> background<td></b><b> Background</b>
+<tr><td><code><b>-</b></code><b></b><b>fg<td></b><b> foreground<td></b><b> Foreground</b>
+<tr><td><code><b>-</b></code><b></b><b>bd<td></b><b> borderColor<td></b><b> BorderColor</b>
+<tr><td><code><b>-</b></code><b></b><b>bw<td></b><b> borderWidth<td></b><b> BorderWidth</b>
+<tr><td><code><b>-</b></code><b></b><b>font<td></b><b> font<td></b><b> Font</b>
+<tr><td><code><b>-</b></code><b></b><b>fb<td></b><b> boldFont<td></b><b> BoldFont</b>
+<tr><td><code><b>-</b></code><b></b><b>sl<td></b><b> saveLines<td></b><b> SaveLines</b>
+<tr><td><code><b>-</b></code><b></b><b>sb<td></b><b> scrollBar<td></b><b> ScrollBar</b>
+<tr><td><code><b>-</b></code><b></b><b>rw<td></b><b> reverseWrap<td></b><b> ReverseWrap</b>
+<tr><td><code><b>-</b></code><b></b><b>cc<td></b><b> charClass<td></b><b> CharClass</b>
+<tr><td><code><b>-</b></code><b></b><b>msg<td></b><b> messages<td></b><b> Messages</b>
+<tr><td><code><b>-</b></code><b></b><b>iconic<td></b><b> iconic<td></b><b> Iconic</b>
 </table></center>
-     <h3>
-     THE SCROLL BAR
-     </h3>
+        <h3>
+        THE SCROLL BAR
+        </h3>
 Lines of text that scroll off the top of the
 <b>rvt</b>
 window are saved
@@ -239,12 +239,12 @@ the cursor and the top of the window. Hence, pressing the left cursor
 opposite a line of text will result in that line being moved to be the
 top of the window and pressing the right button will cause the top
 line to be moved down so that it is opposite the cursor.
-     <h3>
-     TEXT SELECTION AND INSERTION
-     </h3>
+        <h3>
+        TEXT SELECTION AND INSERTION
+        </h3>
 <b>Rvt</b>
 uses the same kind of text selection and insertion mechanism as
-<code>xterm(1)</code>.
+<a href="xterm.html">xterm(1)</a>.
 Pressing and releasing the middle mouse button in an
 <b>rvt</b>
 window causes the current text selection to be inserted as if it had
@@ -253,7 +253,7 @@ the button press and the button release need to be done with the
 cursor in the
 <b>rvt</b>
 window.
-     <p>
+        <p>
 The left and right mouse buttons are used to select text, with the
 left button being used to start a selection and the right button being
 used to modify an existing selection. Any continuous block of
@@ -267,7 +267,7 @@ scroll bar to scroll the other end into view and finally use the right
 mouse button to extend the selection. The effect of pressing the right
 mouse button is to move the nearest end of the current selection to
 the current cursor position.
-     <p>
+        <p>
 The other way to make selections in
 <b>rvt</b>
 is to use double and triple clicks of the left mouse button with a
@@ -285,22 +285,22 @@ The white space characters all in one class;
 <p><li>
 Each of the remaining punctuation characters in a class by itself.
 </ul>
-     <p>
+        <p>
 If you want to change the character classes so that, for example,
 you can select a
 UNIX
 pathname or a mail address in one double click,
 then you can do so by using the
-<b></b><b>-cc</b>
+<b>-</b><b></b><b>cc</b>
 command line option or the
 <em></em><em>charClass</em>
 X resource.  Multiple clicking can be combined with dragging to
 select a sequence of consecutive words or lines.
-     <p>
+        <p>
 Although
 <b>rvt</b>
 essentially mimics the behaviour of
-<code>xterm(1)</code>
+<a href="xterm.html">xterm(1)</a>
 in its support of text selection and insertion, there are a couple of
 minor differences:
 <ul>
@@ -308,15 +308,15 @@ minor differences:
 <b>rvt</b>
 respects TAB characters in selected text and does not
 automatically convert them into spaces as does
-<code>xterm(1)</code>;
+<a href="xterm.html">xterm(1)</a>;
 <p><li>
 <b>rvt</b>
 will let you abort a text insertion if you realize you have made a
 mistake before releasing the middle mouse button.
 </ul>
-     <h3>
-     ENVIRONMENT
-     </h3>
+        <h3>
+        ENVIRONMENT
+        </h3>
 <b>rvt</b>
 utilizes the following environment variables.
 <dl compact>
@@ -325,45 +325,45 @@ The default X server that the client should connect to.
 <p><dt><code></code><code>RLOGIN_CMD</code><dd>
 The default command that will be run to connect to the remote host.
 This can be anything from
-<code>rsh(1)</code>,
-<code>ssh(1)</code>,
+<a href="rsh.html">rsh(1)</a>,
+<a href="ssh.html">ssh(1)</a>,
 to
-<code>telnet(1)</code>
+<a href="telnet.html">telnet(1)</a>
 because rvt is an interactive process, automatic authentication is not
 required as it is with
-<code>dsh(1)</code>.
+<a href="dsh.html">dsh(1)</a>.
 </dl>
-     <h3>
-     DIAGNOSTICS
-     </h3>
+        <h3>
+        DIAGNOSTICS
+        </h3>
 Exit status is 0 on success, 1 if an error occurs.
-     <h3>
-     SEE ALSO
-     </h3>
-<code>xterm(1)</code>,
-<code>dsh(1)</code>,
-<code>xvt(1)</code>,
-<code>telnet(1)</code>,
-<code>rsh(1)</code>.
-     <h3>
-     HISTORY
-     </h3>
+        <h3>
+        SEE ALSO
+        </h3>
+<a href="xterm.html">xterm(1)</a>,
+<a href="dsh.html">dsh(1)</a>,
+<a href="xvt.html">xvt(1)</a>,
+<a href="telnet.html">telnet(1)</a>,
+<a href="rsh.html">rsh(1)</a>.
+        <h3>
+        HISTORY
+        </h3>
 The
 <b>rvt</b>
 command appeared in clusterit 2.0.
-     <h3>
-     AUTHOR
-     </h3>
+        <h3>
+        AUTHOR
+        </h3>
 <b>Rvt</b>
 is based on the program
-<code>xvt(1)</code>
+<a href="xvt.html">xvt(1)</a>
 written by John Bovey, University of Kent, in 1992.  Modifications to
 make this program compile on modern machines, and work with
-<code>dvt(1)</code>
+<a href="dvt.html">dvt(1)</a>
 were made by Tim Rightnour.
-     <h3>
-     BUGS
-     </h3>
+        <h3>
+        BUGS
+        </h3>
 Pasting very large quantities of text does not work.
 </font></body>
 </html>

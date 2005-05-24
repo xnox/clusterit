@@ -1,42 +1,42 @@
 <html>
 <head>
-     <title>
-           February 19, 2000 JSD 1
+        <title>
+                 February 19, 2000 JSD 1
 
-     </title>
+        </title>
         <style type="text/css">
         <!--
-          body { margin-left:4%; }
-          H1 { color: maroon; padding: 4pt; margin-left: -4% }
-          H2 { color: maroon; padding: 4pt; margin-left: -4% }
-          H3 { color: maroon; padding: 4pt; margin-left: -4% }
-          H4 { color: maroon; padding: 4pt; margin-left: -4% }
-          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+                body { margin-left:4%; }
+                H1, H2, H3, H4, H5 {
+                        color: maroon; padding: 4pt; margin-left: -4%;
+                        border: solid; border-width: thin; width: 100%;
+                        background: rgb(204,204,255)
+                }
         -->
         </style>
 </head>
 <body bgcolor="#FFFFFF" text="#000000">
-     <h3>
-     NAME
-     </h3>
+        <h3>
+        NAME
+        </h3>
 <b>jsd</b>
 - simple command scheduling daemon for remote execution
-     <h3>
-     SYNOPSIS
-     </h3>
+        <h3>
+        SYNOPSIS
+        </h3>
 <b>jsd</b>
-[<b></b><b>-iq</b>]
-[<b></b><b>-f</b><i></i><i> fanout</i>]
-[<b></b><b>-g</b><i></i><i> rungroup1,...,rungroupN</i>]
-[<b></b><b>-l</b><i></i><i> username</i>]
-[<b></b><b>-p</b><i></i><i> port</i>]
-[<b></b><b>-o</b><i></i><i> port</i>]
-[<b></b><b>-w</b><i></i><i> node1,...,nodeN</i>]
-[<b></b><b>-x</b><i></i><i> node1,...,nodeN</i>]
+[<b>-</b><b></b><b>iq</b>]
+[<b>-</b><b></b><b>f</b><i></i><i> fanout</i>]
+[<b>-</b><b></b><b>g</b><i></i><i> rungroup1,...,rungroupN</i>]
+[<b>-</b><b></b><b>l</b><i></i><i> username</i>]
+[<b>-</b><b></b><b>p</b><i></i><i> port</i>]
+[<b>-</b><b></b><b>o</b><i></i><i> port</i>]
+[<b>-</b><b></b><b>w</b><i></i><i> node1,...,nodeN</i>]
+[<b>-</b><b></b><b>x</b><i></i><i> node1,...,nodeN</i>]
 [<i></i><i>command</i><i> ...</i>]
-     <h3>
-     DESCRIPTION
-     </h3>
+        <h3>
+        DESCRIPTION
+        </h3>
 The
 <b>jsd</b>
 daemon is used to schedule remote execution of jobs across a
@@ -55,30 +55,30 @@ contact the
 <b>jsd</b>
 daemon, and return the node to service.  The daemon will never give
 the same node out to more than one process at a time.
-     <p>
+        <p>
 <b>jsd</b>
 logs errors and critical conditions to the syslog with the facility
 <code></code><code>LOG_DAEMON</code>.
-     <p>
+        <p>
 The following options are available:
 <dl compact>
-<p><dt><b></b><b>-i</b><dd>
+<p><dt><b>-</b><b></b><b>i</b><dd>
 The
-<b></b><b>-i</b>
+<b>-</b><b></b><b>i</b>
 option will list information about the current cluster, and command groupings.
 It will print out the current value of the fanout, and how many groups of
 machines there are within the cluster. It will also show you which command
 you are about to run, and your username if specified with the
-<b></b><b>-l</b>
+<b>-</b><b></b><b>l</b>
 option.
-<p><dt><b></b><b>-q</b><dd>
+<p><dt><b>-</b><b></b><b>q</b><dd>
 The
-<b></b><b>-q</b>
+<b>-</b><b></b><b>q</b>
 option does not issue any commands, but displays information about the
 cluster, and the fanout groupings.
-<p><dt><b></b><b>-f</b><dd>
+<p><dt><b>-</b><b></b><b>f</b><dd>
 If the
-<b></b><b>-f</b>
+<b>-</b><b></b><b>f</b>
 option is specified, followed by a number, it sets the fanout size of the
 cluster.  The fanout size is the number of nodes a command will run on in
 parallel at one time.  Thus a 80 node cluster, with a fanout size of 64,
@@ -87,28 +87,28 @@ execute the command on the last 16 nodes.  The fanout size defaults to 64.
 This option overrides the
 <code></code><code>FANOUT</code>
 environment variable.
-<p><dt><b></b><b>-g</b><dd>
+<p><dt><b>-</b><b></b><b>g</b><dd>
 If the
-<b></b><b>-g</b>
+<b>-</b><b></b><b>g</b>
 option is specified, followed by a comma separated list of group names, the
 command will only be run on that group of nodes.  A node may be a part of
 more than one group if desired, however running without the
-<b></b><b>-g</b>
+<b>-</b><b></b><b>g</b>
 option will run the command on the same node as many times as it appears in the
 file specified by the
 <code></code><code>CLUSTER</code>
 environment variable.  This option is silently ignored if used with the
-<b></b><b>-w</b>
+<b>-</b><b></b><b>w</b>
 option.
-<p><dt><b></b><b>-l</b><dd>
+<p><dt><b>-</b><b></b><b>l</b><dd>
 If the
-<b></b><b>-l</b>
+<b>-</b><b></b><b>l</b>
 option is specified, followed by a username, the commands will be run under
 that userid on the remote machines.  Consideration must be taken for proper
 authentication, for this to work.
-<p><dt><b></b><b>-p</b><dd>
+<p><dt><b>-</b><b></b><b>p</b><dd>
 The
-<b></b><b>-p</b>
+<b>-</b><b></b><b>p</b>
 option can be used to set the port number which jsd will listen to
 replies from
 <em></em><em>jsh</em>
@@ -116,18 +116,18 @@ processes indicating completion of processing on remote nodes.  This
 option overrides the
 <code></code><code>JSD_IPORT</code>
 environment variable.  The default listen port is 2001.
-<p><dt><b></b><b>-o</b><dd>
+<p><dt><b>-</b><b></b><b>o</b><dd>
 The
-<b></b><b>-o</b>
+<b>-</b><b></b><b>o</b>
 option can be used to set the port number which jsd will listen to
 requests from
 <em></em><em>jsh</em>
 processes for remote nodes.  This option overrides the
 <code></code><code>JSD_OPORT</code>
 environment variable.  The default listen port is 2002.
-<p><dt><b></b><b>-w</b><dd>
+<p><dt><b>-</b><b></b><b>w</b><dd>
 If the
-<b></b><b>-w</b>
+<b>-</b><b></b><b>w</b>
 option is specified, followed by a comma delimited list of machine names,
 the
 <i></i><i>command</i>
@@ -136,20 +136,20 @@ will be run on each node in the list.  Without this option,
 runs on the nodes listed in the file pointed to by the
 <code></code><code>CLUSTER</code>
 environment variable.
-<p><dt><b></b><b>-x</b><dd>
+<p><dt><b>-</b><b></b><b>x</b><dd>
 The
-<b></b><b>-x</b>
+<b>-</b><b></b><b>x</b>
 option can be used to exclude specific nodes from the cluster.  The format
 is the same as the
-<b></b><b>-w</b>
+<b>-</b><b></b><b>w</b>
 option, a comma delimited list of machine names.  This option is silently
 ignored if used with the
-<b></b><b>-w</b>
+<b>-</b><b></b><b>w</b>
 option.
 </dl>
-     <h3>
-     ENVIRONMENT
-     </h3>
+        <h3>
+        ENVIRONMENT
+        </h3>
 <b>jsd</b>
 utilizes the following environment variables:
 <dl compact>
@@ -179,14 +179,14 @@ When set, limits the maximum number of concurrent commands sent at once.
 This can be used to keep from overloading a small host when sending out
 commands in parallel.  Defaults to 64.  This environment setting can be
 overridden by the
-<b></b><b>-f</b>
+<b>-</b><b></b><b>f</b>
 option.
 <p><dt><code></code><code>JSD_OPORT</code><dd>
 When set, overrides the default port which jsd listens on for
 <em></em><em>jsh</em>
 processes requesting nodes.  This environment setting can be overriden
 by the
-<b></b><b>-o</b>
+<b>-</b><b></b><b>o</b>
 option.
 <p><dt><code></code><code>JSD_IPORT</code><dd>
 When set, overrides the default port which jsd listens on for
@@ -194,21 +194,21 @@ When set, overrides the default port which jsd listens on for
 processes reporting back that it has completed processing on a node.
 This environment setting can be overriden
 by the
-<b></b><b>-p</b>
+<b>-</b><b></b><b>p</b>
 option.
 </dl>
-     <h3>
-     EXAMPLES
-     </h3>
+        <h3>
+        EXAMPLES
+        </h3>
 In order to generate a benchmark figure useful to
 <b>jsd</b>
 you will most likely need to process the ouput of a benchmark command
 in some way.  There are two simple ways of doing this:
-     <p>
+        <p>
 The first way is to build a script, which exists on each machine, and
 run that as your benchmark command.  The below script shows how to
 process the output of the
-<code>whetstone(1)</code>
+<a href="whetstone.html">whetstone(1)</a>
 command into a format useable by
 <b>jsd</b>
 :
@@ -220,30 +220,30 @@ command into a format useable by
 </pre>
 </code>
 </dl>
-     <p>
+        <p>
 The other way, would be to run a more involved benchmark on each
 machine, (or assign numbers arbitrarily) and place them in a file on
 the remote machines.  A benchmark command could then simply be
 <b></b><b>cat</b><b> /etc/benchmark</b>
 or some other similar setup.
-     <h3>
-     SEE ALSO
-     </h3>
-<code>dsh(1)</code>,
-<code>jsh(1)</code>,
-<code>syslogd(8)</code>.
-     <h3>
-     HISTORY
-     </h3>
+        <h3>
+        SEE ALSO
+        </h3>
+<a href="dsh.html">dsh(1)</a>,
+<a href="jsh.html">jsh(1)</a>,
+<a href="../html8/syslogd.html">syslogd(8)</a>.
+        <h3>
+        HISTORY
+        </h3>
 The
 <b>jsd</b>
 command first appeared in clusterit 2.0.  It should be pronounced
-"jez-dee",
+"jez-dee,
 and stands for
-`Job Scheduling Daemon'
-     <h3>
-     AUTHOR
-     </h3>
+`Job Scheduling Daemon.'
+        <h3>
+        AUTHOR
+        </h3>
 <b>Jsd</b>
 was written by Tim Rightnour.
 </font></body>

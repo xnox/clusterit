@@ -1,38 +1,38 @@
 <html>
 <head>
-     <title>
-           October 14, 1998 BARRIER 1
+        <title>
+                 October 14, 1998 BARRIER 1
 
-     </title>
+        </title>
         <style type="text/css">
         <!--
-          body { margin-left:4%; }
-          H1 { color: maroon; padding: 4pt; margin-left: -4% }
-          H2 { color: maroon; padding: 4pt; margin-left: -4% }
-          H3 { color: maroon; padding: 4pt; margin-left: -4% }
-          H4 { color: maroon; padding: 4pt; margin-left: -4% }
-          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+                body { margin-left:4%; }
+                H1, H2, H3, H4, H5 {
+                        color: maroon; padding: 4pt; margin-left: -4%;
+                        border: solid; border-width: thin; width: 100%;
+                        background: rgb(204,204,255)
+                }
         -->
         </style>
 </head>
 <body bgcolor="#FFFFFF" text="#000000">
-     <h3>
-     NAME
-     </h3>
+        <h3>
+        NAME
+        </h3>
 <b>barrier</b>
 - syncronize a process on a number of machines.
-     <h3>
-     SYNOPSIS
-     </h3>
+        <h3>
+        SYNOPSIS
+        </h3>
 <b>barrier</b>
-[<b></b><b>-q</b>]
-[<b></b><b>-h</b><i></i><i> barrier_host</i>]
-[<b></b><b>-k</b><i></i><i> key</i>]
-[<b></b><b>-p</b><i></i><i> port</i>]
-<b></b><b>-s</b><i></i><i> cluster_size</i>
-     <h3>
-     DESCRIPTION
-     </h3>
+[<b>-</b><b></b><b>q</b>]
+[<b>-</b><b></b><b>h</b><i></i><i> barrier_host</i>]
+[<b>-</b><b></b><b>k</b><i></i><i> key</i>]
+[<b>-</b><b></b><b>p</b><i></i><i> port</i>]
+<b>-</b><b></b><b>s</b><i></i><i> cluster_size</i>
+        <h3>
+        DESCRIPTION
+        </h3>
 The
 <b>barrier</b>
 command can be used to syncronize execution of various commands.  When
@@ -41,30 +41,30 @@ have met the barrier condition.  This can be a handy way to make sure
 slower machines, perform certain tasks before doing something on
 faster machines that relies on them. The following options are available:
 <dl compact>
-<p><dt><b></b><b>-q</b><dd>
+<p><dt><b>-</b><b></b><b>q</b><dd>
 Turns quiet off, so barrier notifications are sent to the user.
-<p><dt><b></b><b>-h</b><dd>
+<p><dt><b>-</b><b></b><b>h</b><dd>
 Specifies a host, which is running barrierd, to connect to for
 barrier syncronization.  Overrides the
 <code></code><code>BARRIER_HOST</code>
 environment variable.
-<p><dt><b></b><b>-k</b><dd>
+<p><dt><b>-</b><b></b><b>k</b><dd>
 Specifies a unique key to syncronize with.  A barrier will only
 synchronize with other barriers that share the same key.  Defaults to
 the string 'barrier'.
-<p><dt><b></b><b>-p</b><dd>
+<p><dt><b>-</b><b></b><b>p</b><dd>
 Specifies a port number of a remote barrier daemon to connect to.  Defaults
 to 1933, and overrides the
 <code></code><code>BARRIER_PORT</code>
 environment variable.
-<p><dt><b></b><b>-s</b><dd>
+<p><dt><b>-</b><b></b><b>s</b><dd>
 Sets the size of the cluster.  A barrier condition is met, when the number of
 barrier clients connected to the remote daemon, sharing the same unique key, is
 equal to this number.
 </dl>
-     <h3>
-     ENVIRONMENT
-     </h3>
+        <h3>
+        ENVIRONMENT
+        </h3>
 <b>barrier</b>
 utilizes the following environment variables.
 <dl compact>
@@ -73,25 +73,25 @@ Sets the default remote port to connect to.
 <p><dt><code></code><code>BARRIER_HOST</code><dd>
 Sets the default remote host to connect to.
 </dl>
-     <h3>
-     DIAGNOSTICS
-     </h3>
+        <h3>
+        DIAGNOSTICS
+        </h3>
 Exit status is 0 on successful syncronization.  Exit status will be set to 1 if
 the connection is lost, or the server rejects your connection.
-     <h3>
-     SEE ALSO
-     </h3>
-<code>barrierd(1)</code>,
-<code>dsh(1)</code>,
-     <h3>
-     HISTORY
-     </h3>
+        <h3>
+        SEE ALSO
+        </h3>
+<a href="barrierd.html">barrierd(1)</a>,
+<a href="dsh.html">dsh(1)</a>,
+        <h3>
+        HISTORY
+        </h3>
 The
 <b>barrier</b>
 command appeared in clusterit 1.1.
-     <h3>
-     AUTHOR
-     </h3>
+        <h3>
+        AUTHOR
+        </h3>
 <b>Barrier</b>
 was written by Tim Rightnour.
 </font></body>

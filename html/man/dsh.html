@@ -1,40 +1,42 @@
 <html>
 <head>
-     <title>
-           February 19, 2000 DSH 1
+        <title>
+                 February 19, 2000 DSH 1
 
-     </title>
+        </title>
         <style type="text/css">
         <!--
-          body { margin-left:4%; }
-          H1 { color: maroon; padding: 4pt; margin-left: -4% }
-          H2 { color: maroon; padding: 4pt; margin-left: -4% }
-          H3 { color: maroon; padding: 4pt; margin-left: -4% }
-          H4 { color: maroon; padding: 4pt; margin-left: -4% }
-          H5 { color: maroon; padding: 4pt; margin-left: -4% }
+                body { margin-left:4%; }
+                H1, H2, H3, H4, H5 {
+                        color: maroon; padding: 4pt; margin-left: -4%;
+                        border: solid; border-width: thin; width: 100%;
+                        background: rgb(204,204,255)
+                }
         -->
         </style>
 </head>
 <body bgcolor="#FFFFFF" text="#000000">
-     <h3>
-     NAME
-     </h3>
+        <h3>
+        NAME
+        </h3>
 <b>dsh</b>
 - run a command on a cluster of machines
-     <h3>
-     SYNOPSIS
-     </h3>
+        <h3>
+        SYNOPSIS
+        </h3>
 <b>dsh</b>
-[<b></b><b>-eiq</b>]
-[<b></b><b>-f</b><i></i><i> fanout</i>]
-[<b></b><b>-g</b><i></i><i> rungroup1,...,rungroupN</i>]
-[<b></b><b>-l</b><i></i><i> username</i>]
-[<b></b><b>-w</b><i></i><i> node1,...,nodeN</i>]
-[<b></b><b>-x</b><i></i><i> node1,...,nodeN</i>]
+[<b>-</b><b></b><b>eiqt</b>]
+[<b>-</b><b></b><b>f</b><i></i><i> fanout</i>]
+[<b>-</b><b></b><b>g</b><i></i><i> rungroup1,...,rungroupN</i>]
+[<b>-</b><b></b><b>l</b><i></i><i> username</i>]
+[<b>-</b><b></b><b>o</b><i></i><i> porttimeout</i>]
+[<b>-</b><b></b><b>p</b><i></i><i> portnum</i>]
+[<b>-</b><b></b><b>w</b><i></i><i> node1,...,nodeN</i>]
+[<b>-</b><b></b><b>x</b><i></i><i> node1,...,nodeN</i>]
 [<i></i><i>command</i><i> ...</i>]
-     <h3>
-     DESCRIPTION
-     </h3>
+        <h3>
+        DESCRIPTION
+        </h3>
 The
 <b>dsh</b>
 utility can be used to run a command, or group of commands on a cluster of
@@ -43,28 +45,50 @@ signals will be sent to the remote host that is currently being displayed
 to the user.
 The following options are available:
 <dl compact>
-<p><dt><b></b><b>-e</b><dd>
+<p><dt><b>-</b><b></b><b>e</b><dd>
 Unless the
-<b></b><b>-e</b>
+<b>-</b><b></b><b>e</b>
 option is specified, stderr from remote commands will not be reported to the
 user.
-<p><dt><b></b><b>-i</b><dd>
+<p><dt><b>-</b><b></b><b>i</b><dd>
 The
-<b></b><b>-i</b>
+<b>-</b><b></b><b>i</b>
 option will list information about the current cluster, and command groupings.
 It will print out the current value of the fanout, and how many groups of
 machines there are within the cluster. It will also show you which command
 you are about to run, and your username if specified with the
-<b></b><b>-l</b>
+<b>-</b><b></b><b>l</b>
 option.
-<p><dt><b></b><b>-q</b><dd>
+<p><dt><b>-</b><b></b><b>q</b><dd>
 The
-<b></b><b>-q</b>
+<b>-</b><b></b><b>q</b>
 option does not issue any commands, but displays information about the
 cluster, and the fanout groupings.
-<p><dt><b></b><b>-f</b><dd>
+<p><dt><b>-</b><b></b><b>t</b><dd>
+The
+<b>-</b><b></b><b>t</b>
+option causes
+<b>dsh</b>
+to attempt a connection test to each node prior to attempting to run the
+remote command.  If the test fails for any reason, the remote command will
+not be attempted.  This can be useful when clusterfiles have suffered bitrot
+and some nodes no longer exist, or might be down for maintenance.  The default
+timeout is 5 seconds.  The timeout can be changed with the
+<b>-</b><b></b><b>o</b>
+option.
+<b>dsh</b>
+will attempt to guess the port number of the remote service based on your
+<code></code><code>RCMD_CMD</code>
+setting.  It knows about ssh and rsh.  If
+<b>dsh</b>
+fails to guess your port correctly, you may use the
+<b>-</b><b></b><b>p</b>
+argument to set the remote port number.  If the
+<code></code><code>RCMD_TEST</code>
+environment variable exists, the testing will automatically take place.
+<p><dt><b>-</b><b></b><b>f</b><dd>
 If the
-<b></b><b>-f</b>
+<b>-</b><b></b><b>f</b>
 option is specified, followed by a number, it sets the fanout size of the
 cluster.  The fanout size is the number of nodes a command will run on in
 parallel at one time.  Thus a 80 node cluster, with a fanout size of 64,
@@ -73,28 +97,39 @@ execute the command on the last 16 nodes.  The fanout size defaults to 64.
 This option overrides the
 <code></code><code>FANOUT</code>
 environment variable.
-<p><dt><b></b><b>-g</b><dd>
+<p><dt><b>-</b><b></b><b>g</b><dd>
 If the
-<b></b><b>-g</b>
+<b>-</b><b></b><b>g</b>
 option is specified, followed by a comma separated list of group names, the
 command will only be run on that group of nodes.  A node may be a part of
 more than one group if desired, however running without the
-<b></b><b>-g</b>
+<b>-</b><b></b><b>g</b>
 option will run the command on the same node as many times as it appears in the
 file specified by the
 <code></code><code>CLUSTER</code>
 environment variable.  This option is silently ignored if used with the
-<b></b><b>-w</b>
+<b>-</b><b></b><b>w</b>
 option.
-<p><dt><b></b><b>-l</b><dd>
+<p><dt><b>-</b><b></b><b>l</b><dd>
 If the
-<b></b><b>-l</b>
+<b>-</b><b></b><b>l</b>
 option is specified, followed by a username, the commands will be run under
 that userid on the remote machines.  Consideration must be taken for proper
 authentication, for this to work.
-<p><dt><b></b><b>-w</b><dd>
+<p><dt><b>-</b><b></b><b>o</b><dd>
+The
+<b>-</b><b></b><b>o</b>
+option is used to set the timeout in seconds to be used when testing remote
+connections.  The default is five seconds.
+<p><dt><b>-</b><b></b><b>p</b><dd>
+The
+<b>-</b><b></b><b>p</b>
+option can be used to set the port number that testing should occur on when
+testing remote connections.  The default behavior is to guess based on the
+remote command name.
+<p><dt><b>-</b><b></b><b>w</b><dd>
 If the
-<b></b><b>-w</b>
+<b>-</b><b></b><b>w</b>
 option is specified, followed by a comma delimited list of machine names,
 the
 <i></i><i>command</i>
@@ -103,20 +138,20 @@ will be run on each node in the list.  Without this option,
 runs on the nodes listed in the file pointed to by the
 <code></code><code>CLUSTER</code>
 environment variable.
-<p><dt><b></b><b>-x</b><dd>
+<p><dt><b>-</b><b></b><b>x</b><dd>
 The
-<b></b><b>-x</b>
+<b>-</b><b></b><b>x</b>
 option can be used to exclude specific nodes from the cluster.  The format
 is the same as the
-<b></b><b>-w</b>
+<b>-</b><b></b><b>w</b>
 option, a comma delimited list of machine names.  This option is silently
 ignored if used with the
-<b></b><b>-w</b>
+<b>-</b><b></b><b>w</b>
 option.
 </dl>
-     <h3>
-     ENVIRONMENT
-     </h3>
+        <h3>
+        ENVIRONMENT
+        </h3>
 <b>dsh</b>
 utilizes the following environment variables.
 <dl compact>
@@ -127,17 +162,31 @@ in the cluster.
 Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 <b></b><b>rsh</b>
+<p><dt><code></code><code>RCMD_PORT</code><dd>
+The port number used to test remote connections.  See the
+<b>-</b><b></b><b>p</b>
+flag.
+<p><dt><code></code><code>RCMD_TEST</code><dd>
+When set,
+<b>dsh</b>
+will automatically test all hosts before launching the remote command. See the
+<b>-</b><b></b><b>t</b>
+option for more information.
+<p><dt><code></code><code>RCMD_TEST_TIMEOUT</code><dd>
+The timeout in seconds to use when testing for remote connections.
+<p><dt><code></code><code>RCMD_USER</code><dd>
+The username to connect to remote machines as by default.
 <p><dt><code></code><code>FANOUT</code><dd>
 When set, limits the maximum number of concurrent commands sent at once.
 This can be used to keep from overloading a small host when sending out
 commands in parallel.  Defaults to 64.  This environment setting can be
 overridden by the
-<b></b><b>-f</b>
+<b>-</b><b></b><b>f</b>
 option.
 </dl>
-     <h3>
-     FILES
-     </h3>
+        <h3>
+        FILES
+        </h3>
 The file pointed to by the
 <code></code><code>CLUSTER</code>
 environment variable has the following format:
@@ -158,27 +207,27 @@ sparc
 </pre>
 </code>
 </dl>
-     <p>
+        <p>
 This example would have pollux and castor a member of no groups, rigel and
 kent a member of group 'alpha', and alshain and altair a member of group
 `sparc'.
 Note the format of the GROUP command, it is in all capital letters, followed
 by a colon, and the group name.  There can be no spaces following the GROUP
 command, or in the name of the group.
-     <p>
+        <p>
 There is also a LUMP command, which is identical in syntax to the GROUP
 command.  This command allows you to create a named group of groups.  Each
 member of the lump is the name of a group.  The LUMP command is terminated
 by another LUMP or GROUP command, or the EOF marker.
-     <p>
+        <p>
 Any line beginning with a
 `#'
 symbol denotes a comment field, and the entire line will be ignored.
 Note that a hash mark placed anywhere other than the first character
 of a line, will be considered part of a valid hostname or command.
-     <h3>
-     EXAMPLES
-     </h3>
+        <h3>
+        EXAMPLES
+        </h3>
 The command:
 <dl compact><dt><dd>
 <code>
@@ -187,17 +236,17 @@ dsh hostname
 </pre>
 </code>
 </dl>
-     <p>
+        <p>
 will display:
 <dl compact><dt><dd>
 <code>
 <pre>
-pollux:   pollux
-castor:   castor
+pollux: pollux
+castor: castor
 </pre>
 </code>
 </dl>
-     <p>
+        <p>
 if the file pointed to by
 <code></code><code>CLUSTER</code>
 contains:
@@ -209,7 +258,7 @@ castor
 </pre>
 </code>
 </dl>
-     <p>
+        <p>
 The command:
 <dl compact><dt><dd>
 <code>
@@ -218,53 +267,52 @@ dsh -w hadar,rigel hostname
 </pre>
 </code>
 </dl>
-     <p>
+        <p>
 will display:
 <dl compact><dt><dd>
 <code>
 <pre>
-hadar:    hadar
-rigel:    rigel
+hadar:  hadar
+rigel:  rigel
 </pre>
 </code>
 </dl>
-     <h3>
-     DIAGNOSTICS
-     </h3>
+        <h3>
+        DIAGNOSTICS
+        </h3>
 Exit status is 0 on success, 1 if an error occurs.
-     <h3>
-     SEE ALSO
-     </h3>
-<code>dshbak(1)</code>,
-<code>pcp(1)</code>,
-<code>pdf(1)</code>,
-<code>prm(1)</code>,
-<code>rsh(1)</code>,
-<code>kerberos(3)</code>,
-<code>hosts.equiv(5)</code>,
-<code>rhosts(5)</code>
-     <h3>
-     HISTORY
-     </h3>
+        <h3>
+        SEE ALSO
+        </h3>
+<a href="dshbak.html">dshbak(1)</a>,
+<a href="pcp.html">pcp(1)</a>,
+<a href="pdf.html">pdf(1)</a>,
+<a href="prm.html">prm(1)</a>,
+<a href="rsh.html">rsh(1)</a>,
+<a href="../html3/kerberos.html">kerberos(3)</a>,
+<a href="../html5/hosts.equiv.html">hosts.equiv(5)</a>,
+<a href="../html5/rhosts.html">rhosts(5)</a>
+        <h3>
+        HISTORY
+        </h3>
 The
 <b>dsh</b>
 command appeared in clusterit 1.0. It is based on the
 <b>dsh</b>
 command in IBM PSSP.
-     <h3>
-     AUTHOR
-     </h3>
+        <h3>
+        AUTHOR
+        </h3>
 <b>Dsh</b>
 was written by Tim Rightnour.
-     <h3>
-     BUGS
-     </h3>
+        <h3>
+        BUGS
+        </h3>
 Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
 that
 <b>dsh</b>
 will fail on a fanout size greater than about 32-40 nodes.
 </font></body>
 </html>
-
 
 
