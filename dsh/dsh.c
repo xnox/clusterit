@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.20 2005/05/23 05:36:59 garbled Exp $ */
+/* $Id: dsh.c,v 1.21 2005/06/02 17:04:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.20 2005/05/23 05:36:59 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.21 2005/06/02 17:04:09 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -60,6 +60,7 @@ int testflag, rshport, porttimeout;
 node_t *nodelink;
 group_t *grouplist;
 char **rungroup;
+int nrofrungroups;
 char **lumplist;
 pid_t currentchild;
 char *progname;
@@ -84,7 +85,7 @@ main(int argc, char *argv[])
 
     someflag = showflag = fanflag = 0;
     exclusion = debug = errorflag = 0;
-    testflag = rshport = 0;
+    testflag = rshport = nrofrungroups = 0;
     porttimeout = 5; /* 5 seconds to port timeout */
     gotsigint = gotsigterm = grouping = 0;
     fanout = DEFAULT_FANOUT;
@@ -161,6 +162,7 @@ main(int argc, char *argv[])
 		    }
 		}
 	    }
+	    nrofrungroups = i;
 	    group = NULL;
 	    break;			
 	case 'x':		/* exclude nodes, w overrides this */

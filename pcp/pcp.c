@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.13 2005/05/23 05:37:31 garbled Exp $ */
+/* $Id: pcp.c,v 1.14 2005/06/02 17:04:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.13 2005/05/23 05:37:31 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.14 2005/06/02 17:04:09 garbled Exp $");
 #endif
 
 extern int errno;
@@ -57,7 +57,7 @@ void serial_copy(char *rcp, char *args, char *username, char *source_file,
 char **lumplist;
 char **rungroup;
 char *progname;
-int fanout, concurrent, quiet, debug, grouping, exclusion;
+int fanout, concurrent, quiet, debug, grouping, exclusion, nrofrungroups;
 node_t *nodelink;
 group_t *grouplist;
 
@@ -86,6 +86,7 @@ main(int argc, char **argv)
     recurse = 0;
     exclusion = 0;
     grouping = 0;
+    nrofrungroups = 0;
     username = NULL;
     group = NULL;
     nodeptr = NULL;
@@ -152,6 +153,7 @@ main(int argc, char **argv)
 		    }
 		}
 	    }
+	    nrofrungroups = i;
 	    group = NULL;
 	    break;
 	case 'x':		/* exclude nodes, w overrides this */

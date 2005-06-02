@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.10 2005/05/23 05:37:17 garbled Exp $ */
+/* $Id: jsh.c,v 1.11 2005/06/02 17:04:09 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.10 2005/05/23 05:37:17 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.11 2005/06/02 17:04:09 garbled Exp $");
 #endif
 
 void do_command(char **argv, int allrun, char *username);
@@ -53,7 +53,7 @@ void _log_bailout(int line, char *file);
 
 /* globals */
 
-int debug, exclusion, grouping;
+int debug, exclusion, grouping, nrofrungroups;
 int errorflag, iportnum, oportnum;
 char **rungroup;
 char **lumplist;
@@ -79,6 +79,7 @@ main(int argc, char **argv)
     someflag = 0;
     showflag = 0;
     exclusion = 0;
+    nrofrungroups = 0;
     debug = 0;
     errorflag = 0;
     allflag = 0;

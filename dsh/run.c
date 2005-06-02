@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.12 2005/05/23 05:36:59 garbled Exp $ */
+/* $Id: run.c,v 1.13 2005/06/02 17:04:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: run.c,v 1.12 2005/05/23 05:36:59 garbled Exp $");
+__RCSID("$Id: run.c,v 1.13 2005/06/02 17:04:09 garbled Exp $");
 #endif
 
 extern int errno;
@@ -52,7 +52,7 @@ node_t *check_rand(void);
 /* globals */
 
 int debug, exclusion, grouping;
-int errorflag;
+int errorflag, nrofrungroups;
 char **rungroup;
 char **lumplist;
 char *progname;
@@ -82,6 +82,7 @@ main(int argc, char **argv)
     errorflag = 0;
     allflag = 0;
     grouping = 0;
+    nrofrungroups = 0;
     username = NULL;
     nodename = NULL;
     group = NULL;
@@ -148,6 +149,7 @@ main(int argc, char **argv)
 		    }
 		}
 	    }
+	    nrofrungroups = i;
 	    group = NULL;
 	    break;			
 	case 'x':		/* exclude nodes, w overrides this */

@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.5 2005/05/23 05:37:08 garbled Exp $ */
+/* $Id: dvt.c,v 1.6 2005/06/02 17:04:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -56,7 +56,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.5 2005/05/23 05:37:08 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.6 2005/06/02 17:04:09 garbled Exp $");
 #endif /* not lint */
 
 #ifndef __P
@@ -72,6 +72,7 @@ int x_error_handler __P((Display *, XErrorEvent *));
 
 /* globals */
 int debug, errorflag, gotsigint, gotsigterm, exclusion, grouping;
+int nrofrungroups;
 node_t *nodelink;
 group_t *grouplist;
 char **rungroup;
@@ -114,6 +115,7 @@ main(int argc, char **argv)
     someflag = showflag = fanflag = 0;
     exclusion = debug = errorflag = 0;
     gotsigint = gotsigterm = grouping = 0;
+    nrofrungroups = 0;
     fanout = DEFAULT_FANOUT;
     nodename = NULL;
     username = NULL;
@@ -180,6 +182,7 @@ main(int argc, char **argv)
 		    }
 		}
 	    }
+	    nrofrungroups = i;
 	    group = NULL;
 	    break;			
 	case 'x':		/* exclude nodes, w overrides this */

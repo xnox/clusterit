@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.14 2005/05/23 05:36:59 garbled Exp $ */
+/* $Id: rseq.c,v 1.15 2005/06/02 17:04:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.14 2005/05/23 05:36:59 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.15 2005/06/02 17:04:09 garbled Exp $");
 #endif
 
 /* externs */
@@ -53,7 +53,7 @@ node_t * check_seq(void);
 /* globals */
 
 int debug, errorflag, exclusion, grouping;
-int seqnumber;
+int seqnumber, nrofrungroups;
 char **rungroup;
 char **lumplist;
 node_t *nodelink;
@@ -83,6 +83,7 @@ int main(int argc, char **argv)
     errorflag = 0;
     allflag = 0;
     grouping = 0;
+    nrofrungroups = 0;
     username = NULL;
     nodename = NULL;
     group = NULL;
@@ -145,6 +146,7 @@ int main(int argc, char **argv)
 		    }
 		}
 	    }
+	    nrofrungroups = i;
 	    group = NULL;
 	    break;			
 	case 'x':		/* exclude nodes, w overrides this */

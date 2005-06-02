@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.12 2005/05/23 05:37:17 garbled Exp $ */
+/* $Id: jsd.c,v 1.13 2005/06/02 17:04:09 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -50,11 +50,12 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.12 2005/05/23 05:37:17 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.13 2005/06/02 17:04:09 garbled Exp $");
 #endif
 
 /* globals */
 int debug, errorflag, exclusion, grouping, iportnum, oportnum;
+int nrofrungroups;
 group_t *grouplist;
 node_t *nodelink;
 char **rungroup;
@@ -87,7 +88,7 @@ main(int argc, char **argv)
 
     someflag = showflag = fanflag = 0;
     exclusion = debug = 0;
-    iportnum = oportnum = 0;
+    iportnum = oportnum = nrofrungroups = 0;
     fanout = DEFAULT_FANOUT;
     nodename = NULL;
     username = NULL;
@@ -150,6 +151,7 @@ main(int argc, char **argv)
 		    }
 		}
 	    }
+	    nrofrungroups = i;
 	    group = NULL;
 	    break;			
 	case 'x':		/* exclude nodes, w overrides this */

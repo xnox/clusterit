@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.14 2005/05/23 05:34:42 garbled Exp $ */
+/* $Id: common.c,v 1.15 2005/06/02 17:01:52 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.14 2005/05/23 05:34:42 garbled Exp $");
+__RCSID("$Id: common.c,v 1.15 2005/06/02 17:01:52 garbled Exp $");
 #endif
 
 
@@ -244,7 +244,7 @@ parse_cluster(char **exclude)
 			fail = 1;
 		if (g >= 0) {
 		    gfail = 1;
-		    for (j = 0; (rungroup[j] != NULL && gfail == 1); j++) {
+		    for (j = 0; (j < nrofrungroups && gfail == 1); j++) {
 			int l;
 			if (!strcmp(grouplist[g].name, rungroup[j]))
 			    gfail = 0;

@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.9 2005/05/23 05:34:42 garbled Exp $ */
+/* $Id: common.h,v 1.10 2005/06/02 17:04:03 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -107,7 +107,7 @@ int test_node_connection(int rshport, int timeout, node_t *nodeptr);
 
 extern char **lumplist;
 extern char **rungroup;
-extern int exclusion, debug, grouping;
+extern int exclusion, debug, grouping, nrofrungroups;
 extern group_t *grouplist;
 extern node_t *nodelink;
 #endif /* CLUSTERS */
