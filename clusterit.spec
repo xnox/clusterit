@@ -1,6 +1,6 @@
 Summary: clusterit is a collection of tools for distributed computing.
 Name: clusterit
-Version: 2.3
+Version: 2.3.1
 Release: 1
 License: BSD with advertising clause (Tim Rightnour), BSD-style (John Bovey)
 Group: Utilities
@@ -23,14 +23,21 @@ It includes:
        rvt -- Hacked version of xvt used by dvt to open the terminals.
        barrier/barrierd -- Synchonize your parallel shell scripts.
 
+%prep
+%setup -q
+
+%build
+./configure --prefix=${RPM_BUILD_ROOT}/usr
+make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
+
 %install
 rm -rf ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}/usr/bin
 mkdir -p ${RPM_BUILD_ROOT}/usr/man/man1
-make PREFIX=${RPM_BUILD_ROOT}/usr -C $SOURCE_DIR install
+make install
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf ${RPM_BUILD_ROOT}
 
 
 %files
@@ -74,3 +81,5 @@ rm -rf $RPM_BUILD_ROOT
 * Sun Oct  3 2004 Tim Rightnour <root@garbled.net> - 
 - Initial build.
 
+* Thu Jun  2 2005 Tim Rightnour <root@garbled.net> -
+- Fixed spec file to work with newer 2.3.1 release
