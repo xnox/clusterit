@@ -78,8 +78,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc
 
 %changelog
-* Sun Oct  3 2004 Tim Rightnour <root@garbled.net> - 
-- Initial build.
-
 * Thu Jun  2 2005 Tim Rightnour <root@garbled.net> -
 - Fixed spec file to work with newer 2.3.1 release
+* Sun Oct  3 2004 Tim Rightnour <root@garbled.net> - 
+- Initial build.
