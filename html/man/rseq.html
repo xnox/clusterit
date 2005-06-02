@@ -19,12 +19,12 @@
         <h3>
         NAME
         </h3>
-<b>seq</b>
+<b>rseq</b>
 - run a command on a cluster in sequence
         <h3>
         SYNOPSIS
         </h3>
-<b>seq</b>
+<b>rseq</b>
 [<b>-</b><b></b><b>aeiq</b>]
 [<b>-</b><b></b><b>g</b><i></i><i> rungroup1,...,rungroupN</i>]
 [<b>-</b><b></b><b>l</b><i></i><i> username</i>]
@@ -35,17 +35,19 @@
         DESCRIPTION
         </h3>
 The
-<b>seq</b>
+<b>rseq</b>
 utility can be used to run a command, or group of commands on a cluster of
 machines.  The command or commands are run on a single node in the cluster,
 which is incremented in sequence on each invocation of
-<b>seq</b>
+<b>rseq</b>
 The following options are available:
 <dl compact>
 <p><dt><b>-</b><b></b><b>a</b><dd>
 The
 <b>-</b><b></b><b>a</b>
-option modifies the behavior of seq when dealing with stdin.  Normally
+option modifies the behavior of
+<b>rseq</b>
+when dealing with stdin.  Normally
 all commands from stdin are run on the same machine.  Specifying the
 <b>-</b><b></b><b>a</b>
 option causes each command to be run on the next node in the seqence.
@@ -93,7 +95,7 @@ option is specified, followed by a comma delimited list of machine names,
 the
 <i></i><i>command</i>
 will be run on each node in the list.  Without this option,
-<b>seq</b>
+<b>rseq</b>
 runs on the nodes listed in the file pointed to by the
 <code></code><code>CLUSTER</code>
 environment variable.
@@ -111,7 +113,7 @@ option.
         <h3>
         ENVIRONMENT
         </h3>
-<b>seq</b>
+<b>rseq</b>
 utilizes the following environment variables.
 <dl compact>
 <p><dt><code></code><code>CLUSTER</code><dd>
@@ -134,7 +136,7 @@ is the pid of the parent process of
 It may be useful to wire the
 <code></code><code>SEQ_FILE</code>
 to a particular file, in order to keep proper sequence when invoking
-<b>seq</b>
+<b>rseq</b>
 from subshells or scripts.
 </dl>
         <h3>
@@ -153,7 +155,7 @@ Exit status is 0 on success, 1 if an error occurs.
         HISTORY
         </h3>
 The
-<b>seq</b>
+<b>rseq</b>
 command appeared in clusterit 1.1.
         <h3>
         AUTHOR
@@ -164,7 +166,7 @@ was written by Tim Rightnour.
         BUGS
         </h3>
 The
-<b>seq</b>
+<b>rseq</b>
 command works fine when used with the
 <b>-</b><b></b><b>w</b>
 and
@@ -172,9 +174,7 @@ and
 flags.  However the user may find that if the arguments are changed, or
 the flags are omitted on a subsequent run, the next node picked may not be
 predictable.  The sequence is calculated on each invocation of
-<b>seq</b>
+<b>rseq</b>
 and the sequence numbers recorded in the temporary file may not match up
 to a new sequence placed on the command line.
 </font></body>
-</html>
-
