@@ -23,19 +23,6 @@ It includes:
        rvt -- Hacked version of xvt used by dvt to open the terminals.
        barrier/barrierd -- Synchonize your parallel shell scripts.
 
-%prep
-if [ -z "$SOURCE_DIR" ] ; then
-       echo "SOURCE_DIR must be set to the root of the clusterit source distribution."
-       echo 'Try something like SOURCE_DIR=`pwd` rpmbuild -bb clusterit.spec'
-       exit -1
-fi
-
-%build
-
-cd $SOURCE_DIR
-[ -f dsh/rseq.1 ] || mv dsh/seq.1 dsh/rseq.1
-[ -f dsh/rseq.c ] || mv dsh/seq.c dsh/rseq.c
-
 %install
 rm -rf ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}/usr/bin
