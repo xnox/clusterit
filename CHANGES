@@ -1,9 +1,13 @@
-$Id: CHANGES,v 1.9 2005/06/02 17:10:24 garbled Exp $
+$Id: CHANGES,v 1.10 2005/06/02 19:20:06 garbled Exp $
+
+* Release 2.3.1 *
 
 Fix a bug noted by James F Wilkus on OpenBSD where dsh would segv when
 reading the clusterfile.
 
 Convert seq over to rseq fully, not just for linux anymore.  Sigh.
+
+Fix the clusterit.spec file to work properly.  Tested on redhat
 
 * Release 2.3 *
 
