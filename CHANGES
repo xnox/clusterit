@@ -1,6 +1,12 @@
-$Id: CHANGES,v 1.8 2005/05/23 22:54:54 garbled Exp $
+$Id: CHANGES,v 1.9 2005/06/02 17:10:24 garbled Exp $
+
+Fix a bug noted by James F Wilkus on OpenBSD where dsh would segv when
+reading the clusterfile.
+
+Convert seq over to rseq fully, not just for linux anymore.  Sigh.
 
 * Release 2.3 *
+
 Made all remote commands use poll instead of a while loop to read the incoming
 stream of data from stdout and stderr.  This fixes bug where linux ssh will
 hang up.
