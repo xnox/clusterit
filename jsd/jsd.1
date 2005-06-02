@@ -1,4 +1,4 @@
-.\" $Id: jsd.1,v 1.3 2000/02/20 19:05:23 garbled Exp $
+.\" $Id: jsd.1,v 1.4 2005/06/02 17:23:37 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -119,7 +119,9 @@ authentication, for this to work.
 .It Fl p
 The
 .Fl p
-option can be used to set the port number which jsd will listen to
+option can be used to set the port number which
+.Nm
+will listen to
 replies from
 .Em jsh
 processes indicating completion of processing on remote nodes.  This
@@ -129,7 +131,9 @@ environment variable.  The default listen port is 2001.
 .It Fl o
 The
 .Fl o
-option can be used to set the port number which jsd will listen to
+option can be used to set the port number which
+.Nm
+will listen to
 requests from
 .Em jsh
 processes for remote nodes.  This option overrides the
@@ -168,7 +172,9 @@ in the cluster.
 Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 .Ic rsh .
-This is only used by jsd when issuing the benchmark at startup, and has no
+This is only used by
+.Nm
+when issuing the benchmark at startup, and has no
 effect on how
 .Em jsh
 processes will connect to the remote nodes.
@@ -190,14 +196,18 @@ overridden by the
 .Fl f
 option.
 .It Ev JSD_OPORT
-When set, overrides the default port which jsd listens on for
+When set, overrides the default port which
+.Nm
+listens on for
 .Em jsh
 processes requesting nodes.  This environment setting can be overriden 
 by the
 .Fl o
 option.
 .It Ev JSD_IPORT
-When set, overrides the default port which jsd listens on for
+When set, overrides the default port which
+.Nm
+listens on for
 .Em jsh
 processes reporting back that it has completed processing on a node.
 This environment setting can be overriden
