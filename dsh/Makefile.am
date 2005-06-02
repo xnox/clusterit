@@ -6,15 +6,15 @@ AM_CPPFLAGS = -DCLUSTERS
 
 INCLUDES = 
 
-bin_PROGRAMS = dsh seq run
+bin_PROGRAMS = dsh rseq run
 
 dsh_SOURCES = \
 	dsh.c \
 	../common/common.c ../common/common.h \
 	../common/netbsd.c
 
-seq_SOURCES = \
-	seq.c \
+rseq_SOURCES = \
+	rseq.c \
 	../common/common.c ../common/common.h \
 	../common/netbsd.c
 
@@ -25,9 +25,9 @@ run_SOURCES = \
 
 man_MANS = \
 	dsh.1 \
-	seq.1 \
+	rseq.1 \
 	run.1
 
 dsh_LDADD = 
-seq_LDADD = 
+rseq_LDADD = 
 run_LDADD = 
