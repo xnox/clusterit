@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-SOURCES = $(dsh_SOURCES) $(run_SOURCES) $(seq_SOURCES)
+SOURCES = $(dsh_SOURCES) $(rseq_SOURCES) $(run_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -36,7 +36,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = dsh$(EXEEXT) seq$(EXEEXT) run$(EXEEXT)
+bin_PROGRAMS = dsh$(EXEEXT) rseq$(EXEEXT) run$(EXEEXT)
 subdir = dsh
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -52,12 +52,12 @@ PROGRAMS = $(bin_PROGRAMS)
 am_dsh_OBJECTS = dsh.$(OBJEXT) common.$(OBJEXT) netbsd.$(OBJEXT)
 dsh_OBJECTS = $(am_dsh_OBJECTS)
 dsh_DEPENDENCIES =
+am_rseq_OBJECTS = rseq.$(OBJEXT) common.$(OBJEXT) netbsd.$(OBJEXT)
+rseq_OBJECTS = $(am_rseq_OBJECTS)
+rseq_DEPENDENCIES =
 am_run_OBJECTS = run.$(OBJEXT) common.$(OBJEXT) netbsd.$(OBJEXT)
 run_OBJECTS = $(am_run_OBJECTS)
 run_DEPENDENCIES =
-am_seq_OBJECTS = seq.$(OBJEXT) common.$(OBJEXT) netbsd.$(OBJEXT)
-seq_OBJECTS = $(am_seq_OBJECTS)
-seq_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -65,8 +65,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(dsh_SOURCES) $(run_SOURCES) $(seq_SOURCES)
-DIST_SOURCES = $(dsh_SOURCES) $(run_SOURCES) $(seq_SOURCES)
+SOURCES = $(dsh_SOURCES) $(rseq_SOURCES) $(run_SOURCES)
+DIST_SOURCES = $(dsh_SOURCES) $(rseq_SOURCES) $(run_SOURCES)
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(man_MANS)
@@ -158,8 +158,8 @@ dsh_SOURCES = \
 	../common/common.c ../common/common.h \
 	../common/netbsd.c
 
-seq_SOURCES = \
-	seq.c \
+rseq_SOURCES = \
+	rseq.c \
 	../common/common.c ../common/common.h \
 	../common/netbsd.c
 
@@ -170,11 +170,11 @@ run_SOURCES = \
 
 man_MANS = \
 	dsh.1 \
-	seq.1 \
+	rseq.1 \
 	run.1
 
 dsh_LDADD = 
-seq_LDADD = 
+rseq_LDADD = 
 run_LDADD = 
 all: all-am
 
@@ -235,12 +235,12 @@ clean-binPROGRAMS:
 dsh$(EXEEXT): $(dsh_OBJECTS) $(dsh_DEPENDENCIES) 
 	@rm -f dsh$(EXEEXT)
 	$(LINK) $(dsh_LDFLAGS) $(dsh_OBJECTS) $(dsh_LDADD) $(LIBS)
+rseq$(EXEEXT): $(rseq_OBJECTS) $(rseq_DEPENDENCIES) 
+	@rm -f rseq$(EXEEXT)
+	$(LINK) $(rseq_LDFLAGS) $(rseq_OBJECTS) $(rseq_LDADD) $(LIBS)
 run$(EXEEXT): $(run_OBJECTS) $(run_DEPENDENCIES) 
 	@rm -f run$(EXEEXT)
 	$(LINK) $(run_LDFLAGS) $(run_OBJECTS) $(run_LDADD) $(LIBS)
-seq$(EXEEXT): $(seq_OBJECTS) $(seq_DEPENDENCIES) 
-	@rm -f seq$(EXEEXT)
-	$(LINK) $(seq_LDFLAGS) $(seq_OBJECTS) $(seq_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -251,8 +251,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dsh.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netbsd.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rseq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/run.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/seq.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
