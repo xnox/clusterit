@@ -1,4 +1,4 @@
-$Id: README,v 1.8 2005/05/24 05:22:51 garbled Exp $
+$Id: README,v 1.9 2005/12/09 15:27:47 garbled Exp $
 
 Welcome to clusterit-2.3 !
 
@@ -98,6 +98,6 @@ A parallel programming API
 	Use MPI, or PVM, or whatever for that.. thats outside the scope of
 this suite.
 
-Things to do still:
-
+Please visit the ClusterIt homepage for more information
+http://clusterit.sourceforge.net/
 Tim Rightnour <root@garbled.net>
