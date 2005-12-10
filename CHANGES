@@ -1,4 +1,12 @@
-$Id: CHANGES,v 1.10 2005/06/02 19:20:06 garbled Exp $
+$Id: CHANGES,v 1.11 2005/12/10 07:20:58 garbled Exp $
+
+Fix a bug noted by Jot Powers, where trailing whitespace on a GROUP or LUMP
+entry would cause dsh -g to not match it.
+
+Fix a bug noted by   where linux machines often recieved truncated output from
+the child ssh/rsh process.
+
+Fix bug where all the programs would mangle argv[0] for ps.
 
 * Release 2.3.1 *
 
