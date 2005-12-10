@@ -4,7 +4,7 @@ Version: 2.3.1
 Release: 1
 License: BSD with advertising clause (Tim Rightnour), BSD-style (John Bovey)
 Group: Utilities
-URL: http://www.garbled.net/clusterit.html
+URL: http://clusterit.sourceforge.net/
 Prefix: /usr
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-build
