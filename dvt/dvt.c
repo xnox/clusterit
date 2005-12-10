@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.6 2005/06/02 17:04:09 garbled Exp $ */
+/* $Id: dvt.c,v 1.7 2005/12/10 06:45:05 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -56,7 +56,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.6 2005/06/02 17:04:09 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.7 2005/12/10 06:45:05 garbled Exp $");
 #endif /* not lint */
 
 #ifndef __P
@@ -130,12 +130,12 @@ main(int argc, char **argv)
     if (exclude == NULL)
 	bailout();
 
-    progname = p = q = argv[0];
+    progname = p = q = strdup(argv[0]);
     while (progname != NULL) {
 	q = progname;
 	progname = (char *)strsep(&p, "/");
     }
-    progname = strdup(q);
+    progname = q;
 
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?deiqf:g:l:w:x:")) != -1)

@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.16 2005/05/23 05:34:24 garbled Exp $ */
+/* $Id: barrierd.c,v 1.17 2005/12/10 06:45:05 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.16 2005/05/23 05:34:24 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.17 2005/12/10 06:45:05 garbled Exp $");
 #endif
 
 #define MAX_TOKENS	10
@@ -67,8 +67,15 @@ main(int argc, char **argv)
     extern char *optarg;
 
     int ch;
+    char *p, *q;
 	
     barrier_port = 0;
+    progname = p = q = strdup(argv[0]);
+    while (progname != NULL) {
+	q = progname;
+	progname = (char *)strsep(&p, "/");
+    }
+    progname = q;
 
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?p:")) != -1)

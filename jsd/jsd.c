@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.13 2005/06/02 17:04:09 garbled Exp $ */
+/* $Id: jsd.c,v 1.14 2005/12/10 06:45:05 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -50,7 +50,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.13 2005/06/02 17:04:09 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.14 2005/12/10 06:45:05 garbled Exp $");
 #endif
 
 /* globals */
@@ -102,12 +102,12 @@ main(int argc, char **argv)
     if (exclude == NULL)
 	bailout();
 
-    progname = p = q = argv[0];
+    progname = p = q = strdup(argv[0]);
     while (progname != NULL) {
 	q = progname;
 	progname = (char *)strsep(&p, "/");
     }
-    progname = strdup(q);
+    progname = q;
 
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?diqf:g:l:w:x:p:")) != -1)
