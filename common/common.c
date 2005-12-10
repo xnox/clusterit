@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.16 2005/12/10 06:45:05 garbled Exp $ */
+/* $Id: common.c,v 1.17 2005/12/10 07:06:49 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.16 2005/12/10 06:45:05 garbled Exp $");
+__RCSID("$Id: common.c,v 1.17 2005/12/10 07:06:49 garbled Exp $");
 #endif
 
 
@@ -212,6 +212,13 @@ parse_cluster(char **exclude)
 			bailout();
 		    lumplist[n] = strdup(p);
 		}
+		/* trim trailing whitespace */
+		q = lumplist[n];
+		q += strlen(lumplist[n])-1;
+		while (isspace(*q))
+			*q--;
+		*q++;
+		*q = '\0';
 		n++;
 	    } else if (lumping){
 		if ((strstr(p, "GROUP") != NULL) ||
