@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.14 2005/12/10 06:45:05 garbled Exp $ */
+/* $Id: run.c,v 1.15 2005/12/11 06:19:58 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: run.c,v 1.14 2005/12/10 06:45:05 garbled Exp $");
+__RCSID("$Id: run.c,v 1.15 2005/12/11 06:19:58 garbled Exp $");
 #endif
 
 extern int errno;
@@ -89,10 +89,10 @@ main(int argc, char **argv)
     nodeptr = NULL;
     nodelink = NULL;
 
-    rungroup = malloc(sizeof(char **) * GROUP_MALLOC);
+    rungroup = calloc(GROUP_MALLOC, sizeof(char **));
     if (rungroup == NULL)
 	bailout();
-    exclude = malloc(sizeof(char **) * GROUP_MALLOC);
+    exclude = calloc(GROUP_MALLOC, sizeof(char **));
     if (exclude == NULL)
 	bailout();
 
@@ -193,9 +193,8 @@ main(int argc, char **argv)
 	    break;
 	}
 
-    if (username == NULL)
-	if (getenv("RCMD_USER"))
-	    username = strdup(getenv("RCMD_USER"));
+    if (username == NULL && getenv("RCMD_USER"))
+	username = strdup(getenv("RCMD_USER"));
 
     if (!someflag)
 	parse_cluster(exclude);
@@ -239,8 +238,8 @@ do_command(char **argv, int allrun, char *username)
     FILE *fd, *fda, *in;
     char buf[MAXBUF];
     char pipebuf[2048];
-    int status, i, piping, pollret;
-    char *p, *command, *rsh, *cd;
+    int status, i, piping, pollret, nrofargs, arg;
+    char *p, *command, *rsh, *cd, **q, *rshargs, **cmd;
     node_t *nodeptr;
     size_t maxnodelen;
     struct pollfd fds[2];
@@ -249,25 +248,26 @@ do_command(char **argv, int allrun, char *username)
     piping = 0;
     in = NULL;
     maxnodelen = 0;
+    rshargs = NULL;
 
     for (nodeptr = nodelink; nodeptr != NULL; nodeptr = nodeptr->next)
 	if (strlen(nodeptr->name) > maxnodelen)
 	    maxnodelen = strlen(nodeptr->name);
 
-    if (debug)
-	if (username != NULL)
-	    (void)printf("As User: %s\n", username);
+    if (debug && username != NULL)
+	(void)printf("As User: %s\n", username);
 
     /* construct the command from the remains of argv */
-    command = (char *)malloc(MAXBUF * sizeof(char));
-    memset(command, 0, MAXBUF * sizeof(char));
+    for (i=0, p=*argv, q=argv; p != NULL; p = *++q)
+	i += (strlen(p)+1);
+    command = (char *)calloc(i+1, sizeof(char));
     for (p = *argv; p != NULL; p = *++argv ) {
 	strcat(command, p);
 	strcat(command, " ");
     }
-    if (debug) {
+    if (debug)
 	(void)printf("\nDo Command: %s\n", command);
-    }
+
     if (strcmp(command,"") == 0) {
 	piping = 1;
 
@@ -291,6 +291,18 @@ do_command(char **argv, int allrun, char *username)
 	rsh = strdup("rsh");
     if (rsh == NULL)
 	bailout();
+    if (getenv("RCMD_CMD_ARGS") != NULL)
+	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
+    nrofargs = 3;
+    if (rshargs != NULL) {
+	p = rshargs;
+	nrofargs++;
+	while (*p != '\0') {
+	    if (isspace(*p))
+		nrofargs++;
+	    *p++;
+	}
+    }
 
     /* begin the processing loop */
     while (command != NULL) {
@@ -322,12 +334,21 @@ do_command(char **argv, int allrun, char *username)
 	    if (close(nodeptr->err.fds[0]) != 0)
 		bailout();
 	    if (username != NULL)
-		(void)sprintf(buf, "%s@%s", username, nodeptr->name);
+		(void)snprintf(buf, MAXBUF, "%s@%s", username, nodeptr->name);
 	    else
-		(void)sprintf(buf, "%s", nodeptr->name);
+		(void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 	    if (debug)
-		(void)printf("%s %s %s\n", rsh, buf, command);
-	    execlp(rsh, rsh, buf, command, (char *)0);
+		(void)printf("%s %s %s %s\n", rsh,
+			     (rshargs? rshargs:""), buf, command);
+	    cmd = calloc(nrofargs+1, sizeof(char *));
+	    arg = 0;
+	    cmd[arg++] = rsh;
+	    while (rshargs != NULL)
+		cmd[arg++] = strdup(strsep(&rshargs, " "));
+	    cmd[arg++] = buf;
+	    cmd[arg++] = command;
+	    cmd[arg] = (char *)0;
+	    execvp(rsh, cmd);
 	    bailout();
 	} /* end switch */
 	/* now close off the useless stuff, and read the goodies */

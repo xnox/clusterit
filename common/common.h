@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.10 2005/06/02 17:04:03 garbled Exp $ */
+/* $Id: common.h,v 1.11 2005/12/11 06:19:58 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -39,6 +39,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <ctype.h>
 #ifdef HAVE_TERMIOS_H
 #include <termios.h>
 #endif /* HAVE_TERMIOS_H */
@@ -47,6 +48,10 @@
 #include <netdb.h>
 #include <time.h>
 #include <sys/time.h>
+
+#ifdef HAVE_UTIL_H
+#include <util.h>
+#endif /* HAVE_UTIL_H */
 
 #ifdef USE_X11
 #include <X11/Xlib.h>

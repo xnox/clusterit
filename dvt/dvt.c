@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.7 2005/12/10 06:45:05 garbled Exp $ */
+/* $Id: dvt.c,v 1.8 2005/12/11 06:19:58 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -56,7 +56,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.7 2005/12/10 06:45:05 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.8 2005/12/11 06:19:58 garbled Exp $");
 #endif /* not lint */
 
 #ifndef __P
@@ -540,9 +540,9 @@ do_command(int fanout, char *username)
 	    if (close(nodeptr->err.fds[0]) != 0)
 		bailout();
 	    if (username != NULL)
-		(void)sprintf(buf, "%s@%s", username, nodeptr->name);
+		(void)snprintf(buf, MAXBUF, "%s@%s", username, nodeptr->name);
 	    else
-		(void)sprintf(buf, "%s", nodeptr->name);
+		(void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 	    if (debug)
 		(void)printf("%s %s\n", rsh, buf);
 	    execlp(rsh, rsh, buf, (char *)0);

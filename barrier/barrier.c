@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.17 2005/12/10 06:45:05 garbled Exp $ */
+/* $Id: barrier.c,v 1.18 2005/12/11 06:19:58 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrier.c,v 1.17 2005/12/10 06:45:05 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.18 2005/12/11 06:19:58 garbled Exp $");
 #endif
 
 int quietflag, barrier_port, debug;
@@ -175,7 +175,7 @@ int make_barrier(char *key, int nodes)
     }
     if (!quietflag)
 	(void)printf("Barrier syncing with token: %s\n", key);
-    (void)sprintf(message, "%s %d", key, nodes);
+    (void)snprintf(message, 256, "%s %d", key, nodes);
     write_to_server(sock, message);
     return(read(sock, &p, 6));
 }

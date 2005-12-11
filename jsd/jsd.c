@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.14 2005/12/10 06:45:05 garbled Exp $ */
+/* $Id: jsd.c,v 1.15 2005/12/11 06:19:58 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -50,7 +50,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.14 2005/12/10 06:45:05 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.15 2005/12/11 06:19:58 garbled Exp $");
 #endif
 
 /* globals */
@@ -410,8 +410,8 @@ do_bench_command(char *argv, int fanout, char *username)
 {
     FILE *fd, *in;
     char pipebuf[2048], buf[MAXBUF];
-    int status, i, j, n, g;
-    char *q, *rsh, *cd;
+    int status, i, j, n, g, nrofargs, arg;
+    char *q, *rsh, *cd, *p, *rshargs, **cmd;
     node_t *nodeptr, *nodehold;
 
     j = i = 0;
@@ -426,10 +426,9 @@ do_bench_command(char *argv, int fanout, char *username)
     }
     for (nodeptr = nodelink; nodeptr; nodeptr = nodeptr->next) {
 	if (debug) {
-	    q = (char *)malloc(MAXBUF * sizeof(char));
+	    q = (char *)calloc(MAXBUF, sizeof(char));
 	    if (q == NULL)
 		log_bailout();
-	    memset(q, 0, MAXBUF * sizeof(char));
 	    if (!(j % 4) && j > 0)
 		strcat(q, "\n");
 	    strcat(q, nodeptr->name);
@@ -455,6 +454,19 @@ do_bench_command(char *argv, int fanout, char *username)
 	rsh = strdup("rsh");
     if (rsh == NULL)
 	bailout();
+    if (getenv("RCMD_CMD_ARGS") != NULL)
+	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
+    nrofargs = 3;
+    if (rshargs != NULL) {
+	p = rshargs;
+	nrofargs++;
+	while (*p != '\0') {
+	    if (isspace(*p))
+		nrofargs++;
+	    *p++;
+	}
+    }
+
     g = 0;
     nodeptr = nodelink;
     for (n=0; n <= j; n++) {
@@ -494,12 +506,22 @@ do_bench_command(char *argv, int fanout, char *username)
 		    log_bailout();
 
 		if (username != NULL)
-		    (void)sprintf(buf, "%s@%s", username, nodeptr->name);
+		    (void)snprintf(buf, MAXBUF, "%s@%s", username,
+				   nodeptr->name);
 		else
-		    (void)sprintf(buf, "%s", nodeptr->name);
+		    (void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 		if (debug)
-		    syslog(LOG_DEBUG, "%s %s %s", rsh, buf, argv);
-		execlp(rsh, rsh, buf, argv, (char *)0);
+		    (void)syslog(LOG_DEBUG, "%s %s %s %s\n", rsh,
+			     (rshargs? rshargs:""), buf, argv);
+		cmd = calloc(nrofargs+1, sizeof(char *));
+		arg = 0;
+		cmd[arg++] = rsh;
+		while (rshargs != NULL)
+		    cmd[arg++] = strdup(strsep(&rshargs, " "));
+		cmd[arg++] = buf;
+		cmd[arg++] = argv;
+		cmd[arg] = (char *)0;
+		execvp(rsh, cmd);
 		log_bailout();
 		break;
 	    default:

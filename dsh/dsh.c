@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.22 2005/12/10 06:45:05 garbled Exp $ */
+/* $Id: dsh.c,v 1.23 2005/12/11 06:19:58 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -36,7 +36,6 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 
-
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -48,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.22 2005/12/10 06:45:05 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.23 2005/12/11 06:19:58 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -95,10 +94,10 @@ main(int argc, char *argv[])
     nodeptr = NULL;
     nodelink = NULL;
 
-    rungroup = malloc(sizeof(char **) * GROUP_MALLOC);
+    rungroup = calloc(GROUP_MALLOC, sizeof(char **));
     if (rungroup == NULL)
 	bailout();
-    exclude = malloc(sizeof(char **) * GROUP_MALLOC);
+    exclude = calloc(GROUP_MALLOC, sizeof(char **));
     if (exclude == NULL)
 	bailout();
 
@@ -208,21 +207,16 @@ main(int argc, char *argv[])
 	}
 
     /* Check for various environment variables and use them if they exist */
-    if (!fanflag)
-	if (getenv("FANOUT"))
-	    fanout = atoi(getenv("FANOUT"));
-    if (!rshport)
-	if (getenv("RCMD_PORT"))
-	    rshport = atoi(getenv("RCMD_PORT"));
-    if (!testflag)
-	if (getenv("RCMD_TEST"))
-	    testflag = 1;
-    if (porttimeout == 5)
-	if (getenv("RCMD_TEST_TIMEOUT"))
-	    porttimeout = atoi(getenv("RCMD_TEST_TIMEOUT"));
-    if (username == NULL)
-	if (getenv("RCMD_USER"))
-	    username = strdup(getenv("RCMD_USER"));
+    if (!fanflag && getenv("FANOUT"))
+	fanout = atoi(getenv("FANOUT"));
+    if (!rshport && getenv("RCMD_PORT"))
+	rshport = atoi(getenv("RCMD_PORT"));
+    if (!testflag && getenv("RCMD_TEST"))
+	testflag = 1;
+    if (porttimeout == 5 && getenv("RCMD_TEST_TIMEOUT"))
+	porttimeout = atoi(getenv("RCMD_TEST_TIMEOUT"));
+    if (username == NULL && getenv("RCMD_USER"))
+	username = strdup(getenv("RCMD_USER"));
 
     /* we need to find or guess the port number */
     if (testflag && rshport == 0) {
@@ -279,13 +273,12 @@ void
 do_command(char **argv, int fanout, char *username)
 {
     struct sigaction signaler;
-
     FILE *fd, *fda, *in;
     char buf[MAXBUF];
     char pipebuf[2048];
-    int status, i, j, n, g, piping, pollret;
+    int status, i, j, n, g, piping, pollret, nrofargs, arg;
     size_t maxnodelen;
-    char *p, *command, *rsh, *cd;
+    char *p, **q, *command, *rsh, *cd, *rshargs, **cmd;
     node_t *nodeptr, *nodehold;
     struct pollfd fds[2];
 
@@ -294,6 +287,7 @@ do_command(char **argv, int fanout, char *username)
     piping = 0;
     in = NULL;
     cd = pipebuf;
+    rshargs = NULL;
 
     if (debug) {
 	if (username != NULL)
@@ -317,8 +311,9 @@ do_command(char **argv, int fanout, char *username)
 	j++; /* compute the # of rungroups */
 
     /* construct the command from the remains of argv */
-    command = (char *)malloc(MAXBUF * sizeof(char));
-    memset(command, 0, MAXBUF * sizeof(char));
+    for (i=0, p=*argv, q=argv; p != NULL; p = *++q)
+	i += (strlen(p)+1);
+    command = (char *)calloc(i+1, sizeof(char));
     for (p = *argv; p != NULL; p = *++argv ) {
 	strcat(command, p);
 	strcat(command, " ");
@@ -327,7 +322,7 @@ do_command(char **argv, int fanout, char *username)
 	(void)printf("\nDo Command: %s\n", command);
 	(void)printf("Fanout: %d Groups:%d\n", fanout, j);
     }
-    if (strcmp(command,"") == 0) {
+    if (strcmp(command, "") == 0) {
 	piping = 1;
 	/* are we a terminal?  then go interactive! */
 	if (isatty(STDIN_FILENO) && piping)
@@ -356,6 +351,19 @@ do_command(char **argv, int fanout, char *username)
 	rsh = strdup("rsh");
     if (rsh == NULL)
 	bailout();
+
+    if (getenv("RCMD_CMD_ARGS") != NULL)
+	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
+    nrofargs = 3;
+    if (rshargs != NULL) {
+	p = rshargs;
+	nrofargs++;
+	while (*p != '\0') {
+	    if (isspace(*p))
+		nrofargs++;
+	    *p++;
+	}
+    }
 
     /* begin the processing loop */
     g = 0;
@@ -415,16 +423,26 @@ do_command(char **argv, int fanout, char *username)
 		    if (close(nodeptr->err.fds[0]) != 0)
 			bailout();
 		    if (username != NULL)
-			(void)sprintf(buf, "%s@%s", username, nodeptr->name);
+			(void)snprintf(buf, MAXBUF, "%s@%s", username,
+				       nodeptr->name);
 		    else
-			(void)sprintf(buf, "%s", nodeptr->name);
+			(void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 		    if (debug)
-			(void)printf("%s %s %s\n", rsh, buf, command);
+			(void)printf("%s %s %s %s\n", rsh,
+				     (rshargs? rshargs:""), buf, command);
 		    if (testflag && rshport > 0 && porttimeout > 0)
 			if (!test_node_connection(rshport, porttimeout,
 						  nodeptr))
 			    exit(EXIT_SUCCESS);
-		    execlp(rsh, rsh, buf, command, (char *)0);
+		    cmd = calloc(nrofargs+1, sizeof(char *));
+		    arg = 0;
+		    cmd[arg++] = rsh;
+		    while (rshargs != NULL)
+			cmd[arg++] = strdup(strsep(&rshargs, " "));
+		    cmd[arg++] = buf;
+		    cmd[arg++] = command;
+		    cmd[arg] = (char *)0;
+		    execvp(rsh, cmd);
 		    bailout();
 		    break;
 		default:

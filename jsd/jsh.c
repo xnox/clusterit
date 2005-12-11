@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.12 2005/12/10 06:45:05 garbled Exp $ */
+/* $Id: jsh.c,v 1.13 2005/12/11 06:19:58 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.12 2005/12/10 06:45:05 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.13 2005/12/11 06:19:58 garbled Exp $");
 #endif
 
 void do_command(char **argv, int allrun, char *username);
@@ -161,9 +161,8 @@ main(int argc, char **argv)
 	else
 	    jsd_host = strdup("localhost");
     }
-    if (username == NULL)
-        if (getenv("RCMD_USER"))
-            username = strdup(getenv("RCMD_USER"));
+    if (username == NULL && getenv("RCMD_USER"))
+	username = strdup(getenv("RCMD_USER"));
 
     if (jsd_host == NULL)
 	bailout();
@@ -255,31 +254,32 @@ do_command(char **argv, int allrun, char *username)
 {
     FILE *fd, *fda, *in;
     char buf[MAXBUF], pipebuf[2048];
-    char *nodename, *p, *command, *rsh, *cd;
-    int status, i, piping, pollret;
+    char *nodename, *p, **q, *command, *rsh, *cd, *rshargs, **cmd;
+    int status, piping, pollret, nrofargs, arg;
+    size_t i;
     pipe_t out, err;
     pid_t childpid;
     struct pollfd fds[2];
 
-    i = 0;
     piping = 0;
     in = NULL;
     nodename = NULL;
+    rshargs = NULL;
 
-    if (debug)
-	if (username != NULL)
-	    (void)printf("As User: %s\n", username);
+    if (debug && username != NULL)
+	(void)printf("As User: %s\n", username);
 
     /* construct the command from the remains of argv */
-    command = (char *)malloc(MAXBUF * sizeof(char));
-    memset(command, 0, MAXBUF * sizeof(char));
+    for (i=0, p=*argv, q=argv; p != NULL; p = *++q)
+	i += (strlen(p)+1);
+    command = (char *)calloc(i+1, sizeof(char));
     for (p = *argv; p != NULL; p = *++argv ) {
 	strcat(command, p);
 	strcat(command, " ");
     }
-    if (debug) {
+    if (debug)
 	(void)printf("\nDo Command: %s\n", command);
-    }
+
     if (strcmp(command,"") == 0) {
 	piping = 1;
 	/* are we a terminal?  then go interactive! */
@@ -301,6 +301,19 @@ do_command(char **argv, int allrun, char *username)
 	rsh = strdup("rsh");
     if (rsh == NULL)
 	bailout();
+
+    if (getenv("RCMD_CMD_ARGS") != NULL)
+	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
+    nrofargs = 3;
+    if (rshargs != NULL) {
+	p = rshargs;
+	nrofargs++;
+	while (*p != '\0') {
+	    if (isspace(*p))
+		nrofargs++;
+	    *p++;
+	}
+    }
 
     if (allrun)
 	nodename = check_node();
@@ -336,12 +349,21 @@ do_command(char **argv, int allrun, char *username)
 	    if (close(err.fds[0]) != 0)
 		bailout();
 	    if (username != NULL)
-		(void)sprintf(buf, "%s@%s", username, nodename);
+		(void)snprintf(buf, MAXBUF, "%s@%s", username, nodename);
 	    else
-		(void)sprintf(buf, "%s", nodename);
+		(void)snprintf(buf, MAXBUF, "%s", nodename);
 	    if (debug)
-		(void)printf("%s %s %s\n", rsh, buf, command);
-	    execlp(rsh, rsh, buf, command, (char *)0);
+		(void)printf("%s %s %s %s\n", rsh,
+			     (rshargs? rshargs:""), buf, command);
+	    cmd = calloc(nrofargs+1, sizeof(char *));
+	    arg = 0;
+	    cmd[arg++] = rsh;
+	    while (rshargs != NULL)
+		cmd[arg++] = strdup(strsep(&rshargs, " "));
+	    cmd[arg++] = buf;
+	    cmd[arg++] = command;
+	    cmd[arg] = (char *)0;
+	    execvp(rsh, cmd);
 	    bailout();
 	} /* end switch */
 	/* now close off the useless stuff, and read the goodies */

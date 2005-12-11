@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.17 2005/12/10 07:06:49 garbled Exp $ */
+/* $Id: common.c,v 1.18 2005/12/11 06:19:58 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.17 2005/12/10 07:06:49 garbled Exp $");
+__RCSID("$Id: common.c,v 1.18 2005/12/11 06:19:58 garbled Exp $");
 #endif
 
 
@@ -131,11 +131,11 @@ parse_cluster(char **exclude)
     n = 0;
     gfail = 1;
 
-    grouplist = (group_t *)malloc(GROUP_MALLOC * sizeof(group_t));
+    grouplist = (group_t *)calloc(GROUP_MALLOC, sizeof(group_t));
     if (grouplist == NULL)
 	bailout();
 
-    lumplist = (char **)malloc(GROUP_MALLOC * sizeof(char *));
+    lumplist = (char **)calloc(GROUP_MALLOC, sizeof(char *));
     if (lumplist == NULL)
 	bailout();
 
@@ -369,8 +369,7 @@ int test_node_connection(int rshport, int timeout, node_t *nodeptr)
     timer.it_value.tv_sec = timeout;
     timer.it_value.tv_usec = 0;
     setitimer(ITIMER_REAL, &timer, NULL);
-    if (connect(sock, (struct sockaddr *)&name,
-				sizeof(name)) != 0) {
+    if (connect(sock, (struct sockaddr *)&name,	sizeof(name)) != 0) {
 	fprintf(stderr, "Cannot connect to port %d on %s\n",
 		rshport, nodeptr->name);
 	close(sock);
@@ -400,7 +399,6 @@ _bailout(int line, char *file)
     extern int errno;
 	
     (void)fprintf(stderr, "%s: Failed in %s line %d: %s %d\n",
-	progname, file, line, strerror(errno), errno);
-
+		  progname, file, line, strerror(errno), errno);
     _exit(EXIT_FAILURE);
 }
