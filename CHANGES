@@ -1,4 +1,19 @@
-$Id: CHANGES,v 1.11 2005/12/10 07:20:58 garbled Exp $
+$Id: CHANGES,v 1.12 2005/12/11 06:22:22 garbled Exp $
+
+Replace most instances of sprintf with snprintf. Did not touch rvt, as I would
+prefer to keep that as unmodified as possible, and most of them would not
+be easy to fix anyhow.
+
+Replace most instances of malloc with calloc.   Mostly to prevent any
+unanticipated wierdness, and a few of the mallocs were immediately followed
+by memset commands anyhow.
+
+Add RCMD_CMD_ARGS to most of the programs. This makes it easier to do
+things like run "ssh -4" as your RCMD_CMD.
+
+Stop allocating the command to be run on the remote end as buf[MAXBUF],
+instead compute it at runtime and dynamically allocate it to prevent
+possible overflow on a huge command.
 
 Fix a bug noted by Jot Powers, where trailing whitespace on a GROUP or LUMP
 entry would cause dsh -g to not match it.
