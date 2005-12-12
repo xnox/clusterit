@@ -1,4 +1,15 @@
-$Id: CHANGES,v 1.12 2005/12/11 06:22:22 garbled Exp $
+$Id: CHANGES,v 1.13 2005/12/12 08:02:50 garbled Exp $
+
+Add RVT_CMD_ARGS to dvt, to allow passing of args to rvt
+
+Incorporate patches from debian xvt package into rvt:    
+Fix xvt manpage typos
+Add -rv (reverse-video) option 
+Better colormap handling
+All other patches were either irrelevant (makefile fixes, etc) or allready
+incorporated.
+
+Fix pdf to work on linux hosts
 
 Replace most instances of sprintf with snprintf. Did not touch rvt, as I would
 prefer to keep that as unmodified as possible, and most of them would not

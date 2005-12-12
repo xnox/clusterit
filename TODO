@@ -1,4 +1,4 @@
-# $Id: TODO,v 1.7 2005/05/23 05:32:55 garbled Exp $
+# $Id: TODO,v 1.8 2005/12/12 08:02:50 garbled Exp $
 # no particular order:
 
 Port interrupt handling to seq and run.
@@ -6,8 +6,6 @@ Port interrupt handling to seq and run.
 Break apart do_command in dsh.c to something sane.
 
 make dshbak more useful.  The IBM format is nasty.
-
-pdf could probably use a little work.
 
 COMPLETED
 ---------
