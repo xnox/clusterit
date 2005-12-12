@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.8 2005/12/11 06:19:58 garbled Exp $ */
+/* $Id: dvt.c,v 1.9 2005/12/12 08:00:01 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -56,7 +56,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.8 2005/12/11 06:19:58 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.9 2005/12/12 08:00:01 garbled Exp $");
 #endif /* not lint */
 
 #ifndef __P
@@ -419,9 +419,9 @@ do_command(int fanout, char *username)
     struct sigaction signaler;
     FILE *fd, *in;
     char pipebuf[2048], buf[MAXBUF];
-    int count, status, i, j, g, l, piping;
+    int count, status, i, j, g, l, piping, nrofargs, arg;
     size_t maxnodelen;
-    char *rsh, *cd;
+    char *rsh, *cd, *rshargs, **cmd, *p;
     node_t *nodeptr, *nodehold;
     XEvent report;
     XComposeStatus compose;
@@ -435,6 +435,7 @@ do_command(int fanout, char *username)
     j = i = 0;
     piping = 0;
     in = NULL;
+    rshargs = NULL;
     cd = pipebuf;
     start_x = 2;
     cur_letter = 0;
@@ -490,6 +491,19 @@ do_command(int fanout, char *username)
 	rsh = strdup("rvt");
     if (rsh == NULL)
 	bailout();
+    if (getenv("RVT_CMD_ARGS") != NULL)
+	rshargs = strdup(getenv("RVT_CMD_ARGS"));
+    nrofargs = 2;
+    if (rshargs != NULL) {
+	p = rshargs;
+	nrofargs++;
+	while (*p != '\0') {
+	    if (isspace(*p))
+		nrofargs++;
+	    *p++;
+	}
+    }
+
     for (i=0; (i < fanout && nodeptr != NULL); i++) {
 	g++;
 	if (gotsigterm)
@@ -544,8 +558,16 @@ do_command(int fanout, char *username)
 	    else
 		(void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 	    if (debug)
-		(void)printf("%s %s\n", rsh, buf);
-	    execlp(rsh, rsh, buf, (char *)0);
+		(void)printf("%s %s %s\n", rsh,
+			     (rshargs? rshargs:""), buf);
+	    cmd = calloc(nrofargs+1, sizeof(char *));
+	    arg = 0;
+	    cmd[arg++] = rsh;
+	    while (rshargs != NULL)
+		cmd[arg++] = strdup(strsep(&rshargs, " "));
+	    cmd[arg++] = buf;
+	    cmd[arg] = (char *)0;
+	    execvp(rsh, cmd);
 	    bailout();
 	    break;
 	default:

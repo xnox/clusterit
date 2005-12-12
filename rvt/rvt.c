@@ -501,4 +501,5 @@ char **argv;
 			show_token(&token);
 #endif /* DEBUG */
 	}
+	return 0;
 }

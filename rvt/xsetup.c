@@ -110,6 +110,7 @@ GC		sbgc;		/* GC used for drawing the scrollbar */
 unsigned long	foreground;		/* foreground pixel value */
 unsigned long	background;		/* background pixel value */
 int		reverse_wrap = 0;	/* enable reverse wrapround */
+int             reverse_video = 0;      /* select reverse video */
 int		debugging = 0;		/* enable debugging output */
 int		messages = 0;		/* flag to enable messages */
 
@@ -157,6 +158,7 @@ static XrmOptionDescRec optable[] = {
 	{"-cr",		"*cursorColor",	XrmoptionSepArg,	(caddr_t)NULL},
 	{"-sb",		"*scrollBar",	XrmoptionNoArg,		"on"},
 	{"-rw",		"*reverseWrap",	XrmoptionNoArg,		"on"},
+	{"-rv",         "*reverseVideo",XrmoptionNoArg,         "on"},
 	{"-msg",	"*messages",	XrmoptionNoArg,		"on"},
 	{"-iconic",	"*iconic",	XrmoptionNoArg,		"on"},
 	{"-8",		"*eightBitInput",XrmoptionNoArg,	"on"},
@@ -189,6 +191,7 @@ static char *usearray[] = {
 "-cr <colour>		text cursor colour",
 "-sb			provide an initial scrollbar",
 "-rw			enable reverse wrap",
+"-rv			run in reverse video",
 "-msg			allow messages",
 "-iconic			start up already iconized",
 "-8			process eight-bit characters",
@@ -427,21 +430,28 @@ char *command;
 
 	/*  Get colormap entries and create the graphics contexts.
 	 */
-	if (cursorclr == 0 || DefaultDepth(display,screen) == 1) {
+	if (foreground == 0)
+		XParseColor(display,colormap,"black",&foreground_color);
+	if (background == 0)
+		XParseColor(display,colormap,"white",&background_color);
+	if (reverse_video == 1 && foreground == 0 && background == 0) {
+		XColor temp_color;
+		temp_color = background_color;
+		background_color = foreground_color;
+		foreground_color = temp_color;
+	}
+	if (cursorclr == 0 || visual->class == StaticGray
+	    || visual->class == StaticColor || visual->class == TrueColor) {
 
 		/*  We are not using a colored text cursor so we can use
 		 *  read only shared colormap entries for foreground and background.
 		 */
-		if (foreground == 0)
-			XParseColor(display,colormap,"black",&foreground_color);
 		if (XAllocColor(display,colormap,&foreground_color) != 0)
 			foreground = foreground_color.pixel;
 		else {
 			error("can't allocate foreground color %s - using black",s);
 			foreground = BlackPixel(display,screen);
 		}
-		if (background == 0)
-			XParseColor(display,colormap,"white",&background_color);
 		if (XAllocColor(display,colormap,&background_color) != 0)
 			background = background_color.pixel;
 		else {
@@ -470,13 +480,9 @@ char *command;
 			background = background_color.pixel;
 			cursorclr = foreground;
 		} else {
-			if (foreground == 0)
-				XParseColor(display,colormap,"black",&foreground_color);
 			foreground_color.pixel = foreground = pixels[0];
 			foreground_color.flags = DoRed | DoBlue | DoGreen;
 			XStoreColor(display,colormap,&foreground_color);
-			if (background == 0)
-				XParseColor(display,colormap,"white",&background_color);
 			background_color.pixel = background = pixels[0] | plane_masks[0];
 			background_color.flags = DoRed | DoBlue | DoGreen;
 			XStoreColor(display,colormap,&background_color);
@@ -714,6 +720,11 @@ extract_resources()
 	 */
 	if ((s = get_resource("reverseWrap","ReverseWrap")) != NULL)
 		reverse_wrap = affirmative(s);
+
+	/*  Get the reverse video flag.
+	 */
+	if ((s = get_resource("reverseVideo","ReverseVideo")) != NULL)
+		reverse_video = affirmative(s);
 
 	/*  Get the eight bit flag.
 	 */

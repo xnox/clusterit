@@ -1,4 +1,4 @@
-.\" $Id: run.1,v 1.10 2005/05/23 05:36:59 garbled Exp $
+.\" $Id: run.1,v 1.11 2005/12/12 08:00:01 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -120,7 +120,7 @@ option.
 .Sh ENVIRONMENT
 .Nm
 utilizes the following environment variables.
-.Bl -tag -width "RCMD_CMD"
+.Bl -tag -width "RCMD_CMD_ARGS"
 .It Ev CLUSTER
 Contains a filename, which is a newline separated list of nodes
 in the cluster.
@@ -128,6 +128,8 @@ in the cluster.
 Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 .Ic rsh
+.It Ev RCMD_CMD_ARGS
+Arguments to pass to the remote shell command.  Defaults to none.
 .It Ev RCMD_USER
 The username to connect to remote machines as by default.
 .El

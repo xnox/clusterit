@@ -1,4 +1,4 @@
-.\" $Id: jsd.1,v 1.4 2005/06/02 17:23:37 garbled Exp $
+.\" $Id: jsd.1,v 1.5 2005/12/12 08:00:06 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -178,6 +178,10 @@ when issuing the benchmark at startup, and has no
 effect on how
 .Em jsh
 processes will connect to the remote nodes.
+.It Ev RCMD_CMD_ARGS
+Arguments to pass to the remote shell command.  Defaults to none. As with
+.Ev RCMD_CMD
+this is only used when issuing the benchmark at startup.
 .It Ev JSD_BENCH_CMD
 This is the name of a command, which when run on the remote nodes of
 the cluster will give some indication of the relative speed of the

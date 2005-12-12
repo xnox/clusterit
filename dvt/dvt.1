@@ -1,4 +1,4 @@
-.\" $Id: dvt.1,v 1.1 2001/08/13 21:24:55 garbled Exp $
+.\" $Id: dvt.1,v 1.2 2005/12/12 08:00:01 garbled Exp $
 .\" Copyright (c) 2001
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -137,7 +137,7 @@ option.
 .Sh ENVIRONMENT
 .Nm
 utilizes the following environment variables.
-.Bl -tag -width "RVT_CMD"
+.Bl -tag -width "RVT_CMD_ARGS"
 .It Ev CLUSTER
 Contains a filename, which is a newline separated list of nodes
 in the cluster.
@@ -154,6 +154,10 @@ the
 .Xr XSendEvent 3
 facility.  If this environment variable is not set, it defaults to
 .Ic rvt
+.It Ev RVT_CMD_ARGS
+Contains any additional arguments that you wish to pass to the rvt command.
+This can be used to set things like colors, reverse video, etc in the
+terminal windows.
 .It Ev FANOUT
 When set, limits the maximum number of terminal windows to open
 simultaneously.  This is designed to safeguard the user from
