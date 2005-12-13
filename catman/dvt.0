@@ -1,18 +1,18 @@
-DVT(1)                      NetBSD Reference Manual                     DVT(1)
+DVT(1)                  NetBSD General Commands Manual                  DVT(1)
 
 NNAAMMEE
      ddvvtt - launch an interactive window on a cluster of machines
 
 SSYYNNOOPPSSIISS
-     ddvvtt [--eeiiqq] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e] [--ww
-     _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N]
+     ddvvtt [--eeiiqqvv] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
+         [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N]
 
 DDEESSCCRRIIPPTTIIOONN
-     The ddvvtt utility launches a number of terminal windows, one for each ma-
-     chine the user specifies on the command line.  In addition, it launches a
-     single control window.  The terminal windows are similar to terminal win-
-     dows provided by xterm(1), xvt(1) or rxvt(1) in most regards, and may be
-     used as a standard terminal window by themselves.  The control window
+     The ddvvtt utility launches a number of terminal windows, one for each
+     machine the user specifies on the command line.  In addition, it launches
+     a single control window.  The terminal windows are similar to terminal
+     windows provided by xterm(1), xvt(1) or rxvt(1) in most regards, and may
+     be used as a standard terminal window by themselves.  The control window
      however, allows global control of all the terminal windows.  The user can
      type in the command box of the control window, and the keystrokes will be
      sent to all the terminal windows at once.  In this way the user can per-
@@ -32,6 +32,8 @@ DDEESSCCRRIIPPTTIIOONN
 
      --qq   The --qq option does not issue any commands, but displays information
           about the cluster, and the fanout groupings.
+
+     --vv   Prints the version of ClusterIt to the stdout, and exits.
 
      --ff   If the --ff option is specified, followed by a number, it sets the
           fanout size of the cluster.  The fanout size is the number of nodes
@@ -68,24 +70,29 @@ DDEESSCCRRIIPPTTIIOONN
 EENNVVIIRROONNMMEENNTT
      ddvvtt utilizes the following environment variables.
 
-     CLUSTER  Contains a filename, which is a newline separated list of nodes
-              in the cluster.
+     CLUSTER       Contains a filename, which is a newline separated list of
+                   nodes in the cluster.
 
-     RVT_CMD  Contains the name of a binary to be executed by ddvvtt which will
-              open a terminal window and connection to a single remote host.
-              The user may override this with another program that performs
-              the same function, however, the program must supply as it's only
-              output to stdout, it's X Window-ID in decimal.  In addition, it
-              must take as the final argument, the name of a remtoe machine to
-              connect to.  This program must also be capable of recieving X
-              events sent via the XSendEvent(3) facility.  If this environment
-              variable is not set, it defaults to rrvvtt
+     RVT_CMD       Contains the name of a binary to be executed by ddvvtt which
+                   will open a terminal window and connection to a single
+                   remote host.  The user may override this with another pro-
+                   gram that performs the same function, however, the program
+                   must supply as it's only output to stdout, it's X Window-ID
+                   in decimal.  In addition, it must take as the final argu-
+                   ment, the name of a remtoe machine to connect to.  This
+                   program must also be capable of recieving X events sent via
+                   the XSendEvent(3) facility.  If this environment variable
+                   is not set, it defaults to rrvvtt
 
-     FANOUT   When set, limits the maximum number of terminal windows to open
-              simultaneously.  This is designed to safeguard the user from po-
-              tentially opening hundreds of windows, and overloading the X-
-              terminal or server. Defaults to 64.  This environment setting
-              can be overridden by the --ff option.
+     RVT_CMD_ARGS  Contains any additional arguments that you wish to pass to
+                   the rvt command.  This can be used to set things like col-
+                   ors, reverse video, etc in the terminal windows.
+
+     FANOUT        When set, limits the maximum number of terminal windows to
+                   open simultaneously.  This is designed to safeguard the
+                   user from potentially opening hundreds of windows, and
+                   overloading the X-terminal or server. Defaults to 64.  This
+                   environment setting can be overridden by the --ff option.
 
 FFIILLEESS
      The file pointed to by the CLUSTER environment variable has the following
@@ -114,8 +121,8 @@ FFIILLEESS
      Each member of the lump is the name of a group.  The LUMP command is ter-
      minated by another LUMP or GROUP command, or the EOF marker.
 
-     Any line beginning with a `#' symbol denotes a comment field, and the en-
-     tire line will be ignored.  Note that a hash mark placed anywhere other
+     Any line beginning with a `#' symbol denotes a comment field, and the
+     entire line will be ignored.  Note that a hash mark placed anywhere other
      than the first character of a line, will be considered part of a valid
      hostname or command.
 
@@ -136,4 +143,4 @@ BBUUGGSS
      Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
      that ddvvtt will fail on a fanout size greater than about 32-40 nodes.
 
-                                January 7, 2001                              3
+NetBSD 2.0                      January 7, 2001                     NetBSD 2.0

@@ -1,13 +1,14 @@
-RVT(1)                      NetBSD Reference Manual                     RVT(1)
+RVT(1)                  NetBSD General Commands Manual                  RVT(1)
 
 NNAAMMEE
      rrvvtt - a specialized VT100 emulator for the X window system
 
 SSYYNNOOPPSSIISS
-     rrvvtt [--ll _u_s_e_r_n_a_m_e] [--ddiissppllaayy _d_i_s_p_l_a_y_-_n_a_m_e] [--ggeeoommeettrryy _w_i_n_d_o_w_-_g_e_o_m_e_t_r_y]
-     [--bbgg _c_o_l_o_r] [--ffgg _c_o_l_o_r] [--bbdd _c_o_l_o_r] [--bbww _n_u_m_b_e_r] [--ffoonntt _f_o_n_t_n_a_m_e] [--ffbb
-     _f_o_n_t_n_a_m_e] [--nnaammee _n_a_m_e] [--ssll _n_u_m_b_e_r] [--cccc _c_h_a_r_-_c_l_a_s_s] [--ssbb] [--rrww] [--mmssgg]
-     [--iiccoonniicc] _r_e_m_o_t_e_-_m_a_c_h_i_n_e
+     rrvvtt [--vv] [--ll _u_s_e_r_n_a_m_e] [--ddiissppllaayy _d_i_s_p_l_a_y_-_n_a_m_e]
+         [--ggeeoommeettrryy _w_i_n_d_o_w_-_g_e_o_m_e_t_r_y] [--bbgg _c_o_l_o_r] [--ffgg _c_o_l_o_r] [--bbdd _c_o_l_o_r]
+         [--bbww _n_u_m_b_e_r] [--ffoonntt _f_o_n_t_n_a_m_e] [--ffbb _f_o_n_t_n_a_m_e] [--nnaammee _n_a_m_e]
+         [--ssll _n_u_m_b_e_r] [--cccc _c_h_a_r_-_c_l_a_s_s] [--ssbb] [--rrww] [--rrvv] [--mmssgg] [--iiccoonniicc]
+         _r_e_m_o_t_e_-_m_a_c_h_i_n_e
 
 DDEESSCCRRIIPPTTIIOONN
      The rrvvtt program is a VT100 terminal emulator for X.  It is intended as a
@@ -22,17 +23,19 @@ DDEESSCCRRIIPPTTIIOONN
      used as a stand-alone application, but it is not suggested that the user
      do so. The following options are available:
 
+     --vv   Prints the version of ClusterIt to the stdout, and exits.
+
      --ll _u_s_e_r_n_a_m_e
-          If the program specified by the RLOGIN_CMD environment variable al-
-          lows the user to pass a username with a --ll option (Such as some
-          versions of rsh(1) or ssh(1)) then the rrvvtt program will pass the ap-
-          propriate flags to the remote-connection command to attempt to con-
-          nect to the remote machine as the username specified.
+          If the program specified by the RLOGIN_CMD environment variable
+          allows the user to pass a username with a --ll option (Such as some
+          versions of rsh(1) or ssh(1)) then the rrvvtt program will pass the
+          appropriate flags to the remote-connection command to attempt to
+          connect to the remote machine as the username specified.
 
      --ddiissppllaayy _d_i_s_p_l_a_y_-_n_a_m_e
-          Attempt to open the rrvvtt window on the named X display.  In the ab-
-          sence of this option, the display specified by the DISPLAY environ-
-          ment variable will be used.
+          Attempt to open the rrvvtt window on the named X display.  In the
+          absence of this option, the display specified by the DISPLAY envi-
+          ronment variable will be used.
 
      --ggeeoommeettrryy _w_i_n_d_o_w_-_g_e_o_m_e_t_r_y
           Create the window with the specified X window geometry.
@@ -50,8 +53,8 @@ DDEESSCCRRIIPPTTIIOONN
           This option is a synonym for --ffoorreeggrroouunndd
 
      --bbdd _c_o_l_o_r
-          Set the border color.  As with border width, this option will usual-
-          ly be disregarded with respect to the window's outer border.  It
+          Set the border color.  As with border width, this option will usu-
+          ally be disregarded with respect to the window's outer border.  It
           does, however, set the color of the line separating the scroll bar
           from the main part of the window.
 
@@ -72,7 +75,7 @@ DDEESSCCRRIIPPTTIIOONN
 
      --nnaammee _n_a_m_e
           Set the name that is used when looking up X resource values for this
-          instance of .
+          instance of rrvvtt.
 
      --ssll _n_u_m_b_e_r
           Set an upper bound for the number of lines of text that will be
@@ -100,6 +103,10 @@ DDEESSCCRRIIPPTTIIOONN
           By default, rrvvtt windows have messages disabled.  Executing an rrvvtt
           window with the --mmssgg option has the same effect as running it nor-
           mally, and executing the command `mesg y' to enable messages.
+
+     --rrvv  Run in reverse video - that is, exchange the foreground and back-
+          ground colors.  This option has no effect if either the foreground
+          or background are set explicitly.
 
      --iiccoonniicc
           Start up with the window already iconized.  _r_e_m_o_t_e_-_m_a_c_h_i_n_e The name
@@ -168,14 +175,14 @@ TTEEXXTT SSEELLEECCTTIIOONN AANNDD IINNSSEERRTTIIOONN
      with the button held down before releasing the button. If the block is
      larger than the window then you must first use the left mouse button to
      select one end, then use the scroll bar to scroll the other end into view
-     and finally use the right mouse button to extend the selection. The ef-
-     fect of pressing the right mouse button is to move the nearest end of the
-     current selection to the current cursor position.
+     and finally use the right mouse button to extend the selection. The
+     effect of pressing the right mouse button is to move the nearest end of
+     the current selection to the current cursor position.
 
      The other way to make selections in rrvvtt is to use double and triple
      clicks of the left mouse button with a double click selecting a word and
-     a triple click selecting a whole line. For this purpose, a word is a se-
-     quence of characters in the same class.  The default character classes
+     a triple click selecting a whole line. For this purpose, a word is a
+     sequence of characters in the same class.  The default character classes
      are:
 
           ++oo   The upper and lower case letters, digits and `_' (underscore)
@@ -183,14 +190,14 @@ TTEEXXTT SSEELLEECCTTIIOONN AANNDD IINNSSEERRTTIIOONN
 
           ++oo   The white space characters all in one class;
 
-          ++oo   Each of the remaining punctuation characters in a class by it-
-              self.
+          ++oo   Each of the remaining punctuation characters in a class by
+              itself.
 
      If you want to change the character classes so that, for example, you can
      select a UNIX pathname or a mail address in one double click, then you
-     can do so by using the --cccc command line option or the _c_h_a_r_C_l_a_s_s X re-
-     source.  Multiple clicking can be combined with dragging to select a se-
-     quence of consecutive words or lines.
+     can do so by using the --cccc command line option or the _c_h_a_r_C_l_a_s_s X
+     resource.  Multiple clicking can be combined with dragging to select a
+     sequence of consecutive words or lines.
 
      Although rrvvtt essentially mimics the behaviour of xterm(1) in its support
      of text selection and insertion, there are a couple of minor differences:
@@ -208,7 +215,7 @@ EENNVVIIRROONNMMEENNTT
 
      RLOGIN_CMD  The default command that will be run to connect to the remote
                  host.  This can be anything from rsh(1), ssh(1), to telnet(1)
-                 because rvt is an interactive process, automatic authentica-
+                 because rrvvtt is an interactive process, automatic authentica-
                  tion is not required as it is with dsh(1).
 
 DDIIAAGGNNOOSSTTIICCSS
@@ -222,10 +229,10 @@ HHIISSTTOORRYY
 
 AAUUTTHHOORR
      RRvvtt is based on the program xvt(1) written by John Bovey, University of
-     Kent, in 1992.  Modifications to make this program compile on modern ma-
-     chines, and work with dvt(1) were made by Tim Rightnour.
+     Kent, in 1992.  Modifications to make this program compile on modern
+     machines, and work with dvt(1) were made by Tim Rightnour.
 
 BBUUGGSS
      Pasting very large quantities of text does not work.
 
-                                January 7, 2001                              4
+NetBSD 2.0                      January 7, 2001                     NetBSD 2.0

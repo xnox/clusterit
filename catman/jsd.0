@@ -1,11 +1,12 @@
-JSD(1)                      NetBSD Reference Manual                     JSD(1)
+JSD(1)                  NetBSD General Commands Manual                  JSD(1)
 
 NNAAMMEE
      jjssdd - simple command scheduling daemon for remote execution
 
 SSYYNNOOPPSSIISS
-     jjssdd [--iiqq] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e] [--pp
-     _p_o_r_t] [--oo _p_o_r_t] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
+     jjssdd [--iiqqvv] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
+         [--pp _p_o_r_t] [--oo _p_o_r_t] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N]
+         [_c_o_m_m_a_n_d _._._.]
 
 DDEESSCCRRIIPPTTIIOONN
      The jjssdd daemon is used to schedule remote execution of jobs across a het-
@@ -13,11 +14,11 @@ DDEESSCCRRIIPPTTIIOONN
      to run a benchmark on all machines under it's control.  Once the daemon
      is active it listens for connections from a _j_s_h process, and gives each
      connecting process the name of a remote host to execute a command on.
-     Faster hosts are preferred by the jjssdd daemon, and the fastest of all re-
-     maining hosts will allways be given out first.  Once a remote _j_s_h process
-     has completed it's use of the remote host, it will again contact the jjssdd
-     daemon, and return the node to service.  The daemon will never give the
-     same node out to more than one process at a time.
+     Faster hosts are preferred by the jjssdd daemon, and the fastest of all
+     remaining hosts will allways be given out first.  Once a remote _j_s_h
+     process has completed it's use of the remote host, it will again contact
+     the jjssdd daemon, and return the node to service.  The daemon will never
+     give the same node out to more than one process at a time.
 
      jjssdd logs errors and critical conditions to the syslog with the facility
      LOG_DAEMON.
@@ -32,6 +33,8 @@ DDEESSCCRRIIPPTTIIOONN
 
      --qq   The --qq option does not issue any commands, but displays information
           about the cluster, and the fanout groupings.
+
+     --vv   Prints the version of ClusterIt to the stdout, and exits.
 
      --ff   If the --ff option is specified, followed by a number, it sets the
           fanout size of the cluster.  The fanout size is the number of nodes
@@ -53,20 +56,20 @@ DDEESSCCRRIIPPTTIIOONN
           will be run under that userid on the remote machines.  Consideration
           must be taken for proper authentication, for this to work.
 
-     --pp   The --pp option can be used to set the port number which jsd will lis-
+     --pp   The --pp option can be used to set the port number which jjssdd will lis-
           ten to replies from _j_s_h processes indicating completion of process-
           ing on remote nodes.  This option overrides the JSD_IPORT environ-
           ment variable.  The default listen port is 2001.
 
-     --oo   The --oo option can be used to set the port number which jsd will lis-
+     --oo   The --oo option can be used to set the port number which jjssdd will lis-
           ten to requests from _j_s_h processes for remote nodes.  This option
           overrides the JSD_OPORT environment variable.  The default listen
           port is 2002.
 
      --ww   If the --ww option is specified, followed by a comma delimited list of
           machine names, the _c_o_m_m_a_n_d will be run on each node in the list.
-          Without this option, jjssdd runs on the nodes listed in the file point-
-          ed to by the CLUSTER environment variable.
+          Without this option, jjssdd runs on the nodes listed in the file
+          pointed to by the CLUSTER environment variable.
 
      --xx   The --xx option can be used to exclude specific nodes from the clus-
           ter.  The format is the same as the --ww option, a comma delimited
@@ -80,16 +83,20 @@ EENNVVIIRROONNMMEENNTT
                     nodes in the cluster.
 
      RCMD_CMD       Command to use to connect to remote machines.  The command
-                    chosen must be able to connect with no password to the re-
-                    mote host.  Defaults to rrsshh.  This is only used by jsd
+                    chosen must be able to connect with no password to the
+                    remote host.  Defaults to rrsshh.  This is only used by jjssdd
                     when issuing the benchmark at startup, and has no effect
                     on how _j_s_h processes will connect to the remote nodes.
 
-     JSD_BENCH_CMD  This is the name of a command, which when run on the re-
-                    mote nodes of the cluster will give some indication of the
-                    relative speed of the machines.  It does not need to be
-                    precise.  If no benchmark command is specified, all ma-
-                    chines are considered to be the same speed, and will not
+     RCMD_CMD_ARGS  Arguments to pass to the remote shell command.  Defaults
+                    to none. As with RCMD_CMD this is only used when issuing
+                    the benchmark at startup.
+
+     JSD_BENCH_CMD  This is the name of a command, which when run on the
+                    remote nodes of the cluster will give some indication of
+                    the relative speed of the machines.  It does not need to
+                    be precise.  If no benchmark command is specified, all
+                    machines are considered to be the same speed, and will not
                     be wieghted.  The bench command expects a single floating
                     point number as the only output to the remote command.
                     Larger numbers are to indicate faster machines.  See the
@@ -97,23 +104,23 @@ EENNVVIIRROONNMMEENNTT
 
      FANOUT         When set, limits the maximum number of concurrent commands
                     sent at once.  This can be used to keep from overloading a
-                    small host when sending out commands in parallel.  De-
-                    faults to 64.  This environment setting can be overridden
-                    by the --ff option.
+                    small host when sending out commands in parallel.
+                    Defaults to 64.  This environment setting can be overrid-
+                    den by the --ff option.
 
-     JSD_OPORT      When set, overrides the default port which jsd listens on
+     JSD_OPORT      When set, overrides the default port which jjssdd listens on
                     for _j_s_h processes requesting nodes.  This environment set-
                     ting can be overriden by the --oo option.
 
-     JSD_IPORT      When set, overrides the default port which jsd listens on
+     JSD_IPORT      When set, overrides the default port which jjssdd listens on
                     for _j_s_h processes reporting back that it has completed
                     processing on a node.  This environment setting can be
                     overriden by the --pp option.
 
 EEXXAAMMPPLLEESS
-     In order to generate a benchmark figure useful to jjssdd you will most like-
-     ly need to process the ouput of a benchmark command in some way.  There
-     are two simple ways of doing this:
+     In order to generate a benchmark figure useful to jjssdd you will most
+     likely need to process the ouput of a benchmark command in some way.
+     There are two simple ways of doing this:
 
      The first way is to build a script, which exists on each machine, and run
      that as your benchmark command.  The below script shows how to process
@@ -137,4 +144,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      JJssdd was written by Tim Rightnour.
 
-                               February 19, 2000                             3
+NetBSD 2.0                     February 19, 2000                    NetBSD 2.0

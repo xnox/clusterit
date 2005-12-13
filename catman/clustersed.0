@@ -1,4 +1,4 @@
-CLUSTERSED(1)               NetBSD Reference Manual              CLUSTERSED(1)
+CLUSTERSED(1)           NetBSD General Commands Manual           CLUSTERSED(1)
 
 NNAAMMEE
      cclluusstteerrsseedd - quickly dissect cluster files
@@ -14,7 +14,7 @@ DDEESSCCRRIIPPTTIIOONN
      able:
 
      _c_l_u_s_t_e_r_f_i_l_e  The first argument must either be the name of a cluster
-                  file, or a single dash (`-'). If the dash is given, the
+                  file, or a single dash (`-').  If the dash is given, the
                   clusterfile will be read from the file indicated in the
                   CLUSTER environment variable.  If the CLUSTER environment
                   variable does not exist, cclluusstteerrsseedd will process standard
@@ -25,10 +25,10 @@ DDEESSCCRRIIPPTTIIOONN
                   names of groups within the cluster, and will only match
                   group names.  If a group name is matched, all nodes in that
                   group will be printed out, along with the `GROUP:' heading
-                  and the name of the group.  You can partially match the be-
-                  gining of a group name with a string.  For example, the ar-
-                  gument `serv' would match `server1' and `server2' but would
-                  not match `subserv'.
+                  and the name of the group.  You can partially match the
+                  begining of a group name with a string.  For example, the
+                  argument `serv' would match `server1' and `server2' but
+                  would not match `subserv'.
 
 EENNVVIIRROONNMMEENNTT
      cclluusstteerrsseedd utilizes the following environment variables:
@@ -48,4 +48,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      CClluusstteerrsseedd was written by Tim Rightnour.
 
-                               February 25, 2000                             1
+NetBSD 2.0                     February 25, 2000                    NetBSD 2.0

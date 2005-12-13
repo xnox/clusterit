@@ -1,11 +1,12 @@
-DSH(1)                      NetBSD Reference Manual                     DSH(1)
+DSH(1)                  NetBSD General Commands Manual                  DSH(1)
 
 NNAAMMEE
      ddsshh - run a command on a cluster of machines
 
 SSYYNNOOPPSSIISS
-     ddsshh [--eeiiqq] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e] [--ww
-     _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
+     ddsshh [--eeiiqqttvv] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
+         [--oo _p_o_r_t_t_i_m_e_o_u_t] [--pp _p_o_r_t_n_u_m] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N]
+         [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
 
 DDEESSCCRRIIPPTTIIOONN
      The ddsshh utility can be used to run a command, or group of commands on a
@@ -24,6 +25,20 @@ DDEESSCCRRIIPPTTIIOONN
 
      --qq   The --qq option does not issue any commands, but displays information
           about the cluster, and the fanout groupings.
+
+     --tt   The --tt option causes ddsshh to attempt a connection test to each node
+          prior to attempting to run the remote command.  If the test fails
+          for any reason, the remote command will not be attempted.  This can
+          be useful when clusterfiles have suffered bitrot and some nodes no
+          longer exist, or might be down for maintenance.  The default timeout
+          is 5 seconds.  The timeout can be changed with the --oo option.  ddsshh
+          will attempt to guess the port number of the remote service based on
+          your RCMD_CMD setting.  It knows about ssh and rsh.  If ddsshh fails to
+          guess your port correctly, you may use the --pp argument to set the
+          remote port number.  If the RCMD_TEST environment variable exists,
+          the testing will automatically take place.
+
+     --vv   Prints the version of ClusterIt to the stdout, and exits.
 
      --ff   If the --ff option is specified, followed by a number, it sets the
           fanout size of the cluster.  The fanout size is the number of nodes
@@ -45,10 +60,17 @@ DDEESSCCRRIIPPTTIIOONN
           will be run under that userid on the remote machines.  Consideration
           must be taken for proper authentication, for this to work.
 
+     --oo   The --oo option is used to set the timeout in seconds to be used when
+          testing remote connections.  The default is five seconds.
+
+     --pp   The --pp option can be used to set the port number that testing should
+          occur on when testing remote connections.  The default behavior is
+          to guess based on the remote command name.
+
      --ww   If the --ww option is specified, followed by a comma delimited list of
           machine names, the _c_o_m_m_a_n_d will be run on each node in the list.
-          Without this option, ddsshh runs on the nodes listed in the file point-
-          ed to by the CLUSTER environment variable.
+          Without this option, ddsshh runs on the nodes listed in the file
+          pointed to by the CLUSTER environment variable.
 
      --xx   The --xx option can be used to exclude specific nodes from the clus-
           ter.  The format is the same as the --ww option, a comma delimited
@@ -58,17 +80,34 @@ DDEESSCCRRIIPPTTIIOONN
 EENNVVIIRROONNMMEENNTT
      ddsshh utilizes the following environment variables.
 
-     CLUSTER   Contains a filename, which is a newline separated list of nodes
-               in the cluster.
+     CLUSTER            Contains a filename, which is a newline separated list
+                        of nodes in the cluster.
 
-     RCMD_CMD  Command to use to connect to remote machines.  The command cho-
-               sen must be able to connect with no password to the remote
-               host.  Defaults to rrsshh
+     RCMD_CMD           Command to use to connect to remote machines.  The
+                        command chosen must be able to connect with no pass-
+                        word to the remote host.  Defaults to rrsshh
 
-     FANOUT    When set, limits the maximum number of concurrent commands sent
-               at once.  This can be used to keep from overloading a small
-               host when sending out commands in parallel.  Defaults to 64.
-               This environment setting can be overridden by the --ff option.
+     RCMD_CMD_ARGS      Arguments to pass to the remote shell command.
+                        Defaults to none.
+
+     RCMD_PORT          The port number used to test remote connections.  See
+                        the --pp flag.
+
+     RCMD_TEST          When set, ddsshh will automatically test all hosts before
+                        launching the remote command. See the --tt option for
+                        more information.
+
+     RCMD_TEST_TIMEOUT  The timeout in seconds to use when testing for remote
+                        connections.
+
+     RCMD_USER          The username to connect to remote machines as by
+                        default.
+
+     FANOUT             When set, limits the maximum number of concurrent com-
+                        mands sent at once.  This can be used to keep from
+                        overloading a small host when sending out commands in
+                        parallel.  Defaults to 64.  This environment setting
+                        can be overridden by the --ff option.
 
 FFIILLEESS
      The file pointed to by the CLUSTER environment variable has the following
@@ -97,8 +136,8 @@ FFIILLEESS
      Each member of the lump is the name of a group.  The LUMP command is ter-
      minated by another LUMP or GROUP command, or the EOF marker.
 
-     Any line beginning with a `#' symbol denotes a comment field, and the en-
-     tire line will be ignored.  Note that a hash mark placed anywhere other
+     Any line beginning with a `#' symbol denotes a comment field, and the
+     entire line will be ignored.  Note that a hash mark placed anywhere other
      than the first character of a line, will be considered part of a valid
      hostname or command.
 
@@ -144,4 +183,4 @@ BBUUGGSS
      Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
      that ddsshh will fail on a fanout size greater than about 32-40 nodes.
 
-                               February 19, 2000                             3
+NetBSD 2.0                     February 19, 2000                    NetBSD 2.0

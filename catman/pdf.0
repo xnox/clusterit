@@ -1,31 +1,32 @@
-PDF(1)                      NetBSD Reference Manual                     PDF(1)
+PDF(1)                  NetBSD General Commands Manual                  PDF(1)
 
 NNAAMMEE
      ppddff - display free disk space across a group of machines
 
 SSYYNNOOPPSSIISS
-     ppddff [--llnn] [--gg _n_o_d_e_g_r_o_u_p_1_,_._._._,_n_o_d_e_g_r_o_u_p_N] [--mm _s_i_z_e] [--tt _t_y_p_e] [--ww
-     _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_f_i_l_e | _f_i_l_e___s_y_s_t_e_m _._._.]
+     ppddff [--llnn] [--gg _n_o_d_e_g_r_o_u_p_1_,_._._._,_n_o_d_e_g_r_o_u_p_N] [--mm _s_i_z_e] [--tt _t_y_p_e]
+         [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_f_i_l_e | _f_i_l_e___s_y_s_t_e_m _._._.]
 
 DDEESSCCRRIIPPTTIIOONN
      ppddff displays statistics about the amount of free disk space on the speci-
-     fied _f_i_l_e___s_y_s_t_e_m or on the file system of which _f_i_l_e is a part on all ma-
-     chines in a cluster.  If neither a file or a _f_i_l_e___s_y_s_t_e_m operand is spec-
-     ified, statistics for all mounted file systems, on all machines are dis-
-     played (subject to the --ww, --xx, --gg, --mm, --ll and --tt options below).  The
+     fied _f_i_l_e___s_y_s_t_e_m or on the file system of which _f_i_l_e is a part on all
+     machines in a cluster.  If neither a file or a _f_i_l_e___s_y_s_t_e_m operand is
+     specified, statistics for all mounted file systems, on all machines are
+     displayed (subject to the --ww, --xx, --gg, --mm, --ll and --tt options below).  The
      following options are available:
 
-     --ll   Display statistics only about mounted file systems with the MNT_LO-
-          CAL flag set.  If a non-local file system is given as an argument, a
-          warning is issued and no information is given on that file system.
+     --ll   Display statistics only about mounted file systems with the
+          MNT_LOCAL flag set.  If a non-local file system is given as an argu-
+          ment, a warning is issued and no information is given on that file
+          system.
 
      --nn   Print out the previously obtained statistics from the file systems.
           This option should be used if it is possible that one or more file
           systems are in a state such that they will not be able to provide
           statistics without a long delay.  When this option is specified, ppddff
-          will not request new statistics from the file systems, but will re-
-          spond with the possibly stale statistics that were previously ob-
-          tained.
+          will not request new statistics from the file systems, but will
+          respond with the possibly stale statistics that were previously
+          obtained.
 
      --gg   If the --gg option is specified, followed by a comma separated list of
           group names, the command will only be run on that group of nodes.  A
@@ -83,11 +84,11 @@ AAUUTTHHOORR
 
 BBUUGGSS
      Output is formatted for 80 columns.  This means that mount points and
-     filesystems with long names (> 20 characters) will be truncated.  In ad-
-     dition, numbers longer than 9 digits will be truncated as well.
+     filesystems with long names (> 20 characters) will be truncated.  In
+     addition, numbers longer than 9 digits will be truncated as well.
 
-     ppddff will only work on nodes that produce the df(1) output that it ex-
-     pects.  It has been made to work on HP-UX, Solaris, and AIX, along with
+     ppddff will only work on nodes that produce the df(1) output that it
+     expects.  It has been made to work on HP-UX, Solaris, and AIX, along with
      any BSD.
 
-                                  May 5, 1999                                2
+NetBSD 2.0                        May 5, 1999                       NetBSD 2.0

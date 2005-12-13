@@ -1,18 +1,21 @@
-BARRIERD(1)                 NetBSD Reference Manual                BARRIERD(1)
+BARRIERD(1)             NetBSD General Commands Manual             BARRIERD(1)
 
 NNAAMMEE
      bbaarrrriieerrdd - syncronize a process on a number of machines.
 
 SSYYNNOOPPSSIISS
-     bbaarrrriieerrdd [--pp _p_o_r_t]
+     bbaarrrriieerrdd [--vv] [--pp _p_o_r_t]
 
 DDEESSCCRRIIPPTTIIOONN
      The bbaarrrriieerrdd daemon runs on a host, and accepts barrier connections from
      the client program barrier.  It handles the connections and syncroniza-
      tion of various barriers being set up and taken down across the cluster.
 
-     --pp   Specifies a port number for the bbaarrrriieerrdd daemon to listen on.  De-
-          faults to 1933, and overrides the BARRIER_PORT environment variable.
+     --vv   Prints the version of ClusterIt to the stdout, and exits.
+
+     --pp   Specifies a port number for the bbaarrrriieerrdd daemon to listen on.
+          Defaults to 1933, and overrides the BARRIER_PORT environment vari-
+          able.
 
 EENNVVIIRROONNMMEENNTT
      bbaarrrriieerrdd utilizes the following environment variables:
@@ -36,4 +39,4 @@ BBUUGGSS
      In addition, it can only handle a barrier size of up to 512 nodes.  These
      values can be modified by recompiling the program.
 
-                               October 14, 1998                              1
+NetBSD 2.0                     October 14, 1998                     NetBSD 2.0

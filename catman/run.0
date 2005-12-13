@@ -1,11 +1,11 @@
-RUN(1)                      NetBSD Reference Manual                     RUN(1)
+RUN(1)                  NetBSD General Commands Manual                  RUN(1)
 
 NNAAMMEE
      rruunn - run a command on a machine at random
 
 SSYYNNOOPPSSIISS
-     rruunn [--aaeeiiqq] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e] [--ww
-     _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
+     rruunn [--aaeeiiqqvv] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
+         [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
 
 DDEESSCCRRIIPPTTIIOONN
      The rruunn utility can be used to run a command, or group of commands on a
@@ -27,6 +27,8 @@ DDEESSCCRRIIPPTTIIOONN
      --qq   The --qq option does not issue any commands, but displays information
           about the cluster.
 
+     --vv   Prints the version of ClusterIt to the stdout, and exits.
+
      --gg   If the --gg option is specified, followed by a comma separated list of
           group names, the command will only be run on that group of nodes.  A
           node may be a part of more than one group if desired, however run-
@@ -41,8 +43,8 @@ DDEESSCCRRIIPPTTIIOONN
 
      --ww   If the --ww option is specified, followed by a comma delimited list of
           machine names, the _c_o_m_m_a_n_d will be run on each node in the list.
-          Without this option, rruunn runs on the nodes listed in the file point-
-          ed to by the CLUSTER environment variable.
+          Without this option, rruunn runs on the nodes listed in the file
+          pointed to by the CLUSTER environment variable.
 
      --xx   The --xx option can be used to exclude specific nodes from the clus-
           ter.  The format is the same as the --ww option, a comma delimited
@@ -52,12 +54,17 @@ DDEESSCCRRIIPPTTIIOONN
 EENNVVIIRROONNMMEENNTT
      rruunn utilizes the following environment variables.
 
-     CLUSTER   Contains a filename, which is a newline separated list of nodes
-               in the cluster.
+     CLUSTER        Contains a filename, which is a newline separated list of
+                    nodes in the cluster.
 
-     RCMD_CMD  Command to use to connect to remote machines.  The command cho-
-               sen must be able to connect with no password to the remote
-               host.  Defaults to rrsshh
+     RCMD_CMD       Command to use to connect to remote machines.  The command
+                    chosen must be able to connect with no password to the
+                    remote host.  Defaults to rrsshh
+
+     RCMD_CMD_ARGS  Arguments to pass to the remote shell command.  Defaults
+                    to none.
+
+     RCMD_USER      The username to connect to remote machines as by default.
 
 DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
@@ -71,4 +78,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      RRuunn was written by Tim Rightnour.
 
-                                  May 5, 1999                                2
+NetBSD 2.0                        May 5, 1999                       NetBSD 2.0
