@@ -1,4 +1,8 @@
-$Id: CHANGES,v 1.13 2005/12/12 08:02:50 garbled Exp $
+$Id: CHANGES,v 1.14 2005/12/13 05:10:36 garbled Exp $
+
+Add a -v option to all programs to tell the user what version of
+ClusterIt they are running.  CVS will allways have _BETA tagged on the end,
+and it will be removed at release.
 
 Add RVT_CMD_ARGS to dvt, to allow passing of args to rvt
 
