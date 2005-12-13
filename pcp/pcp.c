@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.17 2005/12/13 05:01:55 garbled Exp $ */
+/* $Id: pcp.c,v 1.18 2005/12/13 05:09:06 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.17 2005/12/13 05:01:55 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.18 2005/12/13 05:09:06 garbled Exp $");
 #endif
 
 extern int errno;
@@ -93,10 +93,10 @@ main(int argc, char **argv)
     nodeptr = NULL;
     nodelink = NULL;
 
-    rungroup = malloc(sizeof(char **) * GROUP_MALLOC);
+    rungroup = calloc(GROUP_MALLOC, sizeof(char **));
     if (rungroup == NULL)
 	bailout();
-    exclude = malloc(sizeof(char **) * GROUP_MALLOC);
+    exclude = calloc(GROUP_MALLOC, sizeof(char **));
     if (exclude == NULL)
 	bailout();
 

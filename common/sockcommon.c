@@ -1,4 +1,4 @@
-/* $Id: sockcommon.c,v 1.4 2004/10/04 18:21:43 garbled Exp $ */
+/* $Id: sockcommon.c,v 1.5 2005/12/13 05:09:06 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: sockcommon.c,v 1.4 2004/10/04 18:21:43 garbled Exp $");
+__RCSID("$Id: sockcommon.c,v 1.5 2005/12/13 05:09:06 garbled Exp $");
 #endif
 
 
@@ -86,7 +86,7 @@ read_from_client(int filedes, char **j)
     int nbytes;
     char *buffer;
 
-    buffer = (char *)malloc( MAXMSG * sizeof(char));
+    buffer = (char *)calloc(MAXMSG, sizeof(char));
 
     nbytes = read(filedes, buffer, MAXMSG);
     if (nbytes < 0)
