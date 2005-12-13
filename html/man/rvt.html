@@ -25,6 +25,7 @@
         SYNOPSIS
         </h3>
 <b>rvt</b>
+[<b>-</b><b></b><b>v</b>]
 [<b>-</b><b></b><b>l</b><i></i><i> username</i>]
 [<b>-</b><b></b><b>display</b><i></i><i> display-name</i>]
 [<b>-</b><b></b><b>geometry</b><i></i><i> window-geometry</i>]
@@ -39,6 +40,7 @@
 [<b>-</b><b></b><b>cc</b><i></i><i> char-class</i>]
 [<b>-</b><b></b><b>sb</b>]
 [<b>-</b><b></b><b>rw</b>]
+[<b>-</b><b></b><b>rv</b>]
 [<b>-</b><b></b><b>msg</b>]
 [<b>-</b><b></b><b>iconic</b>]
 <i></i><i>remote-machine</i>
@@ -71,6 +73,8 @@ with the
 program.  It may be used as a stand-alone application, but it is not
 suggested that the user do so. The following options are available:
 <dl compact>
+<p><dt><b>-</b><b></b><b>v</b><dd>
+Prints the version of ClusterIt to the stdout, and exits.
 <p><dt><b>-</b><b></b><b>l</b><i></i><i> username</i><dd>
 If the program specified by the
 <code></code><code>RLOGIN_CMD</code>
@@ -169,6 +173,10 @@ option has the same effect as running it normally, and executing the
 command
 `mesg y'
 to enable messages.
+<p><dt><b>-</b><b></b><b>rv</b><dd>
+Run in reverse video - that is, exchange the foreground and
+background colors.  This option has no effect if either the
+foreground or background are set explicitly.
 <p><dt><b>-</b><b></b><b>iconic</b><dd>
 Start up with the window already iconized.
 <i></i><i>remote-machine</i>
@@ -368,5 +376,3 @@ were made by Tim Rightnour.
         </h3>
 Pasting very large quantities of text does not work.
 </font></body>
-</html>
-

@@ -25,6 +25,7 @@
         SYNOPSIS
         </h3>
 <b>barrierd</b>
+[<b>-</b><b></b><b>v</b>]
 [<b>-</b><b></b><b>p</b><i></i><i> port</i>]
         <h3>
         DESCRIPTION
@@ -35,6 +36,8 @@ daemon runs on a host, and accepts barrier connections from the client
 program barrier.  It handles the connections and syncronization of
 various barriers being set up and taken down across the cluster.
 <dl compact>
+<p><dt><b>-</b><b></b><b>v</b><dd>
+Prints the version of ClusterIt to the stdout, and exits.
 <p><dt><b>-</b><b></b><b>p</b><dd>
 Specifies a port number for the
 <b>barrierd</b>
@@ -81,4 +84,7 @@ time.  In addition, it can only handle a barrier size of up to 512
 nodes.  These values can be modified by recompiling the program.
 </font></body>
 </html>
+
+
+
 
