@@ -170,6 +170,10 @@ when issuing the benchmark at startup, and has no
 effect on how
 <em></em><em>jsh</em>
 processes will connect to the remote nodes.
+<p><dt><code></code><code>RCMD_CMD_ARGS</code><dd>
+Arguments to pass to the remote shell command.  Defaults to none. As with
+<code></code><code>RCMD_CMD</code>
+this is only used when issuing the benchmark at startup.
 <p><dt><code></code><code>JSD_BENCH_CMD</code><dd>
 This is the name of a command, which when run on the remote nodes of
 the cluster will give some indication of the relative speed of the
@@ -258,7 +262,3 @@ and stands for
 was written by Tim Rightnour.
 </font></body>
 </html>
-
-
-
-

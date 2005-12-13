@@ -5,7 +5,7 @@ ACLOCAL=@ACLOCAL@ -I autoconf
 INCLUDES =
 
 bin_SCRIPTS = dshbak prm clustersed pdf
-CLEANFILES = $(bin_SCRIPTS)
+CLEANFILES = $(bin_SCRIPTS) dshbak.sh
 
 script_sources = dshbak.sh prm.sh clustersed.sh
 
