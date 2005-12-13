@@ -1,4 +1,4 @@
-.\" $Id: jsh.1,v 1.5 2005/12/12 08:00:06 garbled Exp $
+.\" $Id: jsh.1,v 1.6 2005/12/13 05:01:55 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -37,7 +37,7 @@
 .Nd run scheduled commands on remote machines
 .Sh SYNOPSIS
 .Nm
-.Op Fl aei
+.Op Fl aeiv
 .Op Fl l Ar username
 .Op Fl p Ar port
 .Op Fl o Ar port
@@ -83,6 +83,8 @@ groupings. It will also show you which command you are about to run,
 and your username if specified with the
 .Fl l
 option.
+.It Fl v
+Prints the version of ClusterIt to the stdout, and exits.
 .It Fl l
 If the
 .Fl l

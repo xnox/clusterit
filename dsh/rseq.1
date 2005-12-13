@@ -1,4 +1,4 @@
-.\" $Id: rseq.1,v 1.15 2005/12/12 08:00:01 garbled Exp $
+.\" $Id: rseq.1,v 1.16 2005/12/13 05:01:55 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -37,7 +37,7 @@
 .Nd run a command on a cluster in sequence
 .Sh SYNOPSIS
 .Nm
-.Op Fl aeiq
+.Op Fl aeiqv
 .Op Fl g Ar rungroup1,...,rungroupN
 .Op Fl l Ar username
 .Op Fl w Ar node1,...,nodeN
@@ -78,6 +78,8 @@ option.
 The
 .Fl q
 option does not issue any commands, but displays information about the cluster.
+.It Fl v
+Prints the version of ClusterIt to the stdout, and exits.
 .It Fl g
 If the
 .Fl g

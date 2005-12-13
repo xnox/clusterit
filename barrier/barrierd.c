@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.17 2005/12/10 06:45:05 garbled Exp $ */
+/* $Id: barrierd.c,v 1.18 2005/12/13 05:01:54 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.17 2005/12/10 06:45:05 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.18 2005/12/13 05:01:54 garbled Exp $");
 #endif
 
 #define MAX_TOKENS	10
@@ -65,6 +65,7 @@ int
 main(int argc, char **argv)
 {
     extern char *optarg;
+    extern char *version;
 
     int ch;
     char *p, *q;
@@ -78,16 +79,20 @@ main(int argc, char **argv)
     progname = q;
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?p:")) != -1)
+    while ((ch = getopt(argc, argv, "+?p:v")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?p:")) != -1)
+    while ((ch = getopt(argc, argv, "?p:v")) != -1)
 #endif
 	switch (ch) {
 	case 'p':
 	    barrier_port = atoi(optarg);
 	    break;
+	case 'v':
+	    (void)printf("%s: %s\n", progname, version);
+	    exit(EXIT_SUCCESS);
+	    break;
 	case '?':
-	    (void)fprintf(stderr, "usage: barrierd [-p port]\n");
+	    (void)fprintf(stderr, "usage: barrierd [-v] [-p port]\n");
 	    exit(EXIT_FAILURE);
 	    break;
 	default:

@@ -1,4 +1,4 @@
-.\" $Id: barrier.1,v 1.7 2000/02/20 19:05:15 garbled Exp $
+.\" $Id: barrier.1,v 1.8 2005/12/13 05:01:53 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -38,6 +38,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl q
+.Op Fl v
 .Op Fl h Ar barrier_host
 .Op Fl k Ar key
 .Op Fl p Ar port
@@ -53,6 +54,8 @@ faster machines that relies on them. The following options are available:
 .Bl -tag -width www
 .It Fl q
 Turns quiet off, so barrier notifications are sent to the user.
+.It Fl v
+Prints the version of ClusterIt to the stdout, and exits.
 .It Fl h
 Specifies a host, which is running barrierd, to connect to for
 barrier syncronization.  Overrides the

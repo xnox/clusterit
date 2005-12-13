@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.17 2005/12/11 06:19:58 garbled Exp $ */
+/* $Id: rseq.c,v 1.18 2005/12/13 05:01:55 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.17 2005/12/11 06:19:58 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.18 2005/12/13 05:01:55 garbled Exp $");
 #endif
 
 /* externs */
@@ -70,6 +70,7 @@ int main(int argc, char **argv)
 {
     extern char *optarg;
     extern int optind;
+    extern char *version;
 
     int someflag, ch, i, allflag, showflag;
     char *p, *group, *nodename, *username, *q;
@@ -103,9 +104,9 @@ int main(int argc, char **argv)
     progname = q;
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?adeiqg:l:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?adeiqg:l:vw:x:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?adeiqg:l:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?adeiqg:l:vw:x:")) != -1)
 #endif
 	switch (ch) {
 	case 'a':		/* set the allrun flag */
@@ -179,9 +180,13 @@ int main(int argc, char **argv)
 		    (void)nodealloc(nodename);
 	    }
 	    break;
+	case 'v':
+	    (void)printf("%s: %s\n", progname, version);
+	    exit(EXIT_SUCCESS);
+	    break;
 	case '?':		/* you blew it */
 	    (void)fprintf(stderr,
-	     	  "usage: %s [-aeiq] [-g rungroup1,...,rungroupN] "
+	     	  "usage: %s [-aeiqv] [-g rungroup1,...,rungroupN] "
 	          "[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
        		  "[command ...]\n", progname);
 	    exit(EXIT_FAILURE);

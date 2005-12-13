@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.15 2005/12/11 06:19:58 garbled Exp $ */
+/* $Id: jsd.c,v 1.16 2005/12/13 05:01:55 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -50,7 +50,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.15 2005/12/11 06:19:58 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.16 2005/12/13 05:01:55 garbled Exp $");
 #endif
 
 /* globals */
@@ -79,6 +79,7 @@ main(int argc, char **argv)
 {
     extern char	*optarg;
     extern int	optind;
+    extern char *version;
 
     int someflag, ch, i, fanout, showflag, fanflag;
     char *p, *q, *group, *nodename, *username, *benchcmd;
@@ -110,9 +111,9 @@ main(int argc, char **argv)
     progname = q;
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?diqf:g:l:w:x:p:")) != -1)
+    while ((ch = getopt(argc, argv, "+?diqf:g:l:vw:x:p:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?diqf:g:l:w:x:p:")) != -1)
+    while ((ch = getopt(argc, argv, "?diqf:g:l:vw:x:p:")) != -1)
 #endif
 	switch (ch) {
 	case 'd':		/* we want to debug jsd (hidden)*/
@@ -189,9 +190,13 @@ main(int argc, char **argv)
 	case 'p':		/* port to listen to completions on */
 	    iportnum = atoi(optarg);
 	    break;
+	case 'v':
+	    (void)printf("%s: %s\n", progname, version);
+	    exit(EXIT_SUCCESS);
+	    break;
 	case '?':		/* you blew it */
 	    (void)fprintf(stderr,
-		 "usage: jsd [-iq] [-f fanout] [-g rungroup1,...,rungroupN] "
+		 "usage: jsd [-iqv] [-f fanout] [-g rungroup1,...,rungroupN] "
 		 "[-l username] [-p port] [-o port] [-w node1,..,nodeN] "
        		 "[-x node1,...,nodeN] [command ...]\n");
 	    return(EXIT_FAILURE);

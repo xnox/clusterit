@@ -2,7 +2,7 @@
 AUTOMAKE=@AUTOMAKE@ --add-missing --foreign
 ACLOCAL=@ACLOCAL@ -I autoconf
 
-AM_CPPFLAGS = -DCLUSTERS -DNEED_PTY @X_CFLAGS@
+AM_CPPFLAGS = -DNEED_PTY @X_CFLAGS@
 
 INCLUDES = 
 
@@ -15,6 +15,7 @@ rvt_SOURCES = \
 	screen.c \
 	xsetup.c \
 	ttyinit.c \
+	../common/common.c \
 	../common/netbsd.c
 
 man_MANS = \

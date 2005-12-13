@@ -1,4 +1,4 @@
-.\" $Id: jsd.1,v 1.5 2005/12/12 08:00:06 garbled Exp $
+.\" $Id: jsd.1,v 1.6 2005/12/13 05:01:55 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -37,7 +37,7 @@
 .Nd simple command scheduling daemon for remote execution
 .Sh SYNOPSIS
 .Nm
-.Op Fl iq
+.Op Fl iqv
 .Op Fl f Ar fanout
 .Op Fl g Ar rungroup1,...,rungroupN
 .Op Fl l Ar username
@@ -86,6 +86,8 @@ The
 .Fl q
 option does not issue any commands, but displays information about the 
 cluster, and the fanout groupings.
+.It Fl v
+Prints the version of ClusterIt to the stdout, and exits.
 .It Fl f
 If the
 .Fl f

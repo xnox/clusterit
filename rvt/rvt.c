@@ -49,6 +49,7 @@ int main();
 extern int debugging;
 
 static int size_set = 0;	/* flag set once the window size has been set */
+char *progname;
 
 /*  Malloc that checks for NULL return.
  */
@@ -80,14 +81,24 @@ char **argv;
 	char *remote_username = NULL;
 	char *remote_hostname = NULL;
 	char **com_argv = NULL;
+	char *p, *q;
 	static char **iargv;
+	extern char *version;
 
 	/* Check for a -V or -help option.
 	 */
+	progname = p = q = strdup(argv[0]);
+	while (progname != NULL) {
+	    q = progname;
+	    progname = (char *)strsep(&p, "/");
+	}
+	progname = q;
 	for (i = 0; i < argc; i++) {
-		if (strcmp(argv[i],"-V") == 0) {
-			printf("xvt version %s\n",VERSION);
-			exit(0);
+		if (strcmp(argv[i],"-V") == 0 ||
+		    strcmp(argv[i],"-v") == 0) {
+		    (void)printf("%s: %s\n", progname, version);
+		    printf("based on xvt version %s\n",VERSION);
+		    exit(0);
 		}
 		if (strcmp(argv[i],"-help") == 0) {
 			usage(1);

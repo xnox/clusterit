@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.9 2005/12/12 08:00:01 garbled Exp $ */
+/* $Id: dvt.c,v 1.10 2005/12/13 05:01:55 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -56,7 +56,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.9 2005/12/12 08:00:01 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.10 2005/12/13 05:01:55 garbled Exp $");
 #endif /* not lint */
 
 #ifndef __P
@@ -105,6 +105,7 @@ main(int argc, char **argv)
 {
     extern char	*optarg;
     extern int	optind;
+    extern char *version;
 
     int someflag, ch, i, fanout, showflag, fanflag;
     char *p, *q, *group, *nodename, *username;
@@ -138,9 +139,9 @@ main(int argc, char **argv)
     progname = q;
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?deiqf:g:l:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?deiqf:g:l:vw:x:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?deiqf:g:l:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?deiqf:g:l:vw:x:")) != -1)
 #endif
 	switch (ch) {
 	case 'd':		/* we want to debug dvt (hidden)*/
@@ -214,9 +215,13 @@ main(int argc, char **argv)
 		    (void)nodealloc(nodename);
 	    }
 	    break;
+	case 'v':
+	    (void)printf("%s: %s\n", progname, version);
+	    exit(EXIT_SUCCESS);
+	    break;
 	case '?':		/* you blew it */
 	    (void)fprintf(stderr,
-		"usage: %s [-eiq] [-f fanout] [-g rungroup1,...,rungroupN] "
+		"usage: %s [-eiqv] [-f fanout] [-g rungroup1,...,rungroupN] "
 		"[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN]\n",
 		progname);
 	    return(EXIT_FAILURE);

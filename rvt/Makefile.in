@@ -52,7 +52,7 @@ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_rvt_OBJECTS = rvt.$(OBJEXT) command.$(OBJEXT) sbar.$(OBJEXT) \
 	screen.$(OBJEXT) xsetup.$(OBJEXT) ttyinit.$(OBJEXT) \
-	netbsd.$(OBJEXT)
+	common.$(OBJEXT) netbsd.$(OBJEXT)
 rvt_OBJECTS = $(am_rvt_OBJECTS)
 rvt_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -148,7 +148,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-AM_CPPFLAGS = -DCLUSTERS -DNEED_PTY @X_CFLAGS@
+AM_CPPFLAGS = -DNEED_PTY @X_CFLAGS@
 INCLUDES = 
 rvt_SOURCES = \
 	rvt.c \
@@ -157,6 +157,7 @@ rvt_SOURCES = \
 	screen.c \
 	xsetup.c \
 	ttyinit.c \
+	../common/common.c \
 	../common/netbsd.c
 
 man_MANS = \
@@ -230,6 +231,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/command.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netbsd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rvt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sbar.Po@am__quote@
@@ -250,6 +252,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+
+common.o: ../common/common.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT common.o -MD -MP -MF "$(DEPDIR)/common.Tpo" -c -o common.o `test -f '../common/common.c' || echo '$(srcdir)/'`../common/common.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/common.Tpo" "$(DEPDIR)/common.Po"; else rm -f "$(DEPDIR)/common.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../common/common.c' object='common.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o common.o `test -f '../common/common.c' || echo '$(srcdir)/'`../common/common.c
+
+common.obj: ../common/common.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT common.obj -MD -MP -MF "$(DEPDIR)/common.Tpo" -c -o common.obj `if test -f '../common/common.c'; then $(CYGPATH_W) '../common/common.c'; else $(CYGPATH_W) '$(srcdir)/../common/common.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/common.Tpo" "$(DEPDIR)/common.Po"; else rm -f "$(DEPDIR)/common.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../common/common.c' object='common.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o common.obj `if test -f '../common/common.c'; then $(CYGPATH_W) '../common/common.c'; else $(CYGPATH_W) '$(srcdir)/../common/common.c'; fi`
 
 netbsd.o: ../common/netbsd.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT netbsd.o -MD -MP -MF "$(DEPDIR)/netbsd.Tpo" -c -o netbsd.o `test -f '../common/netbsd.c' || echo '$(srcdir)/'`../common/netbsd.c; \

@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.18 2005/12/11 06:19:58 garbled Exp $ */
+/* $Id: common.c,v 1.19 2005/12/13 05:01:55 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,9 +42,10 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.18 2005/12/11 06:19:58 garbled Exp $");
+__RCSID("$Id: common.c,v 1.19 2005/12/13 05:01:55 garbled Exp $");
 #endif
 
+char *version = "ClusterIt Version 2.4_BETA";
 
 #ifdef CLUSTERS
 /*
