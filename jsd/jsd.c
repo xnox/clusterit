@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.17 2005/12/13 05:09:06 garbled Exp $ */
+/* $Id: jsd.c,v 1.18 2006/01/24 19:00:25 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -50,7 +50,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.17 2005/12/13 05:09:06 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.18 2006/01/24 19:00:25 garbled Exp $");
 #endif
 
 /* globals */
@@ -111,9 +111,9 @@ main(int argc, char **argv)
     progname = q;
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?diqf:g:l:vw:x:p:")) != -1)
+    while ((ch = getopt(argc, argv, "+?diqf:g:l:vw:x:o:p:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?diqf:g:l:vw:x:p:")) != -1)
+    while ((ch = getopt(argc, argv, "?diqf:g:l:vw:x:o:p:")) != -1)
 #endif
 	switch (ch) {
 	case 'd':		/* we want to debug jsd (hidden)*/
@@ -265,7 +265,7 @@ main(int argc, char **argv)
 	/* jump to the loop */
 	main_loop();
     } else if (pid > 0) {
-	(void)printf("%d\n", pid); /* spit the pid out */
+	(void)printf("jsd started with pid %d\n", pid); /* spit the pid out */
 	return(EXIT_SUCCESS);
     }
     else if (pid == -1)
@@ -294,7 +294,7 @@ void main_loop(void)
     double topspeed;
     int osock, isock, new;
     struct sockaddr_in clientname;
-    size_t size;
+    socklen_t size;
     fd_set node_fd_set, free_fd_set, full_fd_set;
     struct timeval timeout;
     struct sigaction signaler;
@@ -346,6 +346,7 @@ void main_loop(void)
 	    /* jsh wants a node */
 	    if (debug)
 		syslog(LOG_DEBUG, "Someone wants a node");
+	    size = sizeof(clientname);
 	    new = accept(osock, (struct sockaddr *) &clientname, &size);
 	    if (new < 0)
 		log_bailout();
@@ -380,12 +381,13 @@ void free_node(int sock)
 {
     int new, i;
     struct sockaddr_in clientname;
-    size_t size;
+    socklen_t size;
     char *buf;
     node_t *nodeptr;
 
     if (debug)
 	syslog(LOG_DEBUG, "Entered free_node");
+    size = sizeof(clientname);
     new = accept(sock, (struct sockaddr *) &clientname, &size);
     if (debug)
 	syslog(LOG_DEBUG, "accepted new connection");
@@ -428,12 +430,12 @@ do_bench_command(char *argv, int fanout, char *username)
 	if (username != NULL)
 	    syslog(LOG_DEBUG, "As User: %s", username);
 	syslog(LOG_DEBUG, "On nodes:");
+	q = (char *)calloc(MAXBUF, sizeof(char));
+	if (q == NULL)
+	    log_bailout();
     }
     for (nodeptr = nodelink; nodeptr; nodeptr = nodeptr->next) {
 	if (debug) {
-	    q = (char *)calloc(MAXBUF, sizeof(char));
-	    if (q == NULL)
-		log_bailout();
 	    if (!(j % 4) && j > 0)
 		strcat(q, "\n");
 	    strcat(q, nodeptr->name);

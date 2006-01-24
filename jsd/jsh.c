@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.14 2005/12/13 05:01:55 garbled Exp $ */
+/* $Id: jsh.c,v 1.15 2006/01/24 19:00:25 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,13 +43,14 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.14 2005/12/13 05:01:55 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.15 2006/01/24 19:00:25 garbled Exp $");
 #endif
 
 void do_command(char **argv, int allrun, char *username);
 char *check_node(void);
 void free_node(char *nodename);
 void _log_bailout(int line, char *file);
+void reapnode(int signo);
 
 /* globals */
 
@@ -60,6 +61,7 @@ char **lumplist;
 char *progname, *jsd_host;
 group_t *grouplist;
 node_t *nodelink;
+char *curnode; /* the node we are currently running on */
 
 /* 
  * jsh contacts the jsd daemon, and asks for a node to work on.
@@ -249,6 +251,19 @@ free_node(char *nodename)
     (void)close(sock);
 }
 
+/*
+ * If a signal is caught, we need to tell the jsd daemon that we aren't
+ * playing anymore, otherwise we hold the node forever.
+ */
+
+void
+reapnode(int signo)
+{
+    if (curnode != NULL)
+	free_node(curnode);
+    exit(EXIT_SUCCESS);
+}
+
 /* 
  * Do the actual dirty work of the program, now that the arguments
  * have all been parsed out.
@@ -258,7 +273,7 @@ void
 do_command(char **argv, int allrun, char *username)
 {
     FILE *fd, *fda, *in;
-    char buf[MAXBUF], pipebuf[2048];
+    char cbuf[MAXBUF], buf[MAXBUF], pipebuf[2048];
     char *nodename, *p, **q, *command, *rsh, *cd, *rshargs, **cmd;
     int status, piping, pollret, nrofargs, arg;
     size_t i;
@@ -270,6 +285,7 @@ do_command(char **argv, int allrun, char *username)
     in = NULL;
     nodename = NULL;
     rshargs = NULL;
+    curnode = NULL;
 
     if (debug && username != NULL)
 	(void)printf("As User: %s\n", username);
@@ -292,7 +308,7 @@ do_command(char **argv, int allrun, char *username)
 	    (void)printf("%s>", progname);
 	in = fdopen(STDIN_FILENO, "r");
 	/* start reading stuff from stdin and process */
-	command = fgets(buf, sizeof(buf), in);
+	command = fgets(cbuf, sizeof(cbuf), in);
 	if (command != NULL)
 	    if (strcmp(command,"\n") == 0)
 		command = NULL;
@@ -320,12 +336,17 @@ do_command(char **argv, int allrun, char *username)
 	}
     }
 
+    signal(SIGINT, reapnode);
+    signal(SIGTERM, reapnode);
+
     if (allrun)
 	nodename = check_node();
 
     while (command != NULL) {
 	if (!allrun)
 	    nodename = check_node();
+	/* store the curnode */
+	curnode = nodename;
 	if (debug)
 	    printf("Working node: %s\n", nodename);
 	/* we set up pipes for each node, to prepare
@@ -430,17 +451,21 @@ do_command(char **argv, int allrun, char *username)
 	if (piping) {
 	    if (isatty(STDIN_FILENO) && piping)
 		(void)printf("%s>", progname);
-	    command = fgets(buf, sizeof(buf), in);
+	    command = fgets(cbuf, sizeof(cbuf), in);
 	    if (command != NULL)
 		if (strcmp(command,"\n") == 0)
 		    command = NULL;
 	} else
 	    command = NULL;
-	if (!allrun)
+	if (!allrun) {
 	    free_node(nodename);
+	    curnode = NULL;
+	}
     } /* while loop */
-    if (allrun)
+    if (allrun) {
 	free_node(nodename);
+	curnode = NULL;
+    }
     if (piping) {  /* I learned this the hard way */
 	fflush(in);
 	fclose(in);

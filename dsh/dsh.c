@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.24 2005/12/13 05:01:55 garbled Exp $ */
+/* $Id: dsh.c,v 1.25 2006/01/24 19:00:24 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.24 2005/12/13 05:01:55 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.25 2006/01/24 19:00:24 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -279,8 +279,7 @@ do_command(char **argv, int fanout, char *username)
 {
     struct sigaction signaler;
     FILE *fd, *fda, *in;
-    char buf[MAXBUF];
-    char pipebuf[2048];
+    char buf[MAXBUF], cbuf[MAXBUF], pipebuf[2048];
     int status, i, j, n, g, piping, pollret, nrofargs, arg;
     size_t maxnodelen;
     char *p, **q, *command, *rsh, *cd, *rshargs, **cmd;
@@ -334,7 +333,7 @@ do_command(char **argv, int fanout, char *username)
 	    (void)printf("%s>", progname);
 	in = fdopen(STDIN_FILENO, "r");
 	/* start reading stuff from stdin and process */
-	command = fgets(buf, sizeof(buf), in);
+	command = fgets(cbuf, sizeof(cbuf), in);
 	if (command != NULL)
 	    if (strcmp(command,"\n") == 0)
 		command = NULL;
@@ -526,7 +525,7 @@ do_command(char **argv, int fanout, char *username)
 	    /* yes, this is code repetition, no need to adjust your monitor */
 	    if (isatty(STDIN_FILENO) && piping)
 		(void)printf("%s>", progname);
-	    command = fgets(buf, sizeof(buf), in);
+	    command = fgets(cbuf, sizeof(cbuf), in);
 	    if (command != NULL)
 		if (strcmp(command,"\n") == 0)
 		    command = NULL;

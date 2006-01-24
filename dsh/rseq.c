@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.18 2005/12/13 05:01:55 garbled Exp $ */
+/* $Id: rseq.c,v 1.19 2006/01/24 19:00:25 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.18 2005/12/13 05:01:55 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.19 2006/01/24 19:00:25 garbled Exp $");
 #endif
 
 /* externs */
@@ -279,8 +279,7 @@ void
 do_command(char **argv, int allrun, char *username)
 {
     FILE *fd, *fda, *in;
-    char buf[MAXBUF];
-    char pipebuf[2048];
+    char buf[MAXBUF], cbuf[MAXBUF], pipebuf[2048];
     int status, piping, pollret, i, nrofargs, arg;
     size_t maxnodelen;
     char *p, *command, *rsh, *cd, **q, *rshargs, **cmd;
@@ -316,7 +315,7 @@ do_command(char **argv, int allrun, char *username)
 	    /* are we a terminal?  then go interactive! */
 	    (void)printf("%s>", progname);
 	in = fdopen(STDIN_FILENO, "r");
-	command = fgets(buf, sizeof(buf), in);
+	command = fgets(cbuf, sizeof(cbuf), in);
 	/* start reading stuff from stdin and process */
 	if (command != NULL)
 	    if (strcmp(command,"\n") == 0)
@@ -444,7 +443,7 @@ do_command(char **argv, int allrun, char *username)
 	    if (isatty(STDIN_FILENO) && piping)
 	    /* yes, this is code repetition, no need to adjust your monitor */
 		(void)printf("%s>", progname);
-	    command = fgets(buf, sizeof(buf), in);
+	    command = fgets(cbuf, sizeof(cbuf), in);
 	    if (command != NULL)
 		if (strcmp(command,"\n") == 0)
 		    command = NULL;

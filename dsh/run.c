@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.16 2005/12/13 05:01:55 garbled Exp $ */
+/* $Id: run.c,v 1.17 2006/01/24 19:00:25 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -41,7 +41,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: run.c,v 1.16 2005/12/13 05:01:55 garbled Exp $");
+__RCSID("$Id: run.c,v 1.17 2006/01/24 19:00:25 garbled Exp $");
 #endif
 
 extern int errno;
@@ -241,8 +241,7 @@ void
 do_command(char **argv, int allrun, char *username)
 {
     FILE *fd, *fda, *in;
-    char buf[MAXBUF];
-    char pipebuf[2048];
+    char buf[MAXBUF], cbuf[MAXBUF], pipebuf[2048];
     int status, i, piping, pollret, nrofargs, arg;
     char *p, *command, *rsh, *cd, **q, *rshargs, **cmd;
     node_t *nodeptr;
@@ -282,7 +281,7 @@ do_command(char **argv, int allrun, char *username)
 	in = fdopen(STDIN_FILENO, "r");
 
 	/* start reading stuff from stdin and process */
-	command = fgets(buf, sizeof(buf), in);
+	command = fgets(cbuf, sizeof(cbuf), in);
 	if (command != NULL)
 	    if (strcmp(command,"\n") == 0)
 		command = NULL;
@@ -415,7 +414,7 @@ do_command(char **argv, int allrun, char *username)
 	if (piping) {
 	    if (isatty(STDIN_FILENO) && piping)
 		(void)printf("%s>", progname);
-	    command = fgets(buf, sizeof(buf), in);
+	    command = fgets(cbuf, sizeof(cbuf), in);
 	    if (command != NULL)
 		if (strcmp(command,"\n") == 0)
 		    command = NULL;

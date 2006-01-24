@@ -1,4 +1,4 @@
-/* $Id: sockcommon.c,v 1.5 2005/12/13 05:09:06 garbled Exp $ */
+/* $Id: sockcommon.c,v 1.6 2006/01/24 19:00:23 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,19 +43,32 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: sockcommon.c,v 1.5 2005/12/13 05:09:06 garbled Exp $");
+__RCSID("$Id: sockcommon.c,v 1.6 2006/01/24 19:00:23 garbled Exp $");
 #endif
 
 
 int
 make_socket(int port)
 {
-    int sock;
+    int sock, opt;
     struct sockaddr_in name;
+    struct linger ld;
 
     /* create socket */
     sock = socket(PF_INET, SOCK_STREAM, 0);
     if (sock < 0)
+	log_bailout();
+
+    opt = 1;
+    /* reuse address */
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
+		   sizeof(opt)) < 0)
+	log_bailout();
+
+    /* Linger */
+    ld.l_onoff = 0;
+    ld.l_linger = 10; /* Give it 10 seconds to transmit */
+    if (setsockopt(sock, SOL_SOCKET, SO_LINGER, (char *)&ld, sizeof(ld)) < 0)
 	log_bailout();
 
     name.sin_family = AF_INET;
