@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.25 2006/01/24 19:00:24 garbled Exp $ */
+/* $Id: dsh.c,v 1.26 2006/01/25 18:16:04 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.25 2006/01/24 19:00:24 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.26 2006/01/25 18:16:04 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -529,6 +529,7 @@ do_command(char **argv, int fanout, char *username)
 	    if (command != NULL)
 		if (strcmp(command,"\n") == 0)
 		    command = NULL;
+	    nodeptr = nodelink;
 	} else
 	    command = NULL;
     } /* while loop */
