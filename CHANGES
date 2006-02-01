@@ -1,4 +1,12 @@
-$Id: CHANGES,v 1.15 2005/12/13 08:04:25 garbled Exp $
+$Id: CHANGES,v 1.16 2006/02/01 17:40:14 garbled Exp $
+
+Fix jsd to work properly on Linux.
+
+Fix stdin command mode on all the utilities.
+
+Make jsh and jsd more robust.  Keep jsd from permanently losing it's nodes.
+
+Fix pdf to work on Linux.
 
 Add a -v option to all programs to tell the user what version of
 ClusterIt they are running.  CVS will allways have _BETA tagged on the end,
