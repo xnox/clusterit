@@ -1,6 +1,6 @@
 Summary: clusterit is a collection of tools for distributed computing.
 Name: clusterit
-Version: 2.3.1
+Version: 2.4
 Release: 1
 License: BSD with advertising clause (Tim Rightnour), BSD-style (John Bovey)
 Group: Utilities
@@ -78,6 +78,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc
 
 %changelog
+* Wed Feb  1 2006 Tim Rightnour <root@garbled.net> -
+- Updated to 2.4 release
 * Thu Jun  2 2005 Tim Rightnour <root@garbled.net> -
 - Fixed spec file to work with newer 2.3.1 release
 * Sun Oct  3 2004 Tim Rightnour <root@garbled.net> - 

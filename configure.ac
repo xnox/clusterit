@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(clusterit, 2.3, root@garbled.net)
+AC_INIT(clusterit, 2.4, root@garbled.net)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([dsh/dsh.c])
 AC_CONFIG_HEADER([config.h])

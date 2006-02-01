@@ -85,9 +85,9 @@ environment variable.  This option is silently ignored if used with the
 option.
 <p><dt><b>-</b><b></b><b>m</b><i></i><i> size</i><dd>
 Is used to limit the displayed file systems to only those with a
-size greater than the user-supplied
+capacity greater than the user-supplied
 <i></i><i>size</i>
-argument.
+argument.  This can be used to find filesystems over a given threshold.
 <p><dt><b>-</b><b></b><b>t</b><i></i><i> type</i><dd>
 Is used to indicate the actions should only be taken on
 filesystems of the specified type.
@@ -136,6 +136,18 @@ Command to use to connect to remote machines.  The command chosen must
 be able to connect with no password to the remote host.  Defaults to
 <b></b><b>rsh</b>
         <h3>
+        EXAMPLES
+        </h3>
+To find all the filesystems which are more than 90% full across your cluster,
+you would issue:
+<dl compact><dt><dd>
+<code>
+<pre>
+pdf -m 90
+</pre>
+</code>
+</dl>
+        <h3>
         DIAGNOSTICS
         </h3>
 Exit status is 0 on success, 1 if an error occurs.
@@ -174,7 +186,7 @@ addition, numbers longer than 9 digits will be truncated as well.
 will only work on nodes that produce the
 <a href="df.html">df(1)</a>
 output that it expects.  It has been made to work on HP-UX, Solaris, and
-AIX, along with any BSD.
+AIX, along with any BSD, and most versions of Linux.
 </font></body>
 </html>
 

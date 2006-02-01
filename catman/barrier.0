@@ -37,7 +37,7 @@ DDEESSCCRRIIPPTTIIOONN
 EENNVVIIRROONNMMEENNTT
      bbaarrrriieerr utilizes the following environment variables.
 
-     BARRIER_SOCK  Sets the default remote port to connect to.
+     BARRIER_PORT  Sets the default remote port to connect to.
 
      BARRIER_HOST  Sets the default remote host to connect to.
 

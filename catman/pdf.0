@@ -38,7 +38,8 @@ DDEESSCCRRIIPPTTIIOONN
 
      --mm _s_i_z_e
           Is used to limit the displayed file systems to only those with a
-          size greater than the user-supplied _s_i_z_e argument.
+          capacity greater than the user-supplied _s_i_z_e argument.  This can be
+          used to find filesystems over a given threshold.
 
      --tt _t_y_p_e
           Is used to indicate the actions should only be taken on filesystems
@@ -69,6 +70,12 @@ EENNVVIIRROONNMMEENNTT
                sen must be able to connect with no password to the remote
                host.  Defaults to rrsshh
 
+EEXXAAMMPPLLEESS
+     To find all the filesystems which are more than 90% full across your
+     cluster, you would issue:
+
+           pdf -m 90
+
 DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
@@ -89,6 +96,6 @@ BBUUGGSS
 
      ppddff will only work on nodes that produce the df(1) output that it
      expects.  It has been made to work on HP-UX, Solaris, and AIX, along with
-     any BSD.
+     any BSD, and most versions of Linux.
 
 NetBSD 2.0                        May 5, 1999                       NetBSD 2.0
