@@ -1,4 +1,4 @@
-.\" $Id: dsh.1,v 1.18 2005/12/13 05:01:55 garbled Exp $
+.\" $Id: dsh.1,v 1.19 2007/01/04 18:57:36 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -46,6 +46,17 @@
 .Op Fl w Ar node1,...,nodeN
 .Op Fl x Ar node1,...,nodeN
 .Op Ar command ...
+.Nm
+.Op Fl eiqtv
+.Op Fl f Ar fanout
+.Op Fl g Ar rungroup1,...,rungroupN
+.Op Fl l Ar username
+.Op Fl o Ar porttimeout
+.Op Fl p Ar portnum
+.Op Fl w Ar node1,...,nodeN
+.Op Fl x Ar node1,...,nodeN
+.Fl s Ar scriptname
+.Op Ar arguments ...
 .Sh DESCRIPTION
 The 
 .Nm
@@ -60,44 +71,6 @@ Unless the
 .Fl e
 option is specified, stderr from remote commands will not be reported to the
 user.
-.It Fl i
-The
-.Fl i
-option will list information about the current cluster, and command groupings. 
-It will print out the current value of the fanout, and how many groups of 
-machines there are within the cluster. It will also show you which command 
-you are about to run, and your username if specified with the
-.Fl l
-option.
-.It Fl q
-The
-.Fl q
-option does not issue any commands, but displays information about the 
-cluster, and the fanout groupings.
-.It Fl t
-The
-.Fl t
-option causes
-.Nm
-to attempt a connection test to each node prior to attempting to run the
-remote command.  If the test fails for any reason, the remote command will
-not be attempted.  This can be useful when clusterfiles have suffered bitrot
-and some nodes no longer exist, or might be down for maintenance.  The default
-timeout is 5 seconds.  The timeout can be changed with the
-.Fl o
-option.
-.Nm
-will attempt to guess the port number of the remote service based on your
-.Ev RCMD_CMD
-setting.  It knows about ssh and rsh.  If
-.Nm
-fails to guess your port correctly, you may use the
-.Fl p
-argument to set the remote port number.  If the
-.Ev RCMD_TEST
-environment variable exists, the testing will automatically take place.
-.It Fl v
-Prints the version of ClusterIt to the stdout, and exits.
 .It Fl f
 If the
 .Fl f
@@ -122,6 +95,15 @@ file specified by the
 environment variable.  This option is silently ignored if used with the
 .Fl w
 option.
+.It Fl i
+The
+.Fl i
+option will list information about the current cluster, and command groupings. 
+It will print out the current value of the fanout, and how many groups of 
+machines there are within the cluster. It will also show you which command 
+you are about to run, and your username if specified with the
+.Fl l
+option.
 .It Fl l
 If the
 .Fl l
@@ -139,6 +121,55 @@ The
 option can be used to set the port number that testing should occur on when
 testing remote connections.  The default behavior is to guess based on the
 remote command name.
+.It Fl q
+The
+.Fl q
+option does not issue any commands, but displays information about the 
+cluster, and the fanout groupings.
+.It Fl s
+The
+.Fl s
+option causes
+.Nm
+to copy a script to the remote machine, execute it once, and delete it, all
+in a single operation.  The
+.Fl s
+option requires a script name, which will be copied to all remote machines and
+executed.  You may also optionally specify any number of additional arguments
+to the script on the command line.  The script will be placed in a temporary
+directory under /tmp on the remote node, executed, and then the directory will
+be recursively deleted.  Any executable can be used as the script, regardless
+of programming language.  The script is copied with the tar command, preserving
+permissions of the original.  The
+.Fl s
+option cannot be used with the standard mode of
+.Nm
+to run other commands, nor can it be used in interactive mode.
+.It Fl t
+The
+.Fl t
+option causes
+.Nm
+to attempt a connection test to each node prior to attempting to run the
+remote command.  If the test fails for any reason, the remote command will
+not be attempted.  This can be useful when clusterfiles have suffered bitrot
+and some nodes no longer exist, or might be down for maintenance.  The default
+timeout is 5 seconds.  The timeout can be changed with the
+.Fl o
+option.
+.Nm
+will attempt to guess the port number of the remote service based on your
+.Ev RCMD_CMD
+setting.  It knows about ssh and rsh.  If
+.Nm
+fails to guess your port correctly, you may use the
+.Fl p
+argument to set the remote port number.  If the
+.Ev RCMD_TEST
+environment variable exists, the testing will automatically take place.
+
+.It Fl v
+Prints the version of ClusterIt to the stdout, and exits.
 .It Fl w
 If the
 .Fl w
@@ -261,6 +292,15 @@ will display:
 hadar:	hadar
 rigel:	rigel
 .Ed
+.Pp
+The command:
+.Bd -literal -offset indent
+dsh -w hadar,rigel -s /bin/date
+.Ed
+.Pp
+Will copy /bin/date to /tmp/dsh.$$ on hadar and rigel and execute it on 
+each node, displaying the date and time on each remote machine, assuming
+that the /bin/date you copied is a valid binary for the remote end.
 .Sh DIAGNOSTICS
 Exit status is 0 on success, 1 if an error occurs.
 .Sh SEE ALSO
@@ -269,6 +309,7 @@ Exit status is 0 on success, 1 if an error occurs.
 .Xr pdf 1 ,
 .Xr prm 1 ,
 .Xr rsh 1 ,
+.Xr tar 1 ,
 .Xr kerberos 3 ,
 .Xr hosts.equiv 5 ,
 .Xr rhosts 5

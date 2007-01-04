@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.26 2006/01/25 18:16:04 garbled Exp $ */
+/* $Id: dsh.c,v 1.27 2007/01/04 18:57:36 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,6 +40,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <poll.h>
+#include <libgen.h>
 
 #include "../common/common.h"
 
@@ -47,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.26 2006/01/25 18:16:04 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.27 2007/01/04 18:57:36 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -55,7 +56,7 @@ void sig_handler(int i);
 
 /* globals */
 int debug, errorflag, gotsigint, gotsigterm, exclusion, grouping;
-int testflag, rshport, porttimeout;
+int testflag, rshport, porttimeout, script;
 node_t *nodelink;
 group_t *grouplist;
 char **rungroup;
@@ -63,6 +64,7 @@ int nrofrungroups;
 char **lumplist;
 pid_t currentchild;
 char *progname;
+char *scriptname;
 
 /* 
  *  dsh is a cluster management tool based upon the IBM tool of the
@@ -109,9 +111,9 @@ main(int argc, char *argv[])
     }
     progname = q;
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?deiqtf:g:l:o:p:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?deiqtf:g:l:o:p:s:vw:x:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?deiqtf:g:l:o:p:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?deiqtf:g:l:o:p:s:vw:x:")) != -1)
 #endif
 	switch (ch) {
 	case 'd':		/* we want to debug dsh (hidden)*/
@@ -134,6 +136,10 @@ main(int argc, char *argv[])
 	    break;
 	case 'p':           /* what is the rsh port number? */
 	    rshport = atoi(optarg);
+	    break;
+	case 's':	/* we want to push a script and run it */
+	    script = 1;
+	    scriptname = strdup(optarg);
 	    break;
 	case 'f':		/* set the fanout size */
 	    fanout = atoi(optarg);
@@ -164,7 +170,7 @@ main(int argc, char *argv[])
 	    }
 	    nrofrungroups = i;
 	    group = NULL;
-	    break;			
+	    break;
 	case 'v':
 	    (void)printf("%s: %s\n", progname, version);
 	    exit(EXIT_SUCCESS);
@@ -200,10 +206,15 @@ main(int argc, char *argv[])
 	    break;
 	case '?':		/* you blew it */
 	    (void)fprintf(stderr,
-	        "usage: %s [-eiqtv] [-f fanout] [-p portnum] [-o timeout]"
-		"[-g rungroup1,...,rungroupN] [-l username] "
-		"[-x node1,...,nodeN] [-w node1,..,nodeN] "
+	        "usage:\n%s [-eiqtv] [-f fanout] [-p portnum] [-o timeout]"
+		"[-g rungroup1,...,rungroupN]\n"
+		"[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
 		"[command ...]\n", progname);
+	    (void)fprintf(stderr,
+		"%s [-eiqtv] [-f fanout] [-p portnum] [-o timeout]"
+		"[-g rungroup1,...,rungroupN]\n"
+		"[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN]\n"
+	        "-s scriptname [arguments ...]\n", progname);
 	    return(EXIT_FAILURE);
 	    /*NOTREACHED*/
 	    break;
@@ -213,7 +224,7 @@ main(int argc, char *argv[])
 
     /* Check for various environment variables and use them if they exist */
     if (!fanflag && getenv("FANOUT"))
-	fanout = atoi(getenv("FANOUT"));
+        fanout = atoi(getenv("FANOUT"));
     if (!rshport && getenv("RCMD_PORT"))
 	rshport = atoi(getenv("RCMD_PORT"));
     if (!testflag && getenv("RCMD_TEST"))
@@ -225,7 +236,7 @@ main(int argc, char *argv[])
 
     /* we need to find or guess the port number */
     if (testflag && rshport == 0) {
-	if (!getenv("RCMD_CMD"))
+        if (!getenv("RCMD_CMD"))
 	    rshport = 514;
 	else if (strcmp("ssh", getenv("RCMD_CMD")) == 0)
 	    rshport = 22;
@@ -267,7 +278,10 @@ main(int argc, char *argv[])
     return(EXIT_SUCCESS);
 }
 
+/* IDEA:
+  tar cfp - $myscript | ssh somehost 'mkdir /tmp/foo.$$; cd /tmp/foo.$$; tar xfp -; ./'$myscript'; cd /tmp; rm -rf /tmp/foo.$$'
 
+*/
 
 /* 
  * Do the actual dirty work of the program, now that the arguments
@@ -280,9 +294,10 @@ do_command(char **argv, int fanout, char *username)
     struct sigaction signaler;
     FILE *fd, *fda, *in;
     char buf[MAXBUF], cbuf[MAXBUF], pipebuf[2048];
-    int status, i, j, n, g, piping, pollret, nrofargs, arg;
+    int status, i, j, n, g, piping, pollret, nrofargs, arg, slen;
     size_t maxnodelen;
     char *p, **q, *command, *rsh, *cd, *rshargs, **cmd;
+    char *scriptbase, *scriptdir, *scriptcmd;
     node_t *nodeptr, *nodehold;
     struct pollfd fds[2];
 
@@ -326,7 +341,7 @@ do_command(char **argv, int fanout, char *username)
 	(void)printf("\nDo Command: %s\n", command);
 	(void)printf("Fanout: %d Groups:%d\n", fanout, j);
     }
-    if (strcmp(command, "") == 0) {
+    if (strcmp(command, "") == 0 && !script) {
 	piping = 1;
 	/* are we a terminal?  then go interactive! */
 	if (isatty(STDIN_FILENO) && piping)
@@ -438,6 +453,34 @@ do_command(char **argv, int fanout, char *username)
 			if (!test_node_connection(rshport, porttimeout,
 						  nodeptr))
 			    exit(EXIT_SUCCESS);
+		    /* handle the script argument */
+		    if (script) {
+			    scriptbase = basename(scriptname);
+			    scriptdir = dirname(scriptname);
+			    slen = strlen(rsh) + strlen(scriptbase)*2 +
+				strlen(buf) + strlen(command) + 128;
+			    if (rshargs)
+				    slen += strlen(rshargs);
+			    cmd = calloc(4, sizeof(char*));
+			    arg = 0;
+			    cmd[arg++] = "/bin/sh";
+			    cmd[arg++] = "-c";
+			    cmd[arg] = (char *)malloc(sizeof(char) * slen);
+			    (void)snprintf(cmd[arg], slen,
+				"tar cfp - %s | %s %s %s "
+				"'mkdir /tmp/dsh.$$; cd /tmp/dsh.$$ ; "
+				"tar xfp - ; ./%s %s; cd /tmp ; "
+				"rm -rf /tmp/dsh.$$'", scriptbase,
+				rsh, (rshargs? rshargs:""), buf, scriptbase,
+				command);
+			    if (debug)
+				    (void)printf("%s\n", cmd[arg]);
+			    arg++;
+			    cmd[arg] = (char *)0;
+			    chdir(scriptdir); /* for tar */
+			    execvp("/bin/sh", cmd);
+			    bailout();
+		    }
 		    cmd = calloc(nrofargs+1, sizeof(char *));
 		    arg = 0;
 		    cmd[arg++] = rsh;

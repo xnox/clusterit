@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.18 2005/12/13 05:09:06 garbled Exp $ */
+/* $Id: pcp.c,v 1.19 2007/01/04 18:57:37 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.18 2005/12/13 05:09:06 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.19 2007/01/04 18:57:37 garbled Exp $");
 #endif
 
 extern int errno;
@@ -229,9 +229,8 @@ main(int argc, char **argv)
 
 void do_copy(char **argv, int recurse, int preserve, char *username)
 {
-    int numsource, j;
-    char args[64];
-    char *cargs, *source_file, *destination_file, *tempstore, *rcp;
+    int numsource, j, arglen;
+    char *args, *source_file, *destination_file, *tempstore, *rcp;
     node_t *nodeptr;
 
     if (debug) {
@@ -279,17 +278,24 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
 	rcp = strdup("rcp");
     if (rcp == NULL)
 	bailout();
-    (void)snprintf(args, 64, " ");
+    if (getenv("RCP_CMD_ARGS") != NULL) {
+	arglen = strlen(getenv("RCP_CMD_ARGS")) + 10;
+	args = (char *)malloc(sizeof(char) * arglen);
+	(void)snprintf(args, arglen, " %s", getenv("RCP_CMD_ARGS"));
+    } else {
+	args = (char *)malloc(sizeof(char) * 10);	
+	(void)snprintf(args, 10, " ");
+    }
+    /* adjust the 10 above if you add more below */
     if (recurse)
 	strcat(args, "-r ");
     if (preserve)
 	strcat(args, "-p ");
-    cargs = strdup(args);
 
     if (concurrent)
-	paralell_copy(rcp, cargs, username, source_file, destination_file);
+	paralell_copy(rcp, args, username, source_file, destination_file);
     else
-	serial_copy(rcp, cargs, username, source_file, destination_file);
+	serial_copy(rcp, args, username, source_file, destination_file);
 }
 
 /* Copy files in paralell.  This is preferred with smaller files, because
