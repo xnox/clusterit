@@ -1,4 +1,9 @@
-$Id: CHANGES,v 1.17 2006/02/01 17:52:50 garbled Exp $
+$Id: CHANGES,v 1.18 2007/01/04 18:59:06 garbled Exp $
+
+Add -s option to dsh.  This adds the ability to copy a script to a remote
+machine, execute it, and delete it, all in a single operation.
+
+Add RCP_CMD_ARGS processing to pcp.
 
 * Release 2.4 *
 
