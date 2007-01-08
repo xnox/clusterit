@@ -8,7 +8,8 @@ bin_PROGRAMS = barrierd barrier
 
 barrier_SOURCES = \
 	barrier.c \
-	../common/common.c ./common/common.h
+	../common/common.c ./common/common.h \
+	../common/netbsd.c
 
 barrierd_SOURCES = \
 	barrierd.c \
