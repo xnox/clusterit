@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.12 2007/01/09 20:14:37 garbled Exp $ */
+/* $Id: common.h,v 1.13 2007/01/09 21:28:33 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -111,6 +111,8 @@ node_t *nodealloc(char *nodename);
 int test_node_connection(int rshport, int timeout, node_t *nodeptr);
 char **parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs);
 char *default_rcmd(char *rcmd_env);
+int get_rshport(int testflag, int rshport, char *rcmd_env);
+char *build_rshstring(char **rsh, int nrofargs);
 
 extern char **lumplist;
 extern char **rungroup;

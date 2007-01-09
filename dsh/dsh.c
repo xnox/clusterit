@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.28 2007/01/09 20:14:37 garbled Exp $ */
+/* $Id: dsh.c,v 1.29 2007/01/09 21:28:33 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.28 2007/01/09 20:14:37 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.29 2007/01/09 21:28:33 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -234,25 +234,7 @@ main(int argc, char *argv[])
     if (username == NULL && getenv("RCMD_USER"))
 	username = strdup(getenv("RCMD_USER"));
 
-    /* we need to find or guess the port number */
-    if (testflag && rshport == 0) {
-        if (!getenv("RCMD_CMD"))
-	    rshport = TEST_PORT;
-	else if (strstr(getenv("RCMD_CMD"), "ssh") != NULL)
-	    rshport = 22;
-	else if (strstr(getenv("RCMD_CMD"), "rsh") != NULL)
-	    rshport = 514;
-	else {
-	    (void)fprintf(stderr, "-t argument given, but port number to test "
-			  "could not be guessed.  Please set the RCMD_PORT "
-			  "environment variable to the portnumber of the "
-			  "protocol you are using, or supply it with the "
-			  "-p argument to dsh.");
-	    return(EXIT_FAILURE);
-	}
-	if (debug)
-	    printf("Test port: %d\n", rshport);
-    }
+    rshport = get_rshport(testflag, rshport, "RCMD_CMD");
 
     if (!someflag)
 	parse_cluster(exclude);
@@ -366,17 +348,7 @@ do_command(char **argv, int fanout, char *username)
     sigaction(SIGALRM, &signaler, NULL);
 
     rsh = parse_rcmd("RCMD_CMD", "RCMD_CMD_ARGS", &nrofargs);
-    /* build the rshstring (for debug printf and dsh -s) */
-    for (g=0, i=0; i < nrofargs-2; i++) {
-	    if (rsh[i] != NULL)
-		    g += strlen(rsh[i]);
-    }
-    rshstring = (char *)malloc(sizeof(char) * (g+nrofargs));
-    sprintf(rshstring, "%s", rsh[0]);
-    for (i=1; i < nrofargs-2; i++) {
-	    if (rsh[i] != NULL)
-		    sprintf(rshstring, "%s %s", rshstring, rsh[i]);
-    }
+    rshstring = build_rshstring(rsh, nrofargs);
     
     /* begin the processing loop */
     g = 0;
@@ -454,7 +426,7 @@ do_command(char **argv, int fanout, char *username)
 			    slen = strlen(rshstring) + strlen(scriptbase)*2 +
 				strlen(buf) + strlen(command) + 128;
 
-			    cmd = calloc(4, sizeof(char*));
+			    cmd = calloc(4, sizeof(char *));
 			    arg = 0;
 			    cmd[arg++] = "/bin/sh";
 			    cmd[arg++] = "-c";

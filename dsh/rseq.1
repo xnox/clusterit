@@ -1,4 +1,4 @@
-.\" $Id: rseq.1,v 1.16 2005/12/13 05:01:55 garbled Exp $
+.\" $Id: rseq.1,v 1.17 2007/01/09 21:28:33 garbled Exp $
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
 .\"
@@ -37,9 +37,11 @@
 .Nd run a command on a cluster in sequence
 .Sh SYNOPSIS
 .Nm
-.Op Fl aeiqv
+.Op Fl aeiqtv
 .Op Fl g Ar rungroup1,...,rungroupN
 .Op Fl l Ar username
+.Op Fl o Ar porttimeout
+.Op Fl p Ar portnum
 .Op Fl w Ar node1,...,nodeN
 .Op Fl x Ar node1,...,nodeN
 .Op Ar command ...
@@ -100,6 +102,39 @@ If the
 option is specified, followed by a username, the commands will be run 
 under that userid on the remote machines.  Consideration must be taken 
 for proper authentication, for this to work.
+.It Fl o
+The
+.Fl o
+option is used to set the timeout in seconds to be used when testing remote
+connections.  The default is five seconds.
+.It Fl p
+The
+.Fl p
+option can be used to set the port number that testing should occur on when
+testing remote connections.  The default behavior is to guess based on the
+remote command name.
+.It Fl t
+The
+.Fl t
+option causes
+.Nm
+to attempt a connection test to each node prior to attempting to run the
+remote command.  If the test fails for any reason, the remote command will
+not be attempted.  This can be useful when clusterfiles have suffered bitrot
+and some nodes no longer exist, or might be down for maintenance.  The default
+timeout is 5 seconds.  The timeout can be changed with the
+.Fl o
+option.
+.Nm
+will attempt to guess the port number of the remote service based on your
+.Ev RCMD_CMD
+setting.  It knows about ssh and rsh.  If
+.Nm
+fails to guess your port correctly, you may use the
+.Fl p
+argument to set the remote port number.  If the
+.Ev RCMD_TEST
+environment variable exists, the testing will automatically take place.
 .It Fl w
 If the
 .Fl w
@@ -150,6 +185,18 @@ It may be useful to wire the
 to a particular file, in order to keep proper sequence when invoking
 .Nm
 from subshells or scripts.
+.It Ev RCMD_PORT
+The port number used to test remote connections.  See the
+.Fl p
+flag.
+.It Ev RCMD_TEST
+When set,
+.Nm
+will automatically test all hosts before launching the remote command. See the
+.Fl t
+option for more information.
+.It Ev RCMD_TEST_TIMEOUT
+The timeout in seconds to use when testing for remote connections.
 .El
 .\" .Sh FILES
 .Sh DIAGNOSTICS

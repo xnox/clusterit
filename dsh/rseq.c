@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.19 2006/01/24 19:00:25 garbled Exp $ */
+/* $Id: rseq.c,v 1.20 2007/01/09 21:28:33 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -34,6 +34,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <poll.h>
+#include <signal.h>
 
 #include "../common/common.h"
 
@@ -41,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.19 2006/01/24 19:00:25 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.20 2007/01/09 21:28:33 garbled Exp $");
 #endif
 
 /* externs */
@@ -49,11 +50,13 @@ extern int errno;
 
 void do_command(char **argv, int allrun, char *username);
 node_t *check_seq(void);
+void sig_handler(int i);
 
 /* globals */
 
 int debug, errorflag, exclusion, grouping;
 int seqnumber, nrofrungroups;
+int rshport, testflag, porttimeout;
 char **rungroup;
 char **lumplist;
 node_t *nodelink;
@@ -83,8 +86,10 @@ int main(int argc, char **argv)
     debug = 0;
     errorflag = 0;
     allflag = 0;
+    testflag = 0;
     grouping = 0;
     nrofrungroups = 0;
+    porttimeout = 5; /* 5 seconds to port timeout */
     username = NULL;
     nodename = NULL;
     group = NULL;
@@ -104,9 +109,9 @@ int main(int argc, char **argv)
     progname = q;
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?adeiqg:l:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?adeiqtg:l:o:p:w:x:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?adeiqg:l:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?adeiqtvg:l:o:p:w:x:")) != -1)
 #endif
 	switch (ch) {
 	case 'a':		/* set the allrun flag */
@@ -124,8 +129,17 @@ int main(int argc, char **argv)
 	case 'l':		/* invoke me as some other user */
 	    username = strdup(optarg);
 	    break;
+	case 't':           /* test the nodes before connecting */
+	    testflag = 1;
+	    break;
+	case 'p':           /* what is the rsh port number? */
+	    rshport = atoi(optarg);
+	    break;
 	case 'q':		/* just show me some info and quit */
 	    showflag = 1;
+	    break;
+	case 'o':               /* set the test timeout in seconds */
+	    porttimeout = atoi(optarg);
 	    break;
 	case 'g':		/* pick a group to run on */
 	    i = 0;
@@ -197,6 +211,14 @@ int main(int argc, char **argv)
 
     if (username == NULL && getenv("RCMD_USER"))
 	username = strdup(getenv("RCMD_USER"));
+    if (!rshport && getenv("RCMD_PORT"))
+	rshport = atoi(getenv("RCMD_PORT"));
+    if (!testflag && getenv("RCMD_TEST"))
+	testflag = 1;
+    if (porttimeout == 5 && getenv("RCMD_TEST_TIMEOUT"))
+	porttimeout = atoi(getenv("RCMD_TEST_TIMEOUT"));
+
+    rshport = get_rshport(testflag, rshport, "RCMD_CMD");
 
     if (!someflag)
 	parse_cluster(exclude);	
@@ -278,18 +300,18 @@ check_seq(void)
 void 
 do_command(char **argv, int allrun, char *username)
 {
+    struct sigaction signaler;
     FILE *fd, *fda, *in;
     char buf[MAXBUF], cbuf[MAXBUF], pipebuf[2048];
     int status, piping, pollret, i, nrofargs, arg;
     size_t maxnodelen;
-    char *p, *command, *rsh, *cd, **q, *rshargs, **cmd;
+    char *p, *command, **rsh, *cd, **q, **cmd, *rshstring;
     node_t *nodeptr;
     struct pollfd fds[2];
 
     maxnodelen = 0;
     piping = 0;
     in = NULL;
-    rshargs = NULL;
 
     if (debug && username != NULL)
 	(void)printf("As User: %s\n", username);
@@ -321,24 +343,12 @@ do_command(char **argv, int allrun, char *username)
 	    if (strcmp(command,"\n") == 0)
 		command = NULL;
     }
-    /* set up the remote command */
-    rsh = getenv("RCMD_CMD");
-    if (rsh == NULL)
-	rsh = strdup("rsh");
-    if (rsh == NULL)
-	bailout();
-    if (getenv("RCMD_CMD_ARGS") != NULL)
-	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
-    nrofargs = 3;
-    if (rshargs != NULL) {
-	p = rshargs;
-	nrofargs++;
-	while (*p != '\0') {
-	    if (isspace(*p))
-		nrofargs++;
-	    *p++;
-	}
-    }
+
+    rsh = parse_rcmd("RCMD_CMD", "RCMD_CMD_ARGS", &nrofargs);
+    rshstring = build_rshstring(rsh, nrofargs);
+    signaler.sa_handler = sig_handler;
+    signaler.sa_flags = SA_RESTART;
+    sigaction(SIGALRM, &signaler, NULL);
 
     if (allrun)
 	test_and_set();
@@ -346,8 +356,15 @@ do_command(char **argv, int allrun, char *username)
     while (command != NULL) {
 	if (!allrun)
 	    test_and_set();
-	i = seqnumber;
 	nodeptr = check_seq();
+	if (testflag && rshport > 0 && porttimeout > 0) {
+	    while (!test_node_connection(rshport, porttimeout, nodeptr)) {
+		    fprintf(stderr, "Skipping down node %s.\n", nodeptr->name);
+		    test_and_set();
+		    nodeptr = check_seq();
+	    }
+        }
+	i = seqnumber;
 	if (debug)
 	    (void)printf("On node: %s\n", nodeptr->name);
 	pipe(nodeptr->out.fds);
@@ -372,17 +389,17 @@ do_command(char **argv, int allrun, char *username)
 	    else
 		(void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 	    if (debug)
-		(void)printf("%s %s %s %s\n", rsh,
-			     (rshargs? rshargs:""), buf, command);
+		    (void)printf("%s %s %s\n", rshstring, buf, command);
 	    cmd = calloc(nrofargs+1, sizeof(char *));
 	    arg = 0;
-	    cmd[arg++] = rsh;
-	    while (rshargs != NULL)
-		cmd[arg++] = strdup(strsep(&rshargs, " "));
+	    while (rsh[arg] != NULL) {
+		    cmd[arg] = rsh[arg];
+		    arg++;
+	    }
 	    cmd[arg++] = buf;
 	    cmd[arg++] = command;
 	    cmd[arg] = (char *)0;
-	    execvp(rsh, cmd);
+	    execvp(rsh[0], cmd);
 	    bailout();
 	} /* end switch */
 	/* now close off the useless stuff, and read the goodies */
@@ -454,5 +471,17 @@ do_command(char **argv, int allrun, char *username)
 	/* I learned this the hard way */
 	fflush(in);
 	fclose(in);
+    }
+}
+
+void
+sig_handler(int i)
+{
+    switch (i) {
+    case SIGALRM:
+	break;
+    default:
+	bailout();
+	break;
     }
 }
