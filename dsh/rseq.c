@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.20 2007/01/09 21:28:33 garbled Exp $ */
+/* $Id: rseq.c,v 1.21 2007/01/09 22:00:15 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.20 2007/01/09 21:28:33 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.21 2007/01/09 22:00:15 garbled Exp $");
 #endif
 
 /* externs */
@@ -286,7 +286,7 @@ check_seq(void)
     for (nodeptr = nodelink; (nodeptr && i < g);
 	 nodeptr = nodeptr->next)
 	i++;
-    if (nodeptr->next == NULL)
+    if (nodeptr == NULL || nodeptr->next == NULL)
 	return(nodelink);
     return(nodeptr->next);
 }
