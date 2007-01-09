@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.27 2007/01/04 18:57:36 garbled Exp $ */
+/* $Id: dsh.c,v 1.28 2007/01/09 20:14:37 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.27 2007/01/04 18:57:36 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.28 2007/01/09 20:14:37 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -237,12 +237,14 @@ main(int argc, char *argv[])
     /* we need to find or guess the port number */
     if (testflag && rshport == 0) {
         if (!getenv("RCMD_CMD"))
-	    rshport = 514;
-	else if (strcmp("ssh", getenv("RCMD_CMD")) == 0)
+	    rshport = TEST_PORT;
+	else if (strstr(getenv("RCMD_CMD"), "ssh") != NULL)
 	    rshport = 22;
+	else if (strstr(getenv("RCMD_CMD"), "rsh") != NULL)
+	    rshport = 514;
 	else {
 	    (void)fprintf(stderr, "-t argument given, but port number to test "
-			  "could not be guessed.  Please set RSHPORT "
+			  "could not be guessed.  Please set the RCMD_PORT "
 			  "environment variable to the portnumber of the "
 			  "protocol you are using, or supply it with the "
 			  "-p argument to dsh.");
@@ -296,7 +298,7 @@ do_command(char **argv, int fanout, char *username)
     char buf[MAXBUF], cbuf[MAXBUF], pipebuf[2048];
     int status, i, j, n, g, piping, pollret, nrofargs, arg, slen;
     size_t maxnodelen;
-    char *p, **q, *command, *rsh, *cd, *rshargs, **cmd;
+    char *p, **q, *command, **rsh, *cd, **cmd, *rshstring;
     char *scriptbase, *scriptdir, *scriptcmd;
     node_t *nodeptr, *nodehold;
     struct pollfd fds[2];
@@ -306,7 +308,6 @@ do_command(char **argv, int fanout, char *username)
     piping = 0;
     in = NULL;
     cd = pipebuf;
-    rshargs = NULL;
 
     if (debug) {
 	if (username != NULL)
@@ -364,26 +365,19 @@ do_command(char **argv, int fanout, char *username)
     sigaction(SIGINT, &signaler, NULL);
     sigaction(SIGALRM, &signaler, NULL);
 
-    /* gather the rsh data */
-    rsh = getenv("RCMD_CMD");
-    if (rsh == NULL)
-	rsh = strdup("rsh");
-    if (rsh == NULL)
-	bailout();
-
-    if (getenv("RCMD_CMD_ARGS") != NULL)
-	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
-    nrofargs = 3;
-    if (rshargs != NULL) {
-	p = rshargs;
-	nrofargs++;
-	while (*p != '\0') {
-	    if (isspace(*p))
-		nrofargs++;
-	    *p++;
-	}
+    rsh = parse_rcmd("RCMD_CMD", "RCMD_CMD_ARGS", &nrofargs);
+    /* build the rshstring (for debug printf and dsh -s) */
+    for (g=0, i=0; i < nrofargs-2; i++) {
+	    if (rsh[i] != NULL)
+		    g += strlen(rsh[i]);
     }
-
+    rshstring = (char *)malloc(sizeof(char) * (g+nrofargs));
+    sprintf(rshstring, "%s", rsh[0]);
+    for (i=1; i < nrofargs-2; i++) {
+	    if (rsh[i] != NULL)
+		    sprintf(rshstring, "%s %s", rshstring, rsh[i]);
+    }
+    
     /* begin the processing loop */
     g = 0;
     nodeptr = nodelink;
@@ -447,8 +441,8 @@ do_command(char **argv, int fanout, char *username)
 		    else
 			(void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 		    if (debug)
-			(void)printf("%s %s %s %s\n", rsh,
-				     (rshargs? rshargs:""), buf, command);
+			    (void)printf("%s %s %s\n", rshstring,
+				buf, command);
 		    if (testflag && rshport > 0 && porttimeout > 0)
 			if (!test_node_connection(rshport, porttimeout,
 						  nodeptr))
@@ -457,22 +451,20 @@ do_command(char **argv, int fanout, char *username)
 		    if (script) {
 			    scriptbase = basename(scriptname);
 			    scriptdir = dirname(scriptname);
-			    slen = strlen(rsh) + strlen(scriptbase)*2 +
+			    slen = strlen(rshstring) + strlen(scriptbase)*2 +
 				strlen(buf) + strlen(command) + 128;
-			    if (rshargs)
-				    slen += strlen(rshargs);
+
 			    cmd = calloc(4, sizeof(char*));
 			    arg = 0;
 			    cmd[arg++] = "/bin/sh";
 			    cmd[arg++] = "-c";
 			    cmd[arg] = (char *)malloc(sizeof(char) * slen);
 			    (void)snprintf(cmd[arg], slen,
-				"tar cfp - %s | %s %s %s "
+				"tar cfp - %s | %s %s "
 				"'mkdir /tmp/dsh.$$; cd /tmp/dsh.$$ ; "
 				"tar xfp - ; ./%s %s; cd /tmp ; "
 				"rm -rf /tmp/dsh.$$'", scriptbase,
-				rsh, (rshargs? rshargs:""), buf, scriptbase,
-				command);
+				rshstring, buf, scriptbase, command);
 			    if (debug)
 				    (void)printf("%s\n", cmd[arg]);
 			    arg++;
@@ -483,13 +475,14 @@ do_command(char **argv, int fanout, char *username)
 		    }
 		    cmd = calloc(nrofargs+1, sizeof(char *));
 		    arg = 0;
-		    cmd[arg++] = rsh;
-		    while (rshargs != NULL)
-			cmd[arg++] = strdup(strsep(&rshargs, " "));
+		    while (rsh[arg] != NULL) {
+			    cmd[arg] = rsh[arg];
+			    arg++;
+		    }
 		    cmd[arg++] = buf;
 		    cmd[arg++] = command;
 		    cmd[arg] = (char *)0;
-		    execvp(rsh, cmd);
+		    execvp(rsh[0], cmd);
 		    bailout();
 		    break;
 		default:

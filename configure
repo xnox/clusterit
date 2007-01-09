@@ -1278,6 +1278,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
+ --enable-default-rsh		Use rsh as default rcmd
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -3531,6 +3532,16 @@ else
   { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
   SET_MAKE="MAKE=${MAKE-make}"
+fi
+
+
+# Check whether --enable-default-rsh was given.
+if test "${enable_default_rsh+set}" = set; then
+  enableval=$enable_default_rsh;
+cat >>confdefs.h <<\_ACEOF
+#define DEFAULT_RSH 1
+_ACEOF
+
 fi
 
 

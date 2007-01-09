@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.11 2005/12/11 06:19:58 garbled Exp $ */
+/* $Id: common.h,v 1.12 2007/01/09 20:14:37 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -109,6 +109,8 @@ void do_showcluster(int fanout);
 int parse_cluster(char **exclude);
 node_t *nodealloc(char *nodename);
 int test_node_connection(int rshport, int timeout, node_t *nodeptr);
+char **parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs);
+char *default_rcmd(char *rcmd_env);
 
 extern char **lumplist;
 extern char **rungroup;
@@ -119,3 +121,40 @@ extern node_t *nodelink;
 
 extern int debug;
 extern char *progname;
+
+#if defined(DEFAULT_RSH)
+#ifndef RCMD_DEFAULT
+#define RCMD_DEFAULT "rsh"
+#endif
+#ifndef RLOGIN_DEFAULT
+#define RLOGIN_DEFAULT "rsh"
+#endif
+#ifndef RCP_DEFAULT
+#define RCP_DEFAULT "rcp"
+#endif
+#ifndef RVT_DEFAULT
+#define RVT_DEFAULT "rvt"
+#endif
+#ifndef TEST_PORT
+#define TEST_PORT 514
+#endif
+#else /* use ssh */
+#ifndef RCMD_DEFAULT
+#define RCMD_DEFAULT "ssh"
+#endif
+#ifndef RLOGIN_DEFAULT
+#define RLOGIN_DEFAULT "ssh"
+#endif
+#ifndef RCP_DEFAULT
+#define RCP_DEFAULT "scp"
+#endif
+#ifndef RVT_DEFAULT
+#define RVT_DEFAULT "rvt"
+#endif
+#ifndef TEST_PORT
+#define TEST_PORT 22
+#endif
+
+
+
+#endif /* USE_SSH */

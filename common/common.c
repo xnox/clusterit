@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.22 2007/01/04 18:57:36 garbled Exp $ */
+/* $Id: common.c,v 1.23 2007/01/09 20:14:37 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,12 +42,82 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.22 2007/01/04 18:57:36 garbled Exp $");
+__RCSID("$Id: common.c,v 1.23 2007/01/09 20:14:37 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
 
 #ifdef CLUSTERS
+
+/*
+ * Return the default RCMD_CMD, based on the env var and dsh setup
+ */
+char *
+default_rcmd(char *rcmd_env)
+{
+	char *tmp;
+
+	if (strcmp(rcmd_env, "RCMD_CMD") == 0)
+		return(RCMD_DEFAULT);
+	if (strcmp(rcmd_env, "RLOGIN_CMD") == 0)
+		return(RLOGIN_DEFAULT);
+	if (strcmp(rcmd_env, "RCP_CMD") == 0)
+		return(RCP_DEFAULT);
+	if (strcmp(rcmd_env, "RVT_CMD") == 0)
+		return(RVT_DEFAULT);
+	return("rsh");
+}
+
+/* This routine parses the RCMD_CMD and RCMD_CMD_ARGS environment variables
+ * and tries to set things up properly for them.
+ */
+
+char **
+parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
+{
+	int i, j, a;
+	char *p, *tmp, **cmd;
+
+	tmp = getenv(args_env);
+	p = tmp;
+	a = 0;
+	if (tmp != NULL) {
+		while (*p != '\0') {
+			if (isspace(*p))
+				j++;
+			*p++;
+		}
+	}
+	tmp = getenv(rcmd_env);
+	p = tmp;
+	j = 3;
+	if (tmp != NULL) {
+		while (*p != '\0') {
+			if (isspace(*p))
+				j++;
+			*p++;
+		}
+		cmd = malloc(sizeof(char *) * (j+1+a));
+		i = 0;
+		while (tmp != NULL)
+			cmd[i++] = strdup(strsep(&tmp, " "));
+		cmd[i] = (char *)0;
+		*nrofargs = j+a;
+	} else {
+		cmd = malloc(sizeof(char *) * (j+1+a));
+		cmd[0] = default_rcmd(rcmd_env);
+		cmd[1] = (char *)0;
+		i = 1;
+		*nrofargs = j+a;
+	}
+	tmp = getenv(args_env);
+	while (tmp != NULL)
+		cmd[i++] = strdup(strsep(&tmp, " "));
+	cmd[i] = (char *)0;
+
+	return(cmd);
+}
+
 /*
  * This routine just rips open the various arrays and prints out information
  * about what the command would have done, and the topology of your cluster.

@@ -14,6 +14,10 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
+AC_ARG_ENABLE(default-rsh,
+[ --enable-default-rsh		Use rsh as default rcmd ],
+[AC_DEFINE([DEFAULT_RSH], [1], [Define if rsh should be default.])])
+
 AC_CHECK_LIB([util], [openpty], [AC_DEFINE(HAVE_OPENPTY)
 	ADDLIBS="$ADDLIBS -lutil"])
 AC_CHECK_LIB([util], [login_tty], [AC_DEFINE(HAVE_LOGIN_TTY)
