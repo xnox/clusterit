@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.21 2007/01/09 22:00:15 garbled Exp $ */
+/* $Id: rseq.c,v 1.22 2007/01/10 00:07:27 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -35,6 +35,7 @@
 #include <sys/wait.h>
 #include <poll.h>
 #include <signal.h>
+#include <libgen.h>
 
 #include "../common/common.h"
 
@@ -42,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.21 2007/01/09 22:00:15 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.22 2007/01/10 00:07:27 garbled Exp $");
 #endif
 
 /* externs */
@@ -101,13 +102,8 @@ int main(int argc, char **argv)
     if (exclude == NULL)
 	bailout();
 
-    progname = p = q = strdup(argv[0]);
-    while (progname != NULL) {
-	q = progname;
-	progname = (char *)strsep(&p, "/");
-    }
-    progname = q;
-
+    progname = strdup(basename(argv[0]));
+    
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?adeiqtg:l:o:p:w:x:")) != -1)
 #else
@@ -200,9 +196,10 @@ int main(int argc, char **argv)
 	    break;
 	case '?':		/* you blew it */
 	    (void)fprintf(stderr,
-	     	  "usage: %s [-aeiqv] [-g rungroup1,...,rungroupN] "
-	          "[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
-       		  "[command ...]\n", progname);
+		"usage: %s [-aeiqtv] [-p portnum] [-o timeout] "
+		"[-g rungroup1,...,rungroupN]\n"
+		"\t[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
+		"[command ...]\n", progname);
 	    exit(EXIT_FAILURE);
 	    break;
 	default:
