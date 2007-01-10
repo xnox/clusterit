@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.13 2007/01/09 21:28:33 garbled Exp $ */
+/* $Id: common.h,v 1.14 2007/01/10 20:36:10 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -113,6 +113,8 @@ char **parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs);
 char *default_rcmd(char *rcmd_env);
 int get_rshport(int testflag, int rshport, char *rcmd_env);
 char *build_rshstring(char **rsh, int nrofargs);
+int parse_gopt(char *oa);
+char **parse_xopt(char *oa);
 
 extern char **lumplist;
 extern char **rungroup;

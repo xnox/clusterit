@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.22 2007/01/10 00:07:27 garbled Exp $ */
+/* $Id: rseq.c,v 1.23 2007/01/10 20:36:11 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.22 2007/01/10 00:07:27 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.23 2007/01/10 20:36:11 garbled Exp $");
 #endif
 
 /* externs */
@@ -77,8 +77,8 @@ int main(int argc, char **argv)
     extern char *version;
 
     int someflag, ch, i, allflag, showflag;
-    char *p, *group, *nodename, *username, *q;
-    char **exclude, **grouptemp;
+    char *p, *group, *nodename, *username;
+    char **exclude;
 
     someflag = 0;
     seqnumber = -1;
@@ -94,12 +94,10 @@ int main(int argc, char **argv)
     username = NULL;
     nodename = NULL;
     group = NULL;
+    exclude = NULL;
 
     rungroup = calloc(GROUP_MALLOC, sizeof(char **));
     if (rungroup == NULL)
-	bailout();
-    exclude = calloc(GROUP_MALLOC, sizeof(char **));
-    if (exclude == NULL)
 	bailout();
 
     progname = strdup(basename(argv[0]));
@@ -138,48 +136,12 @@ int main(int argc, char **argv)
 	    porttimeout = atoi(optarg);
 	    break;
 	case 'g':		/* pick a group to run on */
-	    i = 0;
 	    grouping = 1;
-	    for (p = optarg; p != NULL; ) {
-		group = (char *)strsep(&p, ",");
-		if (group != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			rungroup[i++] = strdup(group);
-		    } else {
-			grouptemp = realloc(rungroup,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    rungroup = grouptemp;
-			else
-			    bailout();
-			rungroup[i++] = strdup(group);
-		    }
-		}
-	    }
-	    nrofrungroups = i;
-	    group = NULL;
+	    nrofrungroups = parse_gopt(optarg);
 	    break;			
 	case 'x':		/* exclude nodes, w overrides this */
 	    exclusion = 1;
-	    i = 0;
-	    for (p = optarg; p != NULL; ) {
-		nodename = (char *)strsep(&p, ",");
-		if (nodename != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			exclude[i++] = strdup(nodename);
-		    } else {
-			grouptemp = realloc(exclude,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    exclude = grouptemp;
-			else
-			    bailout();
-			exclude[i++] = strdup(nodename);
-		    }
-		}
-	    }
+	    exclude = parse_xopt(optarg);
 	    break;
 	case 'w':		/* perform operation on these nodes */
 	    someflag = 1;
@@ -347,12 +309,8 @@ do_command(char **argv, int allrun, char *username)
     signaler.sa_flags = SA_RESTART;
     sigaction(SIGALRM, &signaler, NULL);
 
-    if (allrun)
+    if (allrun) {
 	test_and_set();
-
-    while (command != NULL) {
-	if (!allrun)
-	    test_and_set();
 	nodeptr = check_seq();
 	if (testflag && rshport > 0 && porttimeout > 0) {
 	    while (!test_node_connection(rshport, porttimeout, nodeptr)) {
@@ -361,6 +319,22 @@ do_command(char **argv, int allrun, char *username)
 		    nodeptr = check_seq();
 	    }
         }
+    }
+
+    while (command != NULL) {
+	if (!allrun) {
+	    test_and_set();
+	    nodeptr = check_seq();
+	    if (testflag && rshport > 0 && porttimeout > 0) {
+		    while (!test_node_connection(rshport, porttimeout,
+			    nodeptr)) {
+			    fprintf(stderr, "Skipping down node %s.\n",
+				nodeptr->name);
+			    test_and_set();
+			    nodeptr = check_seq();
+		    }
+	    }
+	}
 	i = seqnumber;
 	if (debug)
 	    (void)printf("On node: %s\n", nodeptr->name);

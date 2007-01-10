@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.24 2007/01/09 21:28:33 garbled Exp $ */
+/* $Id: common.c,v 1.25 2007/01/10 20:36:10 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,12 +42,75 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.24 2007/01/09 21:28:33 garbled Exp $");
+__RCSID("$Id: common.c,v 1.25 2007/01/10 20:36:10 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
 
 #ifdef CLUSTERS
+
+/* convenience: unified -g parsing */
+
+int
+parse_gopt(char *oa)
+{
+	int i;
+	char **grouptemp;
+	char *group, *p;
+	
+	i = 0;
+	for (p = oa; p != NULL; ) {
+		group = (char *)strsep(&p, ",");
+		if (group != NULL) {
+			if (((i+1) % GROUP_MALLOC) != 0) {
+				rungroup[i++] = strdup(group);
+			} else {
+				grouptemp = realloc(rungroup,
+				    i*sizeof(char **) +
+				    GROUP_MALLOC*sizeof(char *));
+				if (grouptemp != NULL)
+					rungroup = grouptemp;
+				else
+					bailout();
+				rungroup[i++] = strdup(group);
+			}
+		}
+	}
+	return(i);
+}
+
+/* convenience: unified -x parsing */
+
+char **
+parse_xopt(char *oa)
+{
+	int i;
+	char **grouptemp, **exclude;
+	char *nodename, *p;
+
+	exclude = calloc(GROUP_MALLOC, sizeof(char **));
+	if (exclude == NULL)
+		bailout();
+	i = 0;
+	for (p = oa; p != NULL; ) {
+		nodename = (char *)strsep(&p, ",");
+		if (nodename != NULL) {
+			if (((i+1) % GROUP_MALLOC) != 0) {
+				exclude[i++] = strdup(nodename);
+			} else {
+				grouptemp = realloc(exclude,
+				    i*sizeof(char **) +
+				    GROUP_MALLOC*sizeof(char *));
+				if (grouptemp != NULL)
+					exclude = grouptemp;
+				else
+					bailout();
+				exclude[i++] = strdup(nodename);
+			}
+		}
+	}
+	return(exclude);
+}
 
 /* convenience:  Set the rshport based on RCMD_CMD */
 int
@@ -55,6 +118,8 @@ get_rshport(int testflag, int rshport, char *rcmd_env)
 {
 	int port;
 
+	port = TEST_PORT;
+	
 	/* we need to find or guess the port number */
 	if (testflag && rshport == 0) {
 		if (!getenv(rcmd_env))
@@ -106,8 +171,6 @@ build_rshstring(char **rsh, int nrofargs)
 char *
 default_rcmd(char *rcmd_env)
 {
-	char *tmp;
-
 	if (strcmp(rcmd_env, "RCMD_CMD") == 0)
 		return(RCMD_DEFAULT);
 	if (strcmp(rcmd_env, "RLOGIN_CMD") == 0)
@@ -134,7 +197,7 @@ parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
 	a = 0;
 	if (tmp != NULL) {
 		while (*p != '\0') {
-			if (isspace(*p))
+			if (isspace((unsigned char)*p))
 				j++;
 			*p++;
 		}
@@ -144,7 +207,7 @@ parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
 	j = 3;
 	if (tmp != NULL) {
 		while (*p != '\0') {
-			if (isspace(*p))
+			if (isspace((unsigned char)*p))
 				j++;
 			*p++;
 		}
@@ -301,7 +364,7 @@ parse_cluster(char **exclude)
 		/* kill trailing whitespace */
 		q = grouplist[g].name;
 		q += strlen(grouplist[g].name)-1;
-		while (isspace(*q))
+		while (isspace((unsigned char)*q))
 		    *q--;
 		*q++;
 		*q = '\0';
@@ -337,7 +400,7 @@ parse_cluster(char **exclude)
 		/* trim trailing whitespace */
 		q = lumplist[n];
 		q += strlen(lumplist[n])-1;
-		while (isspace(*q))
+		while (isspace((unsigned char)*q))
 			*q--;
 		*q++;
 		*q = '\0';
@@ -375,9 +438,11 @@ parse_cluster(char **exclude)
 		lumping = 0;
 	    if (exclusion || grouping) { /* this handles the -x,g option */
 		fail = 0;
-		for (j = 0; exclude[j] != NULL; j++)
-		    if (strcmp(p, exclude[j]) == 0)
-			fail = 1;
+		if (exclude != NULL) {
+			for (j = 0; exclude[j] != NULL; j++)
+				if (strcmp(p, exclude[j]) == 0)
+					fail = 1;
+		}
 		if (g >= 0) {
 		    gfail = 1;
 		    for (j = 0; (j < nrofrungroups && gfail == 1); j++) {

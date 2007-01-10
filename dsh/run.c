@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.17 2006/01/24 19:00:25 garbled Exp $ */
+/* $Id: run.c,v 1.18 2007/01/10 20:36:11 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -34,6 +34,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <poll.h>
+#include <signal.h>
+#include <libgen.h>
 
 #include "../common/common.h"
 
@@ -41,18 +43,20 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: run.c,v 1.17 2006/01/24 19:00:25 garbled Exp $");
+__RCSID("$Id: run.c,v 1.18 2007/01/10 20:36:11 garbled Exp $");
 #endif
 
 extern int errno;
 
 void do_command(char **argv, int allrun, char *username);
 node_t *check_rand(void);
+void sig_handler(int i);
 
 /* globals */
 
 int debug, exclusion, grouping;
 int errorflag, nrofrungroups;
+int testflag, rshport, porttimeout;
 char **rungroup;
 char **lumplist;
 char *progname;
@@ -72,8 +76,8 @@ main(int argc, char **argv)
     extern char *version;
 
     int someflag, ch, i, allflag, showflag;
-    char *p, *q, *group, *nodename, *username;
-    char **exclude, **grouptemp;
+    char *p, *group, *nodename, *username;
+    char **exclude;
     node_t *nodeptr;
 
     someflag = 0;
@@ -84,32 +88,28 @@ main(int argc, char **argv)
     allflag = 0;
     grouping = 0;
     nrofrungroups = 0;
+    testflag = 0;
+    rshport = 0;
+    porttimeout = 5; /* 5 seconds to port timeout */
     username = NULL;
     nodename = NULL;
     group = NULL;
     nodeptr = NULL;
     nodelink = NULL;
-
+    exclude = NULL;
+    
     rungroup = calloc(GROUP_MALLOC, sizeof(char **));
     if (rungroup == NULL)
 	bailout();
-    exclude = calloc(GROUP_MALLOC, sizeof(char **));
-    if (exclude == NULL)
-	bailout();
 
-    progname = p = q = strdup(argv[0]);
-    while (progname != NULL) {
-	q = progname;
-	progname = (char *)strsep(&p, "/");
-    }
-    progname = q;
+    progname = strdup(basename(argv[0]));
 
     srand48(getpid()); /* seed the random number generator */
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?adeiqg:l:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?adeiqtvg:l:o:p:w:x:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?adeiqg:l:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?adeiqtvg:l:o:p:w:x:")) != -1)
 #endif
 	switch (ch) {
 	case 'a':		/* set the allrun flag */
@@ -130,49 +130,22 @@ main(int argc, char **argv)
 	case 'q':		/* just show me some info and quit */
 	    showflag = 1;
 	    break;
+	case 't':           /* test the nodes before connecting */
+	    testflag = 1;
+	    break;
+	case 'p':           /* what is the rsh port number? */
+	    rshport = atoi(optarg);
+	    break;
+	case 'o':               /* set the test timeout in seconds */
+	    porttimeout = atoi(optarg);
+	    break;
 	case 'g':		/* pick a group to run on */
-	    i = 0;
 	    grouping = 1;
-	    for (p = optarg; p != NULL; ) {
-		group = (char *)strsep(&p, ",");
-		if (group != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			rungroup[i++] = strdup(group);
-		    } else {
-			grouptemp = realloc(rungroup,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    rungroup = grouptemp;
-			else
-			    bailout();
-			rungroup[i++] = strdup(group);
-		    }
-		}
-	    }
-	    nrofrungroups = i;
-	    group = NULL;
+	    nrofrungroups = parse_gopt(optarg);
 	    break;			
 	case 'x':		/* exclude nodes, w overrides this */
 	    exclusion = 1;
-	    i = 0;
-	    for (p = optarg; p != NULL; ) {
-		nodename = (char *)strsep(&p, ",");
-		if (nodename != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			exclude[i++] = strdup(nodename);
-		    } else {
-			grouptemp = realloc(exclude,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    exclude = grouptemp;
-			else
-			    bailout();
-			exclude[i++] = strdup(nodename);
-		    }
-		}
-	    }
+	    exclude = parse_xopt(optarg);
 	    break;
 	case 'w':		/* perform operation on these nodes */
 	    someflag = 1;
@@ -189,8 +162,9 @@ main(int argc, char **argv)
 	    break;
 	case '?':		/* you blew it */
 	    (void)fprintf(stderr,
-	        "usage: %s [-aeiqv] [-g rungroup1,...,rungroupN] "
-		"[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
+	        "usage: %s [-aeiqtv] [-p portnum] [-o timeout] "
+		"[-g rungroup1,...,rungroupN]\n"
+		"\t[-l username] [-x node1,...,nodeN] [-w node1,..,nodeN] "
 		"[command ...]\n", progname);
 	    exit(EXIT_FAILURE);
 	    break;
@@ -200,7 +174,15 @@ main(int argc, char **argv)
 
     if (username == NULL && getenv("RCMD_USER"))
 	username = strdup(getenv("RCMD_USER"));
+    if (!rshport && getenv("RCMD_PORT"))
+	rshport = atoi(getenv("RCMD_PORT"));
+    if (!testflag && getenv("RCMD_TEST"))
+	testflag = 1;
+    if (porttimeout == 5 && getenv("RCMD_TEST_TIMEOUT"))
+	porttimeout = atoi(getenv("RCMD_TEST_TIMEOUT"));
 
+    rshport = get_rshport(testflag, rshport, "RCMD_CMD");
+    
     if (!someflag)
 	parse_cluster(exclude);
 
@@ -240,10 +222,11 @@ check_rand(void)
 void
 do_command(char **argv, int allrun, char *username)
 {
+    struct sigaction signaler;
     FILE *fd, *fda, *in;
     char buf[MAXBUF], cbuf[MAXBUF], pipebuf[2048];
     int status, i, piping, pollret, nrofargs, arg;
-    char *p, *command, *rsh, *cd, **q, *rshargs, **cmd;
+    char *p, *command, **rsh, *cd, **q, *rshstring, **cmd;
     node_t *nodeptr;
     size_t maxnodelen;
     struct pollfd fds[2];
@@ -252,7 +235,6 @@ do_command(char **argv, int allrun, char *username)
     piping = 0;
     in = NULL;
     maxnodelen = 0;
-    rshargs = NULL;
 
     for (nodeptr = nodelink; nodeptr != NULL; nodeptr = nodeptr->next)
 	if (strlen(nodeptr->name) > maxnodelen)
@@ -286,32 +268,35 @@ do_command(char **argv, int allrun, char *username)
 	    if (strcmp(command,"\n") == 0)
 		command = NULL;
     }
-    if (allrun)
+    if (allrun) {
 	nodeptr = check_rand();
-
-    /* get the rsh data */
-    rsh = getenv("RCMD_CMD");
-    if (rsh == NULL)
-	rsh = strdup("rsh");
-    if (rsh == NULL)
-	bailout();
-    if (getenv("RCMD_CMD_ARGS") != NULL)
-	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
-    nrofargs = 3;
-    if (rshargs != NULL) {
-	p = rshargs;
-	nrofargs++;
-	while (*p != '\0') {
-	    if (isspace(*p))
-		nrofargs++;
-	    *p++;
-	}
+	if (testflag && rshport > 0 && porttimeout > 0) {
+	    while (!test_node_connection(rshport, porttimeout, nodeptr)) {
+		    fprintf(stderr, "Skipping down node %s.\n", nodeptr->name);
+		    nodeptr = check_rand();
+	    }
+        }
     }
 
+    rsh = parse_rcmd("RCMD_CMD", "RCMD_CMD_ARGS", &nrofargs);
+    rshstring = build_rshstring(rsh, nrofargs);
+    signaler.sa_handler = sig_handler;
+    signaler.sa_flags = SA_RESTART;
+    sigaction(SIGALRM, &signaler, NULL);
+    
     /* begin the processing loop */
     while (command != NULL) {
-	if (!allrun)
-	    nodeptr = check_rand();
+	if (!allrun) {
+		nodeptr = check_rand();
+		if (testflag && rshport > 0 && porttimeout > 0) {
+			while (!test_node_connection(rshport, porttimeout,
+				nodeptr)) {
+				fprintf(stderr, "Skipping down node %s.\n",
+				    nodeptr->name);
+				nodeptr = check_rand();
+			}
+		}
+	}
 	if (debug)
 	    printf("Working node: %s\n", nodeptr->name);
 	/* we set up pipes for each node, to prepare
@@ -342,17 +327,17 @@ do_command(char **argv, int allrun, char *username)
 	    else
 		(void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 	    if (debug)
-		(void)printf("%s %s %s %s\n", rsh,
-			     (rshargs? rshargs:""), buf, command);
+		(void)printf("%s %s %s\n", rshstring, buf, command);
 	    cmd = calloc(nrofargs+1, sizeof(char *));
 	    arg = 0;
-	    cmd[arg++] = rsh;
-	    while (rshargs != NULL)
-		cmd[arg++] = strdup(strsep(&rshargs, " "));
+	    while (rsh[arg] != NULL) {
+		    cmd[arg] = rsh[arg];
+		    arg++;
+	    }
 	    cmd[arg++] = buf;
 	    cmd[arg++] = command;
 	    cmd[arg] = (char *)0;
-	    execvp(rsh, cmd);
+	    execvp(rsh[0], cmd);
 	    bailout();
 	} /* end switch */
 	/* now close off the useless stuff, and read the goodies */
@@ -424,5 +409,17 @@ do_command(char **argv, int allrun, char *username)
     if (piping) {  /* I learned this the hard way */
 	fflush(in);
 	fclose(in);
+    }
+}
+
+void
+sig_handler(int i)
+{
+    switch (i) {
+    case SIGALRM:
+	break;
+    default:
+	bailout();
+	break;
     }
 }
