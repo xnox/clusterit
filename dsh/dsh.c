@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.31 2007/01/10 20:36:11 garbled Exp $ */
+/* $Id: dsh.c,v 1.32 2007/01/11 20:19:21 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.31 2007/01/10 20:36:11 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.32 2007/01/11 20:19:21 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -219,11 +219,6 @@ main(int argc, char *argv[])
     do_command(argv, fanout, username);
     return(EXIT_SUCCESS);
 }
-
-/* IDEA:
-  tar cfp - $myscript | ssh somehost 'mkdir /tmp/foo.$$; cd /tmp/foo.$$; tar xfp -; ./'$myscript'; cd /tmp; rm -rf /tmp/foo.$$'
-
-*/
 
 /* 
  * Do the actual dirty work of the program, now that the arguments

@@ -1,4 +1,4 @@
-.\"	$Id: pcp.1,v 1.16 2007/01/10 20:36:11 garbled Exp $
+.\"	$Id: pcp.1,v 1.17 2007/01/11 20:19:21 garbled Exp $
 .\"
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
@@ -32,16 +32,18 @@
 .\" SUCH DAMAGE.
 .\"
 .\" The following requests are required for all man pages.
-.Dd January 4, 2007
+.Dd January 11, 2007
 .Dt PCP 1
 .Sh NAME
 .Nm pcp
 .Nd copy a file to a cluster of machines
 .Sh SYNOPSIS
 .Nm
-.Op Fl ceprv
+.Op Fl ceprtv
 .Op Fl f Ar fanout
 .Op Fl g Ar rungroup1,...,rungroupN
+.Op Fl o Ar porttimeout
+.Op Fl n Ar portnum
 .Op Fl w Ar node1,...,nodeN
 .Op Fl x Ar node1,...,nodeN
 .Ar source_file1
@@ -111,6 +113,39 @@ finished, it would execute the command on the last 16 nodes.  The
 fanout size defaults to 64.  This option overrides the
 .Ev FANOUT
 environment variable.
+.It Fl o
+The
+.Fl o
+option is used to set the timeout in seconds to be used when testing remote
+connections.  The default is five seconds.
+.It Fl n
+The
+.Fl n
+option can be used to set the port number that testing should occur on when
+testing remote connections.  The default behavior is to guess based on the
+remote command name.
+.It Fl t
+The
+.Fl t
+option causes
+.Nm
+to attempt a connection test to each node prior to attempting to copy the
+remote file.  If the test fails for any reason, the remote command will
+not be attempted.  This can be useful when clusterfiles have suffered bitrot
+and some nodes no longer exist, or might be down for maintenance.  The default
+timeout is 5 seconds.  The timeout can be changed with the
+.Fl o
+option.
+.Nm
+will attempt to guess the port number of the remote service based on your
+.Ev RCMD_CMD
+setting.  It knows about scp and rcp.  If
+.Nm
+fails to guess your port correctly, you may use the
+.Fl n
+argument to set the remote port number.  If the
+.Ev RCMD_TEST
+environment variable exists, the testing will automatically take place.
 .It Fl g
 If the
 .Fl g
@@ -169,6 +204,18 @@ sending out commands in parallel.  Defaults to 64.  This environment
 setting can be overridden by the
 .Fl f
 option.
+.It Ev RCMD_PORT
+The port number used to test remote connections.  See the
+.Fl n
+flag.
+.It Ev RCMD_TEST
+When set,
+.Nm
+will automatically test all hosts before launching the remote command. See the
+.Fl t
+option for more information.
+.It Ev RCMD_TEST_TIMEOUT
+The timeout in seconds to use when testing for remote connections.
 .El
 .\" .Sh FILES
 .Sh EXAMPLES

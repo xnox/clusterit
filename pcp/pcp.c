@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.19 2007/01/04 18:57:37 garbled Exp $ */
+/* $Id: pcp.c,v 1.20 2007/01/11 20:19:21 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -33,6 +33,8 @@
 
 #include <fcntl.h>
 #include <poll.h>
+#include <libgen.h>
+#include <signal.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/resource.h>
@@ -43,21 +45,23 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.19 2007/01/04 18:57:37 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.20 2007/01/11 20:19:21 garbled Exp $");
 #endif
 
 extern int errno;
 
 void do_copy(char **argv, int recurse, int preserve, char *username);
-void paralell_copy(char *rcp, char *args, char *username, char *source_file,
-		   char *destination_file);
-void serial_copy(char *rcp, char *args, char *username, char *source_file,
-		 char *destination_file);
+void paralell_copy(char *rcp, int nrof, char *username, char *source_file,
+    char *destination_file);
+void serial_copy(char *rcp, char *username, char *source_file,
+    char *destination_file);
+void sig_handler(int i);
 
 char **lumplist;
 char **rungroup;
 char *progname;
 int fanout, concurrent, quiet, debug, grouping, exclusion, nrofrungroups;
+int testflag, rshport, porttimeout;
 node_t *nodelink;
 group_t *grouplist;
 
@@ -75,8 +79,8 @@ main(int argc, char **argv)
     extern char *version;
 
     int someflag, ch, i, preserve, recurse;
-    char *p, *q, *nodename, *username, *group;
-    char **exclude, **grouptemp;
+    char *p, *nodename, *username, *group;
+    char **exclude;
     node_t *nodeptr;
 
     fanout = 0;
@@ -88,29 +92,25 @@ main(int argc, char **argv)
     exclusion = 0;
     grouping = 0;
     nrofrungroups = 0;
+    testflag = 0;
+    rshport = 0;
+    porttimeout = 5; /* 5 seconds to port timeout */
     username = NULL;
     group = NULL;
     nodeptr = NULL;
     nodelink = NULL;
+    exclude = NULL;
 
     rungroup = calloc(GROUP_MALLOC, sizeof(char **));
     if (rungroup == NULL)
 	bailout();
-    exclude = calloc(GROUP_MALLOC, sizeof(char **));
-    if (exclude == NULL)
-	bailout();
 
-    progname = p = q = strdup(argv[0]);
-    while (progname != NULL) {
-	q = progname;
-	progname = (char *)strsep(&p, "/");
-    }
-    progname = q;
+    progname = strdup(basename(argv[0]));
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?cdeprf:g:l:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?cdeprtvf:g:l:n:o:w:x:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?cdeprf:g:l:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?cdeprtvf:g:l:n:o:w:x:")) != -1)
 #endif
 	switch (ch) {
 	case 'c':		/* set concurrent mode */
@@ -128,6 +128,15 @@ main(int argc, char **argv)
 	case 'r':		/* recursive directory operations */
 	    recurse = 1;
 	    break;
+	case 't':           /* test the nodes before connecting */
+	    testflag = 1;
+	    break;
+	case 'n':           /* what is the rsh port number? */
+	    rshport = atoi(optarg);
+	    break;
+	case 'o':               /* set the test timeout in seconds */
+	    porttimeout = atoi(optarg);
+	    break;
 	case 'l':               /* invoke me as some other user */
 	    username = strdup(optarg);
 	    break;
@@ -135,48 +144,12 @@ main(int argc, char **argv)
 	    fanout = atoi(optarg);
 	    break;
 	case 'g':		/* pick a group to run on */
-	    i = 0;
 	    grouping = 1;
-	    for (p = optarg; p != NULL; ) {
-		group = (char *)strsep(&p, ",");
-		if (group != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			rungroup[i++] = strdup(group);
-		    } else {
-			grouptemp = realloc(rungroup,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    rungroup = grouptemp;
-			else
-			    bailout();
-			rungroup[i++] = strdup(group);
-		    }
-		}
-	    }
-	    nrofrungroups = i;
-	    group = NULL;
+	    nrofrungroups = parse_gopt(optarg);
 	    break;
 	case 'x':		/* exclude nodes, w overrides this */
 	    exclusion = 1;
-	    i = 0;
-	    for (p = optarg; p != NULL; ) {
-		nodename = (char *)strsep(&p, ",");
-		if (nodename != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			exclude[i++] = strdup(nodename);
-		    } else {
-			grouptemp = realloc(exclude,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    exclude = grouptemp;
-			else
-			    bailout();
-			exclude[i++] = strdup(nodename);
-		    }
-		}
-	    }
+	    exclude = parse_xopt(optarg);
 	    break;
 	case 'w':		/* perform operation on these nodes */
 	    someflag = 1;
@@ -203,16 +176,21 @@ main(int argc, char **argv)
 	default:
 	    break;
 	}
-    if (fanout == 0) {
-	if (getenv("FANOUT"))
+    if (fanout == 0 && getenv("FANOUT"))
 	    fanout = atoi(getenv("FANOUT"));
-	else
+    else
 	    fanout = DEFAULT_FANOUT;
-    }
-    if (username == NULL)
-	if (getenv("RCP_USER"))
+    if (username == NULL && getenv("RCP_USER"))
 	    username = strdup(getenv("RCP_USER"));
+    if (!rshport && getenv("RCP_PORT"))
+	    rshport = atoi(getenv("RCP_PORT"));
+    if (!testflag && getenv("RCMD_TEST"))
+	    testflag = 1;
+    if (porttimeout == 5 && getenv("RCMD_TEST_TIMEOUT"))
+	    porttimeout = atoi(getenv("RCMD_TEST_TIMEOUT"));
 
+    rshport = get_rshport(testflag, rshport, "RCP_CMD");
+    
     if (!someflag)
 	parse_cluster(exclude);
     
@@ -229,8 +207,8 @@ main(int argc, char **argv)
 
 void do_copy(char **argv, int recurse, int preserve, char *username)
 {
-    int numsource, j, arglen;
-    char *args, *source_file, *destination_file, *tempstore, *rcp;
+    int numsource, j, nrofargs;
+    char *source_file, *destination_file, *tempstore, **rcp, *rcpstring;
     node_t *nodeptr;
 
     if (debug) {
@@ -273,29 +251,22 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
     if (debug)
 	printf("\nDo Copy: %s %s\n", source_file, destination_file);
 
-    rcp = getenv("RCP_CMD");
-    if (rcp == NULL)
-	rcp = strdup("rcp");
-    if (rcp == NULL)
-	bailout();
-    if (getenv("RCP_CMD_ARGS") != NULL) {
-	arglen = strlen(getenv("RCP_CMD_ARGS")) + 10;
-	args = (char *)malloc(sizeof(char) * arglen);
-	(void)snprintf(args, arglen, " %s", getenv("RCP_CMD_ARGS"));
-    } else {
-	args = (char *)malloc(sizeof(char) * 10);	
-	(void)snprintf(args, 10, " ");
+    rcp = parse_rcmd("RCP_CMD", "RCP_CMD_ARGS", &nrofargs);
+    rcpstring = build_rshstring(rcp, nrofargs);
+    if (recurse) {
+	    strcat(rcpstring, " -r ");
+	    nrofargs++;
     }
-    /* adjust the 10 above if you add more below */
-    if (recurse)
-	strcat(args, "-r ");
-    if (preserve)
-	strcat(args, "-p ");
-
+    if (preserve) {
+	    strcat(rcpstring, " -p ");
+	    nrofargs++;
+    }
+        
     if (concurrent)
-	paralell_copy(rcp, args, username, source_file, destination_file);
+	    paralell_copy(rcpstring, nrofargs + numsource, username,
+		source_file, destination_file);
     else
-	serial_copy(rcp, args, username, source_file, destination_file);
+	    serial_copy(rcpstring, username, source_file, destination_file);
 }
 
 /* Copy files in paralell.  This is preferred with smaller files, because
@@ -304,15 +275,16 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
    good packets, and actually slow it down, thus serial is faster. */
 
 void
-paralell_copy(char *rcp, char *args, char *username, char *source_file,
+paralell_copy(char *rcp, int nrof, char *username, char *source_file,
 	      char *destination_file)
 {
+    struct sigaction signaler;
     int i, j, n, g, status, pollret;
-    char buf[MAXBUF], pipebuf[2048], *cd, *p;
+    char *rcpstring, pipebuf[2048], *cd;
     FILE *fd, *fda, *in;
-    char *argz[51], **aps;
+    char **argz, **aps;
     node_t *nodeptr, *nodehold;
-    size_t maxnodelen;
+    size_t maxnodelen, rcplen;
     pid_t currentchild;
     struct pollfd fds[2];
 
@@ -320,12 +292,30 @@ paralell_copy(char *rcp, char *args, char *username, char *source_file,
     in = NULL;
     cd = pipebuf;
 
+    signaler.sa_handler = sig_handler;
+    signaler.sa_flags = SA_RESTART;
+    sigaction(SIGALRM, &signaler, NULL);
+
+    argz = calloc(nrof + 3, sizeof(char *));
+    if (argz == NULL)
+	    bailout();
+    
     for (nodeptr = nodelink; nodeptr; nodeptr = nodeptr->next) {
 	if (strlen(nodeptr->name) > maxnodelen)
 	    maxnodelen = strlen(nodeptr->name);
 	j++;
     }
 
+    if (username)
+	    rcplen = strlen(username) + 128;
+    else
+	    rcplen = 128;
+    rcplen += strlen(source_file) + strlen(rcp) + maxnodelen +
+	strlen(destination_file);
+    rcpstring = calloc(rcplen, sizeof(char));
+    if (rcpstring == NULL)
+	    bailout();
+    
     i = j;
     j = i / fanout;
     if (i % fanout)
@@ -356,14 +346,14 @@ paralell_copy(char *rcp, char *args, char *username, char *source_file,
 	    if (fcntl(nodeptr->err.fds[1], F_SETFD, 1) == -1)
 		bailout();
 	    if (username != NULL)
-		(void)snprintf(buf, MAXBUF, "%s %s %s %s@%s:%s", rcp, args,
+		(void)snprintf(rcpstring, rcplen, "%s %s %s@%s:%s", rcp,
 			       source_file, username, nodeptr->name,
 			       destination_file);
 	    else
-		(void)snprintf(buf, MAXBUF, "%s %s %s %s:%s", rcp, args,
+		(void)snprintf(rcpstring, rcplen, "%s %s %s:%s", rcp,
 			       source_file, nodeptr->name, destination_file);
 	    if (debug)
-		printf("Running command: %s\n", buf);
+		printf("Running command: %s\n", rcpstring);
 	    nodeptr->childpid = fork();
 	    switch (nodeptr->childpid) {
 	    case -1:
@@ -378,11 +368,14 @@ paralell_copy(char *rcp, char *args, char *username, char *source_file,
 		    bailout();
 		if (close(nodeptr->err.fds[0]) != 0)
 		    bailout();
-		p = strdup(buf);
-		for (aps = argz; (*aps = strsep(&p, " ")) != NULL;)
+		if (testflag && rshport > 0 && porttimeout > 0)
+			if (!test_node_connection(rshport, porttimeout,
+						  nodeptr))
+			    exit(EXIT_SUCCESS);
+		for (aps = argz; (*aps = strsep(&rcpstring, " ")) != NULL;)
 		    if (**aps != '\0')
 			++aps;
-		execvp(rcp, argz);
+		execvp(argz[0], argz);
 		bailout();
 	    default:
 		break;
@@ -456,23 +449,60 @@ paralell_copy(char *rcp, char *args, char *username, char *source_file,
 /* serial copy */
 
 void
-serial_copy(char *rcp, char *args, char *username, char *source_file,
+serial_copy(char *rcp, char *username, char *source_file,
 	    char *destination_file)
 {
-    node_t *nodeptr;
-    char buf[MAXBUF], *command;
+	struct sigaction signaler;
+	node_t *nodeptr;
+	char *command;
+	size_t maxnodelen, rcplen;
 
-    for (nodeptr=nodelink; nodeptr != NULL; nodeptr = nodeptr->next) {
-	if (username != NULL)
-	    (void)snprintf(buf, MAXBUF, "%s %s %s %s@%s:%s", rcp, args,
-			   source_file, username, nodeptr->name,
-			   destination_file);
+	maxnodelen = 0;
+
+	signaler.sa_handler = sig_handler;
+	signaler.sa_flags = SA_RESTART;
+	sigaction(SIGALRM, &signaler, NULL);
+
+	for (nodeptr = nodelink; nodeptr; nodeptr = nodeptr->next) {
+		if (strlen(nodeptr->name) > maxnodelen)
+			maxnodelen = strlen(nodeptr->name);
+	}
+	if (username)
+		rcplen = strlen(username) + 128;
 	else
-	    (void)snprintf(buf, MAXBUF, "%s %s %s %s:%s", rcp, args,
-			   source_file, nodeptr->name, destination_file);
-	command = strdup(buf);
-	if (debug)
-	    printf("Running command: %s\n", buf);
-	system(command);
+		rcplen = 128;
+	rcplen += strlen(source_file) + strlen(rcp) + maxnodelen +
+	    strlen(destination_file);
+	command = calloc(rcplen, sizeof(char));
+	if (command == NULL)
+		bailout();
+    
+	for (nodeptr=nodelink; nodeptr != NULL; nodeptr = nodeptr->next) {
+		if (testflag && rshport > 0 && porttimeout > 0)
+			if (!test_node_connection(rshport, porttimeout,
+				nodeptr))
+			    continue;
+		if (username != NULL)
+			(void)snprintf(command, rcplen, "%s %s %s@%s:%s", rcp,
+			    source_file, username, nodeptr->name,
+			    destination_file);
+		else
+			(void)snprintf(command, rcplen, "%s %s %s:%s", rcp,
+			    source_file, nodeptr->name, destination_file);
+		if (debug)
+			printf("Running command: %s\n", command);
+		system(command);
+	}
+}
+
+void
+sig_handler(int i)
+{
+    switch (i) {
+    case SIGALRM:
+	break;
+    default:
+	bailout();
+	break;
     }
 }
