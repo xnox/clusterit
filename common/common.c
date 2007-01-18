@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.27 2007/01/18 18:02:30 garbled Exp $ */
+/* $Id: common.c,v 1.28 2007/01/18 18:45:46 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.27 2007/01/18 18:02:30 garbled Exp $");
+__RCSID("$Id: common.c,v 1.28 2007/01/18 18:45:46 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
@@ -355,6 +355,8 @@ parse_cluster(char **exclude)
 	    if (strstr(p, "GROUP") != NULL) {
 		ging = 1;
 		strsep(&p, ":");
+		while (isspace((unsigned char)*p))
+		    *p++;
 		if (((g+1) % GROUP_MALLOC) != 0) {
 		    grouplist[g].name = strdup(p);
 		    grouplist[g].numlump = 0;
@@ -393,6 +395,8 @@ parse_cluster(char **exclude)
 	    if (strstr(p, "LUMP") != NULL) {
 		lumping = 1;
 		strsep(&p, ":");
+		while (isspace((unsigned char)*p))
+		    *p++;
 		if (((n+1) % GROUP_MALLOC) != 0) {
 		    lumplist[n] = strdup(p);
 		} else {
@@ -437,14 +441,17 @@ parse_cluster(char **exclude)
     i = 0;
     while ((nodename = fgets(buf, sizeof(buf), fd))) {
 	p = (char *)strsep(&nodename, "\n");
+	while (isspace((unsigned char)*p))
+		*p++;
 	if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
-	    /* printf("g = %d p = %s\n", g, p); */
+	    /*printf("g = %d gfail = %d p = %s\n", g, gfail, p);*/
 	    if (strstr(p, "LUMP") != NULL)
 		lumping = 1;
 	    if (lumping && (strstr(p, "GROUP") != NULL))
 		lumping = 0;
 	    if (exclusion || grouping) { /* this handles the -x,g option */
 		fail = 0;
+		gfail = 0;
 		if (exclude != NULL) {
 			for (j = 0; exclude[j] != NULL; j++)
 				if (strcmp(p, exclude[j]) == 0)
