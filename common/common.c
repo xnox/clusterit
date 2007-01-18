@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.26 2007/01/11 20:19:21 garbled Exp $ */
+/* $Id: common.c,v 1.27 2007/01/18 18:02:30 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.26 2007/01/11 20:19:21 garbled Exp $");
+__RCSID("$Id: common.c,v 1.27 2007/01/18 18:02:30 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
@@ -140,7 +140,7 @@ get_rshport(int testflag, int rshport, char *rcmd_env)
 			    "could not be guessed.  Please set the RCMD_PORT "
 			    "environment variable to the portnumber of the "
 			    "protocol you are using, or supply it with the "
-			    "-p (or -n for pcp) argument.");
+			    "-p (or -n for pcp) argument.\n");
 			exit(EXIT_FAILURE);
 		}
 		if (debug)
