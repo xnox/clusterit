@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.11 2005/12/13 05:09:06 garbled Exp $ */
+/* $Id: dvt.c,v 1.12 2007/01/18 17:11:14 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -46,6 +46,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <libgen.h>
 
 #include "Down.xbm"
 #include "Up.xbm"
@@ -56,19 +57,15 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.11 2005/12/13 05:09:06 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.12 2007/01/18 17:11:14 garbled Exp $");
 #endif /* not lint */
 
-#ifndef __P
-#define __P(protos) protos
-#endif
-
-void do_command __P((int, char *));
-void sig_handler __P((int));
-void setup_xlib __P((void));
-void getGC __P((GC *));
-void load_font __P((XFontStruct **));
-int x_error_handler __P((Display *, XErrorEvent *));
+void do_command(int fanout, char *username);
+void sig_handler(int i);
+void setup_xlib(void);
+void getGC(GC *ingc);
+void load_font(XFontStruct **infont_info);
+int x_error_handler(Display *dpy, XErrorEvent *evp);
 
 /* globals */
 int debug, errorflag, gotsigint, gotsigterm, exclusion, grouping;
@@ -107,11 +104,10 @@ main(int argc, char **argv)
     extern int	optind;
     extern char *version;
 
-    int someflag, ch, i, fanout, showflag, fanflag;
-    char *p, *q, *group, *nodename, *username;
-    char **exclude, **grouptemp;
-    struct rlimit	limit;
-    node_t *nodeptr;
+    int someflag, ch, fanout, showflag, fanflag;
+    char *p, *nodename, *username;
+    char **exclude;
+    struct rlimit limit;
 
     someflag = showflag = fanflag = 0;
     exclusion = debug = errorflag = 0;
@@ -120,23 +116,14 @@ main(int argc, char **argv)
     fanout = DEFAULT_FANOUT;
     nodename = NULL;
     username = NULL;
-    group = NULL;
-    nodeptr = NULL;
     nodelink = NULL;
+    exclude = NULL;
 
     rungroup = calloc(GROUP_MALLOC, sizeof(char **));
     if (rungroup == NULL)
 	bailout();
-    exclude = calloc(GROUP_MALLOC, sizeof(char **));
-    if (exclude == NULL)
-	bailout();
 
-    progname = p = q = strdup(argv[0]);
-    while (progname != NULL) {
-	q = progname;
-	progname = (char *)strsep(&p, "/");
-    }
-    progname = q;
+    progname = strdup(basename(argv[0]));
 
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?deiqf:g:l:vw:x:")) != -1)
@@ -164,48 +151,12 @@ main(int argc, char **argv)
 	    fanflag = 1;
 	    break;
 	case 'g':		/* pick a group to run on */
-	    i = 0;
 	    grouping = 1;
-	    for (p = optarg; p != NULL; ) {
-		group = (char *)strsep(&p, ",");
-		if (group != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			rungroup[i++] = strdup(group);
-		    } else {
-			grouptemp = realloc(rungroup,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    rungroup = grouptemp;
-			else
-			    bailout();
-			rungroup[i++] = strdup(group);
-		    }
-		}
-	    }
-	    nrofrungroups = i;
-	    group = NULL;
+	    nrofrungroups = parse_gopt(optarg);
 	    break;			
 	case 'x':		/* exclude nodes, w overrides this */
 	    exclusion = 1;
-	    i = 0;
-	    for (p = optarg; p != NULL; ) {
-		nodename = (char *)strsep(&p, ",");
-		if (nodename != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			exclude[i++] = strdup(nodename);
-		    } else {
-			grouptemp = realloc(exclude,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    exclude = grouptemp;
-			else
-			    bailout();
-			exclude[i++] = strdup(nodename);
-		    }
-		}
-	    }
+	    exclude = parse_xopt(optarg);
 	    break;
 	case 'w':		/* perform operation on these nodes */
 	    someflag = 1;
@@ -426,7 +377,7 @@ do_command(int fanout, char *username)
     char pipebuf[2048], buf[MAXBUF];
     int count, status, i, j, g, l, piping, nrofargs, arg;
     size_t maxnodelen;
-    char *rsh, *cd, *rshargs, **cmd, *p;
+    char **rsh, *cd, *rshstring, **cmd;
     node_t *nodeptr, *nodehold;
     XEvent report;
     XComposeStatus compose;
@@ -440,7 +391,6 @@ do_command(int fanout, char *username)
     j = i = 0;
     piping = 0;
     in = NULL;
-    rshargs = NULL;
     cd = pipebuf;
     start_x = 2;
     cur_letter = 0;
@@ -491,24 +441,10 @@ do_command(int fanout, char *username)
     nodehold = nodeptr;
     if (gotsigterm || gotsigint)
 	exit(EXIT_FAILURE);
-    rsh = getenv("RVT_CMD");
-    if (rsh == NULL)
-	rsh = strdup("rvt");
-    if (rsh == NULL)
-	bailout();
-    if (getenv("RVT_CMD_ARGS") != NULL)
-	rshargs = strdup(getenv("RVT_CMD_ARGS"));
-    nrofargs = 2;
-    if (rshargs != NULL) {
-	p = rshargs;
-	nrofargs++;
-	while (*p != '\0') {
-	    if (isspace(*p))
-		nrofargs++;
-	    *p++;
-	}
-    }
 
+    rsh = parse_rcmd("RVT_CMD", "RVT_CMD_ARGS", &nrofargs);
+    rshstring = build_rshstring(rsh, nrofargs);
+    
     for (i=0; (i < fanout && nodeptr != NULL); i++) {
 	g++;
 	if (gotsigterm)
@@ -563,16 +499,16 @@ do_command(int fanout, char *username)
 	    else
 		(void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 	    if (debug)
-		(void)printf("%s %s %s\n", rsh,
-			     (rshargs? rshargs:""), buf);
+		(void)printf("%s %s\n", rshstring, buf);
 	    cmd = calloc(nrofargs+1, sizeof(char *));
 	    arg = 0;
-	    cmd[arg++] = rsh;
-	    while (rshargs != NULL)
-		cmd[arg++] = strdup(strsep(&rshargs, " "));
+	    while (rsh[arg] != NULL) {
+	       cmd[arg] = rsh[arg];
+	       arg++;
+	    }
 	    cmd[arg++] = buf;
 	    cmd[arg] = (char *)0;
-	    execvp(rsh, cmd);
+	    execvp(rsh[0], cmd);
 	    bailout();
 	    break;
 	default:
