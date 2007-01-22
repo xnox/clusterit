@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.20 2007/01/11 20:19:21 garbled Exp $ */
+/* $Id: pcp.c,v 1.21 2007/01/22 18:48:16 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.20 2007/01/11 20:19:21 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.21 2007/01/22 18:48:16 garbled Exp $");
 #endif
 
 extern int errno;
@@ -55,7 +55,6 @@ void paralell_copy(char *rcp, int nrof, char *username, char *source_file,
     char *destination_file);
 void serial_copy(char *rcp, char *username, char *source_file,
     char *destination_file);
-void sig_handler(int i);
 
 char **lumplist;
 char **rungroup;
@@ -64,6 +63,7 @@ int fanout, concurrent, quiet, debug, grouping, exclusion, nrofrungroups;
 int testflag, rshport, porttimeout;
 node_t *nodelink;
 group_t *grouplist;
+volatile sig_atomic_t alarmtime;
 
 /* 
  *  pcp is a cluster management tool based on the IBM tool of the
@@ -278,8 +278,7 @@ void
 paralell_copy(char *rcp, int nrof, char *username, char *source_file,
 	      char *destination_file)
 {
-    struct sigaction signaler;
-    int i, j, n, g, status, pollret;
+    int i, j, n, g, status, pollret, fdf;
     char *rcpstring, pipebuf[2048], *cd;
     FILE *fd, *fda, *in;
     char **argz, **aps;
@@ -291,10 +290,6 @@ paralell_copy(char *rcp, int nrof, char *username, char *source_file,
     j = i = maxnodelen = 0;
     in = NULL;
     cd = pipebuf;
-
-    signaler.sa_handler = sig_handler;
-    signaler.sa_flags = SA_RESTART;
-    sigaction(SIGALRM, &signaler, NULL);
 
     argz = calloc(nrof + 3, sizeof(char *));
     if (argz == NULL)
@@ -368,6 +363,12 @@ paralell_copy(char *rcp, int nrof, char *username, char *source_file,
 		    bailout();
 		if (close(nodeptr->err.fds[0]) != 0)
 		    bailout();
+		/* stdin & stderr non-blocking */
+		fdf = fcntl(nodeptr->out.fds[0],F_GETFL);
+		fcntl(nodeptr->out.fds[0], F_SETFL, fdf|O_NONBLOCK);
+		fdf = fcntl(nodeptr->err.fds[0],F_GETFL);
+		fcntl(nodeptr->err.fds[0], F_SETFL, fdf|O_NONBLOCK);
+		
 		if (testflag && rshport > 0 && porttimeout > 0)
 			if (!test_node_connection(rshport, porttimeout,
 						  nodeptr))
@@ -410,24 +411,22 @@ paralell_copy(char *rcp, int nrof, char *username, char *source_file,
 		if ((fds[0].revents&POLLIN) == POLLIN ||
 		    (fds[0].revents&POLLHUP) == POLLHUP ||
 		    (fds[0].revents&POLLPRI) == POLLPRI) {
-		    cd = fgets(pipebuf, sizeof(pipebuf), fda);
-		    if (cd != NULL && !quiet) {
-			(void)printf("%*s: %s",
-				     -maxnodelen, nodeptr->name, cd);
+		    while ((cd = fgets(pipebuf, sizeof(pipebuf), fda))) {
+			if (!quiet)
+			    (void)printf("%*s: %s", -maxnodelen,
+				nodeptr->name, cd);
 			gotdata++;
-		    } else if (cd != NULL && quiet)
-			gotdata++;
+		    }
 		}
 		if ((fds[1].revents&POLLIN) == POLLIN ||
 		    (fds[1].revents&POLLHUP) == POLLHUP ||
 		    (fds[1].revents&POLLPRI) == POLLPRI) {
-		    cd = fgets(pipebuf, sizeof(pipebuf), fd);
-		    if (cd != NULL && !quiet) {
-			(void)printf("%*s: %s",
-				     -maxnodelen, nodeptr->name, cd);
+		    while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
+			if (!quiet)
+				(void)printf("%*s: %s", -maxnodelen,
+				    nodeptr->name, cd);
 			gotdata++;
-		    } else if (cd != NULL && quiet)
-			gotdata++;
+		    }
 		}
 		if (!gotdata)
 		    if (((fds[0].revents&POLLHUP) == POLLHUP ||
@@ -452,16 +451,11 @@ void
 serial_copy(char *rcp, char *username, char *source_file,
 	    char *destination_file)
 {
-	struct sigaction signaler;
 	node_t *nodeptr;
 	char *command;
 	size_t maxnodelen, rcplen;
 
 	maxnodelen = 0;
-
-	signaler.sa_handler = sig_handler;
-	signaler.sa_flags = SA_RESTART;
-	sigaction(SIGALRM, &signaler, NULL);
 
 	for (nodeptr = nodelink; nodeptr; nodeptr = nodeptr->next) {
 		if (strlen(nodeptr->name) > maxnodelen)
@@ -493,16 +487,4 @@ serial_copy(char *rcp, char *username, char *source_file,
 			printf("Running command: %s\n", command);
 		system(command);
 	}
-}
-
-void
-sig_handler(int i)
-{
-    switch (i) {
-    case SIGALRM:
-	break;
-    default:
-	bailout();
-	break;
-    }
 }

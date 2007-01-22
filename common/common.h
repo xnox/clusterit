@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.14 2007/01/10 20:36:10 garbled Exp $ */
+/* $Id: common.h,v 1.15 2007/01/22 18:48:16 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <ctype.h>
+#include <signal.h>
 #ifdef HAVE_TERMIOS_H
 #include <termios.h>
 #endif /* HAVE_TERMIOS_H */
@@ -119,6 +120,7 @@ char **parse_xopt(char *oa);
 extern char **lumplist;
 extern char **rungroup;
 extern int exclusion, debug, grouping, nrofrungroups;
+extern volatile sig_atomic_t alarmtime;
 extern group_t *grouplist;
 extern node_t *nodelink;
 #endif /* CLUSTERS */

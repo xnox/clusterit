@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.23 2007/01/10 20:36:11 garbled Exp $ */
+/* $Id: rseq.c,v 1.24 2007/01/22 18:48:16 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -36,6 +36,7 @@
 #include <poll.h>
 #include <signal.h>
 #include <libgen.h>
+#include <fcntl.h>
 
 #include "../common/common.h"
 
@@ -43,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.23 2007/01/10 20:36:11 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.24 2007/01/22 18:48:16 garbled Exp $");
 #endif
 
 /* externs */
@@ -51,7 +52,6 @@ extern int errno;
 
 void do_command(char **argv, int allrun, char *username);
 node_t *check_seq(void);
-void sig_handler(int i);
 
 /* globals */
 
@@ -63,6 +63,7 @@ char **lumplist;
 node_t *nodelink;
 group_t *grouplist;
 char *progname;
+volatile sig_atomic_t alarmtime;
 
 /* 
  *  seq is a cluster management tool based upon the IBM tool dsh.
@@ -259,10 +260,9 @@ check_seq(void)
 void 
 do_command(char **argv, int allrun, char *username)
 {
-    struct sigaction signaler;
     FILE *fd, *fda, *in;
     char buf[MAXBUF], cbuf[MAXBUF], pipebuf[2048];
-    int status, piping, pollret, i, nrofargs, arg;
+    int status, piping, pollret, i, nrofargs, arg, fdf;
     size_t maxnodelen;
     char *p, *command, **rsh, *cd, **q, **cmd, *rshstring;
     node_t *nodeptr;
@@ -305,9 +305,6 @@ do_command(char **argv, int allrun, char *username)
 
     rsh = parse_rcmd("RCMD_CMD", "RCMD_CMD_ARGS", &nrofargs);
     rshstring = build_rshstring(rsh, nrofargs);
-    signaler.sa_handler = sig_handler;
-    signaler.sa_flags = SA_RESTART;
-    sigaction(SIGALRM, &signaler, NULL);
 
     if (allrun) {
 	test_and_set();
@@ -355,6 +352,12 @@ do_command(char **argv, int allrun, char *username)
 		bailout();
 	    if (close(nodeptr->err.fds[0]) != 0)
 		bailout();
+	    /* stdin & stderr non-blocking */
+	    fdf = fcntl(nodeptr->out.fds[0],F_GETFL);
+	    fcntl(nodeptr->out.fds[0], F_SETFL, fdf|O_NONBLOCK);
+	    fdf = fcntl(nodeptr->err.fds[0],F_GETFL);
+	    fcntl(nodeptr->err.fds[0], F_SETFL, fdf|O_NONBLOCK);
+	    
 	    if (username != NULL)
 		(void)snprintf(buf, MAXBUF, "%s@%s", username, nodeptr->name);
 	    else
@@ -397,23 +400,21 @@ do_command(char **argv, int allrun, char *username)
 	    if ((fds[0].revents&POLLIN) == POLLIN ||
 		(fds[0].revents&POLLHUP) == POLLHUP ||
 		(fds[0].revents&POLLPRI) == POLLPRI) {
-		cd = fgets(pipebuf, sizeof(pipebuf), fda);
-		if (cd != NULL) {
-		    (void)printf("%*s: %s",
-				 -maxnodelen, nodeptr->name, cd);
+		while ((cd = fgets(pipebuf, sizeof(pipebuf), fda))) {
+		    (void)printf("%*s: %s", -maxnodelen,
+			nodeptr->name, cd);
 		    gotdata++;
 		}
 	    }
 	    if ((fds[1].revents&POLLIN) == POLLIN ||
 		(fds[1].revents&POLLHUP) == POLLHUP ||
 		(fds[1].revents&POLLPRI) == POLLPRI) {
-		cd = fgets(pipebuf, sizeof(pipebuf), fd);
-		if (errorflag && cd != NULL) {
-		    (void)printf("%*s: %s",
-				 -maxnodelen, nodeptr->name, cd);
+		while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
+		    if (errorflag) 
+			(void)printf("%*s: %s", -maxnodelen,
+			    nodeptr->name, cd);
 		    gotdata++;
-		} else if (!errorflag && cd != NULL)
-		    gotdata++;
+		}
 	    }
 	    if (!gotdata)
 		if (((fds[0].revents&POLLHUP) == POLLHUP ||
@@ -442,17 +443,5 @@ do_command(char **argv, int allrun, char *username)
 	/* I learned this the hard way */
 	fflush(in);
 	fclose(in);
-    }
-}
-
-void
-sig_handler(int i)
-{
-    switch (i) {
-    case SIGALRM:
-	break;
-    default:
-	bailout();
-	break;
     }
 }

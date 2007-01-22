@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.33 2007/01/18 18:02:30 garbled Exp $ */
+/* $Id: dsh.c,v 1.34 2007/01/22 18:48:16 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -48,14 +48,14 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.33 2007/01/18 18:02:30 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.34 2007/01/22 18:48:16 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
 void sig_handler(int i);
 
 /* globals */
-int debug, errorflag, gotsigint, gotsigterm, exclusion, grouping;
+int debug, errorflag, exclusion, grouping;
 int testflag, rshport, porttimeout, script;
 node_t *nodelink;
 group_t *grouplist;
@@ -65,6 +65,7 @@ char **lumplist;
 pid_t currentchild;
 char *progname;
 char *scriptname;
+volatile sig_atomic_t alarmtime, gotsigterm;
 
 /* 
  *  dsh is a cluster management tool based upon the IBM tool of the
@@ -89,7 +90,7 @@ main(int argc, char *argv[])
     exclusion = debug = errorflag = 0;
     testflag = rshport = nrofrungroups = 0;
     porttimeout = 5; /* 5 seconds to port timeout */
-    gotsigint = gotsigterm = grouping = 0;
+    gotsigterm = grouping = 0;
     fanout = DEFAULT_FANOUT;
     nodename = NULL;
     username = NULL;
@@ -298,7 +299,6 @@ do_command(char **argv, int fanout, char *username)
     signaler.sa_flags = SA_RESTART;
     sigaction(SIGTERM, &signaler, NULL);
     sigaction(SIGINT, &signaler, NULL);
-    sigaction(SIGALRM, &signaler, NULL);
 
     rsh = parse_rcmd("RCMD_CMD", "RCMD_CMD_ARGS", &nrofargs);
     rshstring = build_rshstring(rsh, nrofargs);
@@ -308,7 +308,7 @@ do_command(char **argv, int fanout, char *username)
     nodeptr = nodelink;
     while (command != NULL) {
 	for (n=0; n <= j; n++) {
-	    if (gotsigterm || gotsigint)
+	    if (gotsigterm)
 		exit(EXIT_FAILURE);
 	    nodehold = nodeptr;
 	    for (i=0; (i < fanout && nodeptr != NULL); i++) {
@@ -467,7 +467,7 @@ do_command(char **argv, int fanout, char *username)
 		    if ((fds[1].revents&POLLIN) == POLLIN ||
 			(fds[0].revents&POLLHUP) == POLLHUP ||
 			(fds[1].revents&POLLPRI) == POLLPRI) {
-			while ((cd = fgets(pipebuf, sizeof(pipebuf), fda))) {
+			while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
 			    if (errorflag) 
 				(void)printf("%*s: %s", -maxnodelen,
 				    nodeptr->name, cd);
@@ -516,8 +516,6 @@ sig_handler(int i)
 	break;
     case SIGTERM:
 	gotsigterm = 1;
-	break;
-    case SIGALRM:
 	break;
     default:
 	bailout();
