@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.18 2006/01/24 19:00:25 garbled Exp $ */
+/* $Id: jsd.c,v 1.19 2007/01/23 17:56:31 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -40,6 +40,7 @@
 #include <syslog.h>
 #include <signal.h>
 #include <strings.h>
+#include <libgen.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -50,7 +51,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.18 2006/01/24 19:00:25 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.19 2007/01/23 17:56:31 garbled Exp $");
 #endif
 
 /* globals */
@@ -62,6 +63,7 @@ char **rungroup;
 char **lumplist;
 pid_t currentchild;
 char *progname;
+volatile sig_atomic_t alarmtime;
 
 void _log_bailout(int line, char *file);
 void do_bench_command(char *argv, int fanout, char *username);
@@ -81,9 +83,9 @@ main(int argc, char **argv)
     extern int	optind;
     extern char *version;
 
-    int someflag, ch, i, fanout, showflag, fanflag;
-    char *p, *q, *group, *nodename, *username, *benchcmd;
-    char **grouptemp, **exclude;
+    int someflag, ch, fanout, showflag, fanflag;
+    char *p, *nodename, *username, *benchcmd;
+    char **exclude;
     struct rlimit limit;
     pid_t pid;
 
@@ -93,22 +95,14 @@ main(int argc, char **argv)
     fanout = DEFAULT_FANOUT;
     nodename = NULL;
     username = NULL;
-    group = NULL;
     nodelink = NULL;
+    exclude = NULL;
 
     rungroup = calloc(GROUP_MALLOC, sizeof(char **));
     if (rungroup == NULL)
 	bailout();
-    exclude = calloc(GROUP_MALLOC, sizeof(char **));
-    if (exclude == NULL)
-	bailout();
 
-    progname = p = q = strdup(argv[0]);
-    while (progname != NULL) {
-	q = progname;
-	progname = (char *)strsep(&p, "/");
-    }
-    progname = q;
+    progname = strdup(basename(argv[0]));
 
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?diqf:g:l:vw:x:o:p:")) != -1)
@@ -133,48 +127,12 @@ main(int argc, char **argv)
 	    fanflag = 1;
 	    break;
 	case 'g':		/* pick a group to run on */
-	    i = 0;
 	    grouping = 1;
-	    for (p = optarg; p != NULL; ) {
-		group = (char *)strsep(&p, ",");
-		if (group != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			rungroup[i++] = strdup(group);
-		    } else {
-			grouptemp = realloc(rungroup,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    rungroup = grouptemp;
-			else
-			    bailout();
-			rungroup[i++] = strdup(group);
-		    }
-		}
-	    }
-	    nrofrungroups = i;
-	    group = NULL;
-	    break;			
+	    nrofrungroups = parse_gopt(optarg);
+	    break;
 	case 'x':		/* exclude nodes, w overrides this */
 	    exclusion = 1;
-	    i = 0;
-	    for (p = optarg; p != NULL; ) {
-		nodename = (char *)strsep(&p, ",");
-		if (nodename != NULL) {
-		    if (((i+1) % GROUP_MALLOC) != 0) {
-			exclude[i++] = strdup(nodename);
-		    } else {
-			grouptemp = realloc(exclude,
-					    i*sizeof(char **) +
-					    GROUP_MALLOC*sizeof(char *));
-			if (grouptemp != NULL)
-			    exclude = grouptemp;
-			else
-			    bailout();
-			exclude[i++] = strdup(nodename);
-		    }
-		}
-	    }
+	    exclude = parse_xopt(optarg);
 	    break;
 	case 'w':		/* perform operation on these nodes */
 	    someflag = 1;
@@ -418,7 +376,7 @@ do_bench_command(char *argv, int fanout, char *username)
     FILE *fd, *in;
     char pipebuf[2048], buf[MAXBUF];
     int status, i, j, n, g, nrofargs, arg;
-    char *q, *rsh, *cd, *p, *rshargs, **cmd;
+    char *q, **rsh, *cd, *rshstring, **cmd;
     node_t *nodeptr, *nodehold;
 
     j = i = 0;
@@ -456,23 +414,8 @@ do_bench_command(char *argv, int fanout, char *username)
 	syslog(LOG_DEBUG, "Fanout: %d Groups:%d", fanout, j);
     }
 
-    rsh = getenv("RCMD_CMD");
-    if (rsh == NULL)
-	rsh = strdup("rsh");
-    if (rsh == NULL)
-	bailout();
-    if (getenv("RCMD_CMD_ARGS") != NULL)
-	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
-    nrofargs = 3;
-    if (rshargs != NULL) {
-	p = rshargs;
-	nrofargs++;
-	while (*p != '\0') {
-	    if (isspace(*p))
-		nrofargs++;
-	    *p++;
-	}
-    }
+    rsh = parse_rcmd("RCMD_CMD", "RCMD_CMD_ARGS", &nrofargs);
+    rshstring = build_rshstring(rsh, nrofargs);
 
     g = 0;
     nodeptr = nodelink;
@@ -518,17 +461,18 @@ do_bench_command(char *argv, int fanout, char *username)
 		else
 		    (void)snprintf(buf, MAXBUF, "%s", nodeptr->name);
 		if (debug)
-		    (void)syslog(LOG_DEBUG, "%s %s %s %s\n", rsh,
-			     (rshargs? rshargs:""), buf, argv);
+		    (void)syslog(LOG_DEBUG, "%s %s %s\n", rshstring,
+			     buf, argv);
 		cmd = calloc(nrofargs+1, sizeof(char *));
 		arg = 0;
-		cmd[arg++] = rsh;
-		while (rshargs != NULL)
-		    cmd[arg++] = strdup(strsep(&rshargs, " "));
+		while (rsh[arg] != NULL) {
+		    cmd[arg] = rsh[arg];
+		    arg++;
+		}
 		cmd[arg++] = buf;
 		cmd[arg++] = argv;
 		cmd[arg] = (char *)0;
-		execvp(rsh, cmd);
+		execvp(rsh[0], cmd);
 		log_bailout();
 		break;
 	    default:

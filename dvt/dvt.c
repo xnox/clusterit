@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.12 2007/01/18 17:11:14 garbled Exp $ */
+/* $Id: dvt.c,v 1.13 2007/01/23 17:56:31 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -57,7 +57,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.12 2007/01/18 17:11:14 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.13 2007/01/23 17:56:31 garbled Exp $");
 #endif /* not lint */
 
 void do_command(int fanout, char *username);
@@ -88,6 +88,7 @@ const char *window_name = "dvt";
 const char *icon_name = "dvt";
 char *display_name = NULL;
 Pixmap up_pic, down_pic;
+volatile sig_atomic_t alarmtime; /* unused in dvt */
 
 int (*old_handler)(Display *, XErrorEvent *);
 

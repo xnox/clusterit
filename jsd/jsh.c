@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.15 2006/01/24 19:00:25 garbled Exp $ */
+/* $Id: jsh.c,v 1.16 2007/01/23 17:56:31 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -36,6 +36,7 @@
 #include <poll.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <libgen.h>
 #include "../common/common.h"
 #include "../common/sockcommon.h"
 
@@ -43,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.15 2006/01/24 19:00:25 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.16 2007/01/23 17:56:31 garbled Exp $");
 #endif
 
 void do_command(char **argv, int allrun, char *username);
@@ -62,6 +63,7 @@ char *progname, *jsd_host;
 group_t *grouplist;
 node_t *nodelink;
 char *curnode; /* the node we are currently running on */
+volatile sig_atomic_t alarmtime;
 
 /* 
  * jsh contacts the jsd daemon, and asks for a node to work on.
@@ -70,17 +72,14 @@ char *curnode; /* the node we are currently running on */
 int
 main(int argc, char **argv)
 {
-    int someflag, ch, allflag, showflag;
-    char *p, *q, *group, *nodename, *username;
-    node_t *nodeptr;
+    int ch, allflag;
+    char *username;
 
     extern char *optarg;
     extern int optind;
     extern char *version;
 
     iportnum = oportnum = 0;
-    someflag = 0;
-    showflag = 0;
     exclusion = 0;
     nrofrungroups = 0;
     debug = 0;
@@ -88,19 +87,10 @@ main(int argc, char **argv)
     allflag = 0;
     grouping = 0;
     username = NULL;
-    nodename = NULL;
-    group = NULL;
-    nodeptr = NULL;
-    nodelink = NULL;
     jsd_host = NULL;
-
-    progname = p = q = strdup(argv[0]);
-    while (progname != NULL) {
-	q = progname;
-	progname = (char *)strsep(&p, "/");
-    }
-    progname = q;
-
+    
+    progname = strdup(basename(argv[0]));
+    
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?adeil:k:p:v")) != -1)
 #else
@@ -274,8 +264,8 @@ do_command(char **argv, int allrun, char *username)
 {
     FILE *fd, *fda, *in;
     char cbuf[MAXBUF], buf[MAXBUF], pipebuf[2048];
-    char *nodename, *p, **q, *command, *rsh, *cd, *rshargs, **cmd;
-    int status, piping, pollret, nrofargs, arg;
+    char *nodename, *p, **q, *command, **rsh, *cd, *rshstring, **cmd;
+    int status, piping, pollret, nrofargs, arg, fdf;
     size_t i;
     pipe_t out, err;
     pid_t childpid;
@@ -284,7 +274,6 @@ do_command(char **argv, int allrun, char *username)
     piping = 0;
     in = NULL;
     nodename = NULL;
-    rshargs = NULL;
     curnode = NULL;
 
     if (debug && username != NULL)
@@ -317,24 +306,9 @@ do_command(char **argv, int allrun, char *username)
 	if (open("/dev/null", O_RDONLY, NULL) != 0)
 	    bailout();
     }
-    rsh = getenv("RCMD_CMD");
-    if (rsh == NULL)
-	rsh = strdup("rsh");
-    if (rsh == NULL)
-	bailout();
-
-    if (getenv("RCMD_CMD_ARGS") != NULL)
-	rshargs = strdup(getenv("RCMD_CMD_ARGS"));
-    nrofargs = 3;
-    if (rshargs != NULL) {
-	p = rshargs;
-	nrofargs++;
-	while (*p != '\0') {
-	    if (isspace(*p))
-		nrofargs++;
-	    *p++;
-	}
-    }
+    
+    rsh = parse_rcmd("RCMD_CMD", "RCMD_CMD_ARGS", &nrofargs);
+    rshstring = build_rshstring(rsh, nrofargs);
 
     signal(SIGINT, reapnode);
     signal(SIGTERM, reapnode);
@@ -363,8 +337,10 @@ do_command(char **argv, int allrun, char *username)
 	    bailout();
 	    break;
 	case 0:
+#ifndef linux
 	    if (piping)
 		close(STDIN_FILENO);
+#endif
 	    /* stupid unix tricks vol 1 */
 	    if (dup2(out.fds[1], STDOUT_FILENO) != STDOUT_FILENO)
 		bailout();
@@ -374,23 +350,29 @@ do_command(char **argv, int allrun, char *username)
 		bailout();
 	    if (close(err.fds[0]) != 0)
 		bailout();
+	    /* stdin & stderr non-blocking */
+	    fdf = fcntl(out.fds[0], F_GETFL);
+	    fcntl(out.fds[0], F_SETFL, fdf|O_NONBLOCK);
+	    fdf = fcntl(err.fds[0], F_GETFL);
+	    fcntl(err.fds[0], F_SETFL, fdf|O_NONBLOCK);
 	    if (username != NULL)
 		(void)snprintf(buf, MAXBUF, "%s@%s", username, nodename);
 	    else
 		(void)snprintf(buf, MAXBUF, "%s", nodename);
 	    if (debug)
-		(void)printf("%s %s %s %s\n", rsh,
-			     (rshargs? rshargs:""), buf, command);
+		(void)printf("%s %s %s\n", rshstring, buf, command);
 	    cmd = calloc(nrofargs+1, sizeof(char *));
 	    arg = 0;
-	    cmd[arg++] = rsh;
-	    while (rshargs != NULL)
-		cmd[arg++] = strdup(strsep(&rshargs, " "));
+	    while (rsh[arg] != NULL) {
+	        cmd[arg] = rsh[arg];
+		arg++;
+	    }
 	    cmd[arg++] = buf;
 	    cmd[arg++] = command;
 	    cmd[arg] = (char *)0;
-	    execvp(rsh, cmd);
+	    execvp(rsh[0], cmd);
 	    bailout();
+	    break;
 	} /* end switch */
 	/* now close off the useless stuff, and read the goodies */
 	if (close(out.fds[1]) != 0)
@@ -418,8 +400,7 @@ do_command(char **argv, int allrun, char *username)
 	    if ((fds[0].revents&POLLIN) == POLLIN ||
 		(fds[0].revents&POLLHUP) == POLLHUP ||
 		(fds[0].revents&POLLPRI) == POLLPRI) {
-		cd = fgets(pipebuf, sizeof(pipebuf), fda);
-		if (cd != NULL) {
+		while ((cd = fgets(pipebuf, sizeof(pipebuf), fda))) {
 		    (void)printf("%s: %s", nodename, cd);
 		    gotdata++;
 		}
@@ -427,12 +408,11 @@ do_command(char **argv, int allrun, char *username)
 	    if ((fds[1].revents&POLLIN) == POLLIN ||
 		(fds[1].revents&POLLHUP) == POLLHUP ||
 		(fds[1].revents&POLLPRI) == POLLPRI) {
-		cd = fgets(pipebuf, sizeof(pipebuf), fd);
-		if (errorflag && cd != NULL) {
-		    (void)printf("%s: %s", nodename, cd);
+		while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
+		    if (errorflag) 
+			(void)printf("%s: %s", nodename, cd);
 		    gotdata++;
-		} else if (!errorflag && cd != NULL)
-		    gotdata++;
+		}
 	    }
 	    if (!gotdata)
 		if (((fds[0].revents&POLLHUP) == POLLHUP ||

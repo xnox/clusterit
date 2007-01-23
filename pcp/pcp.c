@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.21 2007/01/22 18:48:16 garbled Exp $ */
+/* $Id: pcp.c,v 1.22 2007/01/23 17:56:31 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.21 2007/01/22 18:48:16 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.22 2007/01/23 17:56:31 garbled Exp $");
 #endif
 
 extern int errno;
@@ -364,9 +364,9 @@ paralell_copy(char *rcp, int nrof, char *username, char *source_file,
 		if (close(nodeptr->err.fds[0]) != 0)
 		    bailout();
 		/* stdin & stderr non-blocking */
-		fdf = fcntl(nodeptr->out.fds[0],F_GETFL);
+		fdf = fcntl(nodeptr->out.fds[0], F_GETFL);
 		fcntl(nodeptr->out.fds[0], F_SETFL, fdf|O_NONBLOCK);
-		fdf = fcntl(nodeptr->err.fds[0],F_GETFL);
+		fdf = fcntl(nodeptr->err.fds[0], F_GETFL);
 		fcntl(nodeptr->err.fds[0], F_SETFL, fdf|O_NONBLOCK);
 		
 		if (testflag && rshport > 0 && porttimeout > 0)
