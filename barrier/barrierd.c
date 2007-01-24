@@ -1,4 +1,4 @@
-/* $Id: barrierd.c,v 1.18 2005/12/13 05:01:54 garbled Exp $ */
+/* $Id: barrierd.c,v 1.19 2007/01/24 19:09:14 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -39,13 +39,14 @@
 #include <strings.h>
 #include <syslog.h>
 #include <stdarg.h>
+#include <libgen.h>
 #include "../common/sockcommon.h"
 
 #if !defined(lint) && defined(__NetBSD__)
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrierd.c,v 1.18 2005/12/13 05:01:54 garbled Exp $");
+__RCSID("$Id: barrierd.c,v 1.19 2007/01/24 19:09:14 garbled Exp $");
 #endif
 
 #define MAX_TOKENS	10
@@ -68,15 +69,9 @@ main(int argc, char **argv)
     extern char *version;
 
     int ch;
-    char *p, *q;
 	
     barrier_port = 0;
-    progname = p = q = strdup(argv[0]);
-    while (progname != NULL) {
-	q = progname;
-	progname = (char *)strsep(&p, "/");
-    }
-    progname = q;
+    progname = strdup(basename(argv[0]));
 
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?p:v")) != -1)

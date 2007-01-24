@@ -1,4 +1,4 @@
-/* $Id: barrier.c,v 1.19 2005/12/13 05:01:54 garbled Exp $ */
+/* $Id: barrier.c,v 1.20 2007/01/24 19:09:14 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -39,6 +39,7 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <string.h>
+#include <libgen.h>
 
 #include "../common/common.h"
 #include "../common/sockcommon.h"
@@ -47,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: barrier.c,v 1.19 2005/12/13 05:01:54 garbled Exp $");
+__RCSID("$Id: barrier.c,v 1.20 2007/01/24 19:09:14 garbled Exp $");
 #endif
 
 int quietflag, barrier_port, debug;
@@ -64,7 +65,7 @@ main(int argc, char **argv)
     extern char *optarg;
     extern char *version;
 
-    char *key, *p, *q;
+    char *key;
     int nodes, ch, code;
 	
     barrier_port = BARRIER_SOCK;
@@ -73,12 +74,7 @@ main(int argc, char **argv)
     key = NULL;
     nodes = 0;
 
-    progname = p = q = strdup(argv[0]);
-    while (progname != NULL) {
-	q = progname;
-	progname = (char *)strsep(&p, "/");
-    }
-    progname = q;
+    progname = strdup(basename(argv[0]));
 
 #if defined(__linux__)
     while ((ch = getopt(argc, argv, "+?dh:k:p:s:v")) != -1)
