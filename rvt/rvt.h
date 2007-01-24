@@ -25,7 +25,7 @@
 
 /* @(#)xvt.h	1.3 16/11/93 (UKC) */
 
-#define VERSION "2.1"	/* Overall release number of the current version */
+#define XVT_VERSION "2.1" /* Overall release number of the current version */
 
 #define MARGIN 2	/* gap between the text and the window edges */
 

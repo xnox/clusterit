@@ -28,6 +28,7 @@ char xvt_xvt_c_sccsid[] = "@(#)xvt.c	1.4 11/1/94 (UKC)";
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libgen.h>
 #include "rvt.h"
 #include "command.h"
 #include "ttyinit.h"
@@ -35,6 +36,7 @@ char xvt_xvt_c_sccsid[] = "@(#)xvt.c	1.4 11/1/94 (UKC)";
 #include "screen.h"
 #include "sbar.h"
 #include "token.h"
+#include "../common/common.h"
 
 #ifdef UKC_LOCATIONS
 #define LOCTMPFILE "/etc/loctmp"
@@ -46,7 +48,7 @@ int main(int, char **);
 int main();
 #endif
 
-extern int debugging;
+extern int debug;
 
 static int size_set = 0;	/* flag set once the window size has been set */
 char *progname;
@@ -76,28 +78,26 @@ char **argv;
 	int i, n, x, y;
 	int mode;
 	int iargc;
+	int nrofargs;
 	struct tokenst token;
 	char *command = NULL;
 	char *remote_username = NULL;
 	char *remote_hostname = NULL;
 	char **com_argv = NULL;
-	char *p, *q;
+	char **rsh;
+	char buf[MAXBUF];
 	static char **iargv;
 	extern char *version;
 
 	/* Check for a -V or -help option.
 	 */
-	progname = p = q = strdup(argv[0]);
-	while (progname != NULL) {
-	    q = progname;
-	    progname = (char *)strsep(&p, "/");
-	}
-	progname = q;
+	progname = strdup(basename(argv[0]));
+
 	for (i = 0; i < argc; i++) {
 		if (strcmp(argv[i],"-V") == 0 ||
 		    strcmp(argv[i],"-v") == 0) {
 		    (void)printf("%s: %s\n", progname, version);
-		    printf("based on xvt version %s\n",VERSION);
+		    (void)printf("based on xvt version %s\n", XVT_VERSION);
 		    exit(0);
 		}
 		if (strcmp(argv[i],"-help") == 0) {
@@ -154,32 +154,30 @@ char **argv;
 	}
 	remote_hostname = argv[--argc];
 	argv[argc] = NULL;
-	
-	
-	
+		
 	init_display(argc,argv,iargc,iargv,command);
 	map_window();
 
-	/* Build the rsh command line */
-	i = 2;
-	if( remote_username != NULL ) { i += 2; }
-	com_argv = (char**) cmalloc( (i+1) * sizeof(char**) );
+	rsh = parse_rcmd("RLOGIN_CMD", "RLOGIN_CMD_ARGS", &nrofargs);
 	
-	command = getenv("RLOGIN_CMD");
-	if(command == NULL) command = "/usr/bin/rsh";
+	/* Build the rsh command line */
+	if (remote_username != NULL)
+		(void)snprintf(buf, MAXBUF, "%s@%s", remote_username,
+		    remote_hostname);
+	else
+		(void)snprintf(buf, MAXBUF, "%s", remote_hostname);
+	com_argv = (char **)calloc(nrofargs + 1, sizeof(char *));
 	i = 0;
-	com_argv[i++] = command;
-	if(remote_username != NULL)
-	{
-		com_argv[i++] = "-l";
-		com_argv[i++] = remote_username;
+	while (rsh[i] != NULL) {
+		com_argv[i] = rsh[i];
+		i++;
 	}
-	com_argv[i++] = remote_hostname;
-	com_argv[i++] = NULL;
+	com_argv[i++] = buf;
+	com_argv[i] = (char *)0;
 	
 	fix_environment();
 
-	init_command(command,com_argv);
+	init_command(com_argv[0], com_argv);
 
 	for (;;) {
 		get_token(&token);
@@ -508,7 +506,7 @@ char **argv;
 			break;
 		}
 #ifdef DEBUG
-		if (debugging)
+		if (debug)
 			show_token(&token);
 #endif /* DEBUG */
 	}

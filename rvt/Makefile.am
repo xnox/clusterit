@@ -15,7 +15,7 @@ rvt_SOURCES = \
 	screen.c \
 	xsetup.c \
 	ttyinit.c \
-	../common/common.c \
+	../common/common.c ../common/common.h \
 	../common/netbsd.c
 
 man_MANS = \

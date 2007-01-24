@@ -46,6 +46,12 @@ char xvt_ttyinit_c_sccsid[] = "@(#)ttyinit.c	1.3 11/1/94 (UKC)";
 #include <pwd.h>
 #include <errno.h>
 #include <string.h>
+#ifdef __NetBSD__
+#include <util.h>
+#endif
+#ifdef __linux__
+#include <pty.h>
+#endif
 #include "rvt.h"
 #include "token.h"
 #include "command.h"

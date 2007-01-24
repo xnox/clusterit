@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.15 2007/01/22 18:48:16 garbled Exp $ */
+/* $Id: common.h,v 1.16 2007/01/24 19:02:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -105,15 +105,16 @@ int openpty(int *amaster, int *aslave, char *name, struct termios *termp,
     struct winsize *winp);
 #endif
 
+char **parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs);
+char *default_rcmd(char *rcmd_env);
+int get_rshport(int testflag, int rshport, char *rcmd_env);
+char *build_rshstring(char **rsh, int nrofargs);
+
 #ifdef CLUSTERS
 void do_showcluster(int fanout);
 int parse_cluster(char **exclude);
 node_t *nodealloc(char *nodename);
 int test_node_connection(int rshport, int timeout, node_t *nodeptr);
-char **parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs);
-char *default_rcmd(char *rcmd_env);
-int get_rshport(int testflag, int rshport, char *rcmd_env);
-char *build_rshstring(char **rsh, int nrofargs);
 int parse_gopt(char *oa);
 char **parse_xopt(char *oa);
 

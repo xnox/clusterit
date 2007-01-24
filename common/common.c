@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.29 2007/01/22 18:48:16 garbled Exp $ */
+/* $Id: common.c,v 1.30 2007/01/24 19:02:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.29 2007/01/22 18:48:16 garbled Exp $");
+__RCSID("$Id: common.c,v 1.30 2007/01/24 19:02:09 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
@@ -110,133 +110,6 @@ parse_xopt(char *oa)
 		}
 	}
 	return(exclude);
-}
-
-/* convenience:  Set the rshport based on RCMD_CMD */
-int
-get_rshport(int testflag, int rshport, char *rcmd_env)
-{
-	int port;
-
-	port = TEST_PORT;
-	
-	/* we need to find or guess the port number */
-	if (testflag && rshport == 0) {
-		if (!getenv(rcmd_env))
-			port = TEST_PORT;
-		else if (strstr(getenv(rcmd_env), "ssh") != NULL)
-			port = 22;
-		else if (strstr(getenv(rcmd_env), "rsh") != NULL)
-			port = 514;
-		else if (strstr(getenv(rcmd_env), "scp") != NULL)
-			port = 22;
-		else if (strstr(getenv(rcmd_env), "rcp") != NULL)
-			port = 514;
-		else if (strstr(getenv(rcmd_env), "rlogin") != NULL)
-			port = 513;
-		else {
-			(void)fprintf(stderr,
-			    "-t argument given, but port number to test "
-			    "could not be guessed.  Please set the RCMD_PORT "
-			    "environment variable to the portnumber of the "
-			    "protocol you are using, or supply it with the "
-			    "-p (or -n for pcp) argument.\n");
-			exit(EXIT_FAILURE);
-		}
-		if (debug)
-			printf("Test port: %d\n", port);
-	}
-	return(port);
-}
-
-/* Convenience:  Build the rshstring */
-char *
-build_rshstring(char **rsh, int nrofargs)
-{
-	int g, i;
-	char *rshstring;
-
-	/* build the rshstring (for debug printf and dsh -s) */
-	for (g=0, i=0; i < nrofargs-2; i++) {
-		if (rsh[i] != NULL)
-			g += strlen(rsh[i]);
-	}
-	/* padding of 20 for pcp/etc */
-	rshstring = (char *)malloc(sizeof(char) * (g + nrofargs + 20));
-	sprintf(rshstring, "%s", rsh[0]);
-	for (i=1; i < nrofargs-2; i++) {
-		if (rsh[i] != NULL)
-			sprintf(rshstring, "%s %s", rshstring, rsh[i]);
-	}
-	return(rshstring);
-}
-
-
-/*
- * Return the default RCMD_CMD, based on the env var and dsh setup
- */
-char *
-default_rcmd(char *rcmd_env)
-{
-	if (strcmp(rcmd_env, "RCMD_CMD") == 0)
-		return(RCMD_DEFAULT);
-	if (strcmp(rcmd_env, "RLOGIN_CMD") == 0)
-		return(RLOGIN_DEFAULT);
-	if (strcmp(rcmd_env, "RCP_CMD") == 0)
-		return(RCP_DEFAULT);
-	if (strcmp(rcmd_env, "RVT_CMD") == 0)
-		return(RVT_DEFAULT);
-	return("rsh");
-}
-
-/* This routine parses the RCMD_CMD and RCMD_CMD_ARGS environment variables
- * and tries to set things up properly for them.
- */
-
-char **
-parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
-{
-	int i, j, a;
-	char *p, *tmp, **cmd;
-
-	tmp = getenv(args_env);
-	p = tmp;
-	a = 0;
-	if (tmp != NULL) {
-		while (*p != '\0') {
-			if (isspace((unsigned char)*p))
-				j++;
-			*p++;
-		}
-	}
-	tmp = getenv(rcmd_env);
-	p = tmp;
-	j = 3;
-	if (tmp != NULL) {
-		while (*p != '\0') {
-			if (isspace((unsigned char)*p))
-				j++;
-			*p++;
-		}
-		cmd = malloc(sizeof(char *) * (j+1+a));
-		i = 0;
-		while (tmp != NULL)
-			cmd[i++] = strdup(strsep(&tmp, " "));
-		cmd[i] = (char *)0;
-		*nrofargs = j+a;
-	} else {
-		cmd = malloc(sizeof(char *) * (j+1+a));
-		cmd[0] = default_rcmd(rcmd_env);
-		cmd[1] = (char *)0;
-		i = 1;
-		*nrofargs = j+a;
-	}
-	tmp = getenv(args_env);
-	while (tmp != NULL)
-		cmd[i++] = strdup(strsep(&tmp, " "));
-	cmd[i] = (char *)0;
-
-	return(cmd);
 }
 
 /*
@@ -605,6 +478,134 @@ test_node_connection(int rshport, int timeout, node_t *nodeptr)
 }
 
 #endif /* CLUSTERS */
+
+
+/* convenience:  Set the rshport based on RCMD_CMD */
+int
+get_rshport(int testflag, int rshport, char *rcmd_env)
+{
+	int port;
+
+	port = TEST_PORT;
+	
+	/* we need to find or guess the port number */
+	if (testflag && rshport == 0) {
+		if (!getenv(rcmd_env))
+			port = TEST_PORT;
+		else if (strstr(getenv(rcmd_env), "ssh") != NULL)
+			port = 22;
+		else if (strstr(getenv(rcmd_env), "rsh") != NULL)
+			port = 514;
+		else if (strstr(getenv(rcmd_env), "scp") != NULL)
+			port = 22;
+		else if (strstr(getenv(rcmd_env), "rcp") != NULL)
+			port = 514;
+		else if (strstr(getenv(rcmd_env), "rlogin") != NULL)
+			port = 513;
+		else {
+			(void)fprintf(stderr,
+			    "-t argument given, but port number to test "
+			    "could not be guessed.  Please set the RCMD_PORT "
+			    "environment variable to the portnumber of the "
+			    "protocol you are using, or supply it with the "
+			    "-p (or -n for pcp) argument.\n");
+			exit(EXIT_FAILURE);
+		}
+		if (debug)
+			printf("Test port: %d\n", port);
+	}
+	return(port);
+}
+
+/* Convenience:  Build the rshstring */
+char *
+build_rshstring(char **rsh, int nrofargs)
+{
+	int g, i;
+	char *rshstring;
+
+	/* build the rshstring (for debug printf and dsh -s) */
+	for (g=0, i=0; i < nrofargs-2; i++) {
+		if (rsh[i] != NULL)
+			g += strlen(rsh[i]);
+	}
+	/* padding of 20 for pcp/etc */
+	rshstring = (char *)malloc(sizeof(char) * (g + nrofargs + 20));
+	sprintf(rshstring, "%s", rsh[0]);
+	for (i=1; i < nrofargs-2; i++) {
+		if (rsh[i] != NULL)
+			sprintf(rshstring, "%s %s", rshstring, rsh[i]);
+	}
+	return(rshstring);
+}
+
+
+/*
+ * Return the default RCMD_CMD, based on the env var and dsh setup
+ */
+char *
+default_rcmd(char *rcmd_env)
+{
+	if (strcmp(rcmd_env, "RCMD_CMD") == 0)
+		return(RCMD_DEFAULT);
+	if (strcmp(rcmd_env, "RLOGIN_CMD") == 0)
+		return(RLOGIN_DEFAULT);
+	if (strcmp(rcmd_env, "RCP_CMD") == 0)
+		return(RCP_DEFAULT);
+	if (strcmp(rcmd_env, "RVT_CMD") == 0)
+		return(RVT_DEFAULT);
+	return("rsh");
+}
+
+/* This routine parses the RCMD_CMD and RCMD_CMD_ARGS environment variables
+ * and tries to set things up properly for them.
+ */
+
+char **
+parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
+{
+	int i, j, a;
+	char *p, *tmp, **cmd;
+
+	tmp = getenv(args_env);
+	p = tmp;
+	a = 0;
+	if (tmp != NULL) {
+		while (*p != '\0') {
+			if (isspace((unsigned char)*p))
+				j++;
+			*p++;
+		}
+	}
+	tmp = getenv(rcmd_env);
+	p = tmp;
+	j = 3;
+	if (tmp != NULL) {
+		while (*p != '\0') {
+			if (isspace((unsigned char)*p))
+				j++;
+			*p++;
+		}
+		cmd = malloc(sizeof(char *) * (j+1+a));
+		i = 0;
+		while (tmp != NULL)
+			cmd[i++] = strdup(strsep(&tmp, " "));
+		cmd[i] = (char *)0;
+		*nrofargs = j+a;
+	} else {
+		cmd = malloc(sizeof(char *) * (j+1+a));
+		cmd[0] = default_rcmd(rcmd_env);
+		cmd[1] = (char *)0;
+		i = 1;
+		*nrofargs = j+a;
+	}
+	tmp = getenv(args_env);
+	while (tmp != NULL)
+		cmd[i++] = strdup(strsep(&tmp, " "));
+	cmd[i] = (char *)0;
+
+	return(cmd);
+}
 
 /* 
  * Simple error handling routine, needs severe work.

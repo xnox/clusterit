@@ -111,7 +111,7 @@ unsigned long	foreground;		/* foreground pixel value */
 unsigned long	background;		/* background pixel value */
 int		reverse_wrap = 0;	/* enable reverse wrapround */
 int             reverse_video = 0;      /* select reverse video */
-int		debugging = 0;		/* enable debugging output */
+int		debug = 0;		/* enable debugging output */
 int		messages = 0;		/* flag to enable messages */
 
 static char		*xvt_name;		/* the name the program is run under */
@@ -422,7 +422,7 @@ char *command;
 #ifdef DEBUG_X
 	XSynchronize(display,True),XSetErrorHandler(abort);
 #else
-	if (!debugging) {
+	if (!debug) {
 		XSetErrorHandler(error_handler);
 		XSetIOErrorHandler(io_error_handler);
 	}
@@ -598,7 +598,7 @@ extract_resources()
 	/*  Determine whether debugging is enabled.
 	 */
 	if ((s = get_resource("debug","Debug")) != NULL)
-		debugging = affirmative(s);
+		debug = affirmative(s);
 
 	/*  Determine whether to allow messages.
 	 */
