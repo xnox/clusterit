@@ -897,8 +897,9 @@ change_window_name(str)
 unsigned char *str;
 {
 	XTextProperty name;
+	char *p = str;
 
-	if (XStringListToTextProperty((char **)&str,1,&name) == 0) {
+	if (XStringListToTextProperty((char **)&p,1,&name) == 0) {
 		error("cannot allocate window name");
 		return;
 	}
@@ -913,8 +914,9 @@ change_icon_name(str)
 unsigned char *str;
 {
 	XTextProperty name;
+	char *p = str;
 
-	if (XStringListToTextProperty((char **)&str,1,&name) == 0) {
+	if (XStringListToTextProperty((char **)&p,1,&name) == 0) {
 		error("cannot allocate icon name");
 		return;
 	}
