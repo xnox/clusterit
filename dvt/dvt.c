@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.13 2007/01/23 17:56:31 garbled Exp $ */
+/* $Id: dvt.c,v 1.14 2007/02/13 17:46:55 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -57,7 +57,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.13 2007/01/23 17:56:31 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.14 2007/02/13 17:46:55 garbled Exp $");
 #endif /* not lint */
 
 void do_command(int fanout, char *username);
@@ -376,7 +376,7 @@ do_command(int fanout, char *username)
     struct sigaction signaler;
     FILE *fd, *in;
     char pipebuf[2048], buf[MAXBUF];
-    int count, status, i, j, g, l, piping, nrofargs, arg;
+    int count, status, i, j, g, l, nrofargs, arg;
     size_t maxnodelen;
     char **rsh, *cd, *rshstring, **cmd;
     node_t *nodeptr, *nodehold;
@@ -390,7 +390,6 @@ do_command(int fanout, char *username)
 
     maxnodelen = 0;
     j = i = 0;
-    piping = 0;
     in = NULL;
     cd = pipebuf;
     start_x = 2;
@@ -482,9 +481,6 @@ do_command(int fanout, char *username)
 	     * passing signals to children.
 	     */
 	    (void)setsid();
-	    if (piping)
-		if (close(STDIN_FILENO) != 0)
-		    bailout();
 	    if (dup2(nodeptr->out.fds[1], STDOUT_FILENO) 
 		!= STDOUT_FILENO) 
 		bailout();
