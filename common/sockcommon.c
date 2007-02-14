@@ -1,4 +1,4 @@
-/* $Id: sockcommon.c,v 1.6 2006/01/24 19:00:23 garbled Exp $ */
+/* $Id: sockcommon.c,v 1.7 2007/02/14 18:58:42 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: sockcommon.c,v 1.6 2006/01/24 19:00:23 garbled Exp $");
+__RCSID("$Id: sockcommon.c,v 1.7 2007/02/14 18:58:42 garbled Exp $");
 #endif
 
 
@@ -104,14 +104,17 @@ read_from_client(int filedes, char **j)
     nbytes = read(filedes, buffer, MAXMSG);
     if (nbytes < 0)
 	log_bailout();
-    else if (nbytes == 0)
+    else if (nbytes == 0) {
 	/* End-of-file. */
+	free(buffer);
 	return(-1);
-    else { /* Data read. */
+    } else { /* Data read. */
 	/* place data from the socket into the buffer we were passed */
 	*j = strdup(buffer);
+	free(buffer);
 	return(nbytes);
     }
     /*NOTREACHED*/
+    free(buffer);
     return(0);
 }
