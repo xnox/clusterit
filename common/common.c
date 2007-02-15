@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.30 2007/01/24 19:02:09 garbled Exp $ */
+/* $Id: common.c,v 1.31 2007/02/15 22:09:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.30 2007/01/24 19:02:09 garbled Exp $");
+__RCSID("$Id: common.c,v 1.31 2007/02/15 22:09:09 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
@@ -594,7 +594,7 @@ parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
 		*nrofargs = j+a;
 	} else {
 		cmd = malloc(sizeof(char *) * (j+1+a));
-		cmd[0] = default_rcmd(rcmd_env);
+		cmd[0] = strdup(default_rcmd(rcmd_env));
 		cmd[1] = (char *)0;
 		i = 1;
 		*nrofargs = j+a;

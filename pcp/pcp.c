@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.23 2007/02/15 21:57:25 garbled Exp $ */
+/* $Id: pcp.c,v 1.24 2007/02/15 22:09:09 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.23 2007/02/15 21:57:25 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.24 2007/02/15 22:09:09 garbled Exp $");
 #endif
 
 extern int errno;
@@ -262,6 +262,7 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
 	printf("\nDo Copy: %s %s\n", source_file, destination_file);
 
     rcp = parse_rcmd("RCP_CMD", "RCP_CMD_ARGS", &nrofargs);
+    j = nrofargs;
     rcpstring = build_rshstring(rcp, nrofargs);
     if (recurse) {
 	    strcat(rcpstring, " -r ");
@@ -279,6 +280,9 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
 	    serial_copy(rcpstring, username, source_file, destination_file);
     free(source_file);
     free(destination_file);
+    for (nrofargs=0; nrofargs < j; nrofargs++)
+	    free(rcp[nrofargs]);
+    free(rcp);
 }
 
 /* Copy files in paralell.  This is preferred with smaller files, because
