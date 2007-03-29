@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.16 2007/01/23 17:56:31 garbled Exp $ */
+/* $Id: jsh.c,v 1.17 2007/03/29 18:23:11 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -44,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.16 2007/01/23 17:56:31 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.17 2007/03/29 18:23:11 garbled Exp $");
 #endif
 
 void do_command(char **argv, int allrun, char *username);
@@ -234,6 +234,8 @@ free_node(char *nodename)
     if (debug)
 	printf("Freeing node %s\n", nodename);
     read_from_client(sock, &buf);
+    /* we just ignore the contents, so free it */
+    free(buf);
     if (write_to_client(sock, nodename) != 0)
 	bailout();
     if (debug)

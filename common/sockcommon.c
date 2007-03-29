@@ -1,4 +1,4 @@
-/* $Id: sockcommon.c,v 1.7 2007/02/14 18:58:42 garbled Exp $ */
+/* $Id: sockcommon.c,v 1.8 2007/03/29 18:23:11 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -43,7 +43,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: sockcommon.c,v 1.7 2007/02/14 18:58:42 garbled Exp $");
+__RCSID("$Id: sockcommon.c,v 1.8 2007/03/29 18:23:11 garbled Exp $");
 #endif
 
 
@@ -92,6 +92,8 @@ write_to_client(int filedes, const char *buf)
     else
 	return(EXIT_SUCCESS);
 }
+
+/* Caller must free returned buffer when done */
 
 int
 read_from_client(int filedes, char **j)
