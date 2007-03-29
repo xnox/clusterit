@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.31 2007/02/15 22:09:09 garbled Exp $ */
+/* $Id: common.c,v 1.32 2007/03/29 18:34:20 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.31 2007/02/15 22:09:09 garbled Exp $");
+__RCSID("$Id: common.c,v 1.32 2007/03/29 18:34:20 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
@@ -229,7 +229,7 @@ parse_cluster(char **exclude)
 		ging = 1;
 		strsep(&p, ":");
 		while (isspace((unsigned char)*p))
-		    *p++;
+		    p++;
 		if (((g+1) % GROUP_MALLOC) != 0) {
 		    grouplist[g].name = strdup(p);
 		    grouplist[g].numlump = 0;
@@ -247,8 +247,8 @@ parse_cluster(char **exclude)
 		q = grouplist[g].name;
 		q += strlen(grouplist[g].name)-1;
 		while (isspace((unsigned char)*q))
-		    *q--;
-		*q++;
+		    q--;
+		q++;
 		*q = '\0';
 		g++;
 	    } else if (ging && ((strstr(p, "GROUP") != NULL) ||
@@ -269,7 +269,7 @@ parse_cluster(char **exclude)
 		lumping = 1;
 		strsep(&p, ":");
 		while (isspace((unsigned char)*p))
-		    *p++;
+		    p++;
 		if (((n+1) % GROUP_MALLOC) != 0) {
 		    lumplist[n] = strdup(p);
 		} else {
@@ -285,8 +285,8 @@ parse_cluster(char **exclude)
 		q = lumplist[n];
 		q += strlen(lumplist[n])-1;
 		while (isspace((unsigned char)*q))
-			*q--;
-		*q++;
+			q--;
+		q++;
 		*q = '\0';
 		n++;
 	    } else if (lumping){
@@ -315,7 +315,7 @@ parse_cluster(char **exclude)
     while ((nodename = fgets(buf, sizeof(buf), fd))) {
 	p = (char *)strsep(&nodename, "\n");
 	while (isspace((unsigned char)*p))
-		*p++;
+		p++;
 	if ((strcmp(p, "") != 0) && (strncmp(p, "#", 1) != 0)) {
 	    /*printf("g = %d gfail = %d p = %s\n", g, gfail, p);*/
 	    if (strstr(p, "LUMP") != NULL)
@@ -574,7 +574,7 @@ parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
 		while (*p != '\0') {
 			if (isspace((unsigned char)*p))
 				j++;
-			*p++;
+			p++;
 		}
 	}
 	tmp = getenv(rcmd_env);
@@ -584,7 +584,7 @@ parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
 		while (*p != '\0') {
 			if (isspace((unsigned char)*p))
 				j++;
-			*p++;
+			p++;
 		}
 		cmd = malloc(sizeof(char *) * (j+1+a));
 		i = 0;
