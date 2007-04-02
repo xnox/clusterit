@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.24 2007/02/15 22:09:09 garbled Exp $ */
+/* $Id: pcp.c,v 1.25 2007/04/02 19:00:27 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.24 2007/02/15 22:09:09 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.25 2007/04/02 19:00:27 garbled Exp $");
 #endif
 
 extern int errno;
@@ -458,7 +458,8 @@ paralell_copy(char *rcp, int nrof, char *username, char *source_file,
 	    (void)wait(&status);
 	    nodeptr = nodeptr->next;
 	} /* pipe read */
-    } /* for n */	
+    } /* for n */
+    free(argz);
 }
 
 /* serial copy */
