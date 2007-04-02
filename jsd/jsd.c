@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.19 2007/01/23 17:56:31 garbled Exp $ */
+/* $Id: jsd.c,v 1.20 2007/04/02 18:42:41 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -51,7 +51,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.19 2007/01/23 17:56:31 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.20 2007/04/02 18:42:41 garbled Exp $");
 #endif
 
 /* globals */
@@ -401,8 +401,10 @@ do_bench_command(char *argv, int fanout, char *username)
 	}
 	j++;
     }
-    if (debug)
+    if (debug) {
 	syslog(LOG_DEBUG, "%s", q);
+	free(q);
+    }
 
     i = j; /* side effect of above */
     j = i / fanout;
