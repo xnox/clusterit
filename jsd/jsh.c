@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.17 2007/03/29 18:23:11 garbled Exp $ */
+/* $Id: jsh.c,v 1.18 2007/04/02 18:38:53 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -44,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.17 2007/03/29 18:23:11 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.18 2007/04/02 18:38:53 garbled Exp $");
 #endif
 
 void do_command(char **argv, int allrun, char *username);
@@ -299,6 +299,7 @@ do_command(char **argv, int allrun, char *username)
 	    (void)printf("%s>", progname);
 	in = fdopen(STDIN_FILENO, "r");
 	/* start reading stuff from stdin and process */
+	free(command);
 	command = fgets(cbuf, sizeof(cbuf), in);
 	if (command != NULL)
 	    if (strcmp(command,"\n") == 0)
@@ -451,7 +452,8 @@ do_command(char **argv, int allrun, char *username)
     if (piping) {  /* I learned this the hard way */
 	fflush(in);
 	fclose(in);
-    }
+    } else
+	    free(command);
 }
 
 void

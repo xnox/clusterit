@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.26 2007/02/15 19:51:06 garbled Exp $ */
+/* $Id: rseq.c,v 1.27 2007/04/02 18:38:53 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -44,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.26 2007/02/15 19:51:06 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.27 2007/04/02 18:38:53 garbled Exp $");
 #endif
 
 /* externs */
@@ -299,6 +299,7 @@ do_command(char **argv, int allrun, char *username)
 	    /* are we a terminal?  then go interactive! */
 	    (void)printf("%s>", progname);
 	in = fdopen(STDIN_FILENO, "r");
+	free(command);
 	command = fgets(cbuf, sizeof(cbuf), in);
 	/* start reading stuff from stdin and process */
 	if (command != NULL)
@@ -446,5 +447,6 @@ do_command(char **argv, int allrun, char *username)
 	/* I learned this the hard way */
 	fflush(in);
 	fclose(in);
-    }
+    } else
+	    free(command);
 }
