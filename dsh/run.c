@@ -1,4 +1,4 @@
-/* $Id: run.c,v 1.21 2007/04/02 18:38:53 garbled Exp $ */
+/* $Id: run.c,v 1.22 2007/04/02 18:49:08 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -44,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: run.c,v 1.21 2007/04/02 18:38:53 garbled Exp $");
+__RCSID("$Id: run.c,v 1.22 2007/04/02 18:49:08 garbled Exp $");
 #endif
 
 extern int errno;
@@ -413,4 +413,5 @@ do_command(char **argv, int allrun, char *username)
 	fclose(in);
     } else
 	    free(command);
+    free(rshstring);
 }

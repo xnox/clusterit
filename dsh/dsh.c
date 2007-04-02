@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.36 2007/04/02 18:38:53 garbled Exp $ */
+/* $Id: dsh.c,v 1.37 2007/04/02 18:49:08 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.36 2007/04/02 18:38:53 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.37 2007/04/02 18:49:08 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -507,6 +507,7 @@ do_command(char **argv, int fanout, char *username)
 	fclose(in);
     } else
 	    free(command);
+    free(rshstring);
 }
 
 void
