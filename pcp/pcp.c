@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.26 2007/04/02 19:03:53 garbled Exp $ */
+/* $Id: pcp.c,v 1.27 2007/04/02 19:05:44 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.26 2007/04/02 19:03:53 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.27 2007/04/02 19:05:44 garbled Exp $");
 #endif
 
 extern int errno;
@@ -505,4 +505,5 @@ serial_copy(char *rcp, char *username, char *source_file,
 			printf("Running command: %s\n", command);
 		system(command);
 	}
+	free(command);
 }
