@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.20 2007/04/02 18:42:41 garbled Exp $ */
+/* $Id: jsd.c,v 1.21 2007/04/02 18:45:15 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -51,7 +51,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.20 2007/04/02 18:42:41 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.21 2007/04/02 18:45:15 garbled Exp $");
 #endif
 
 /* globals */
@@ -363,6 +363,7 @@ void free_node(int sock)
 		syslog(LOG_DEBUG, "freeing node %s", nodeptr->name);
 	}
     close(new);
+    free(buf);
 }
 
 /*
