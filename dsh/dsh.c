@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.37 2007/04/02 18:49:08 garbled Exp $ */
+/* $Id: dsh.c,v 1.38 2007/04/02 18:57:05 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.37 2007/04/02 18:49:08 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.38 2007/04/02 18:57:05 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -315,7 +315,7 @@ do_command(char **argv, int fanout, char *username)
 	    for (i=0; (i < fanout && nodeptr != NULL); i++) {
 		g++;
 		if (gotsigterm)
-		    exit(EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		if (debug)
 		    (void)printf("Working node: %d, fangroup %d,"
 			" fanout part: %d\n", g, n, i);
@@ -508,6 +508,9 @@ do_command(char **argv, int fanout, char *username)
     } else
 	    free(command);
     free(rshstring);
+    for (i=0; rsh[i] != NULL; i++)
+	    free(rsh[i]);
+    free(rsh);
 }
 
 void

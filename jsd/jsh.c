@@ -1,4 +1,4 @@
-/* $Id: jsh.c,v 1.19 2007/04/02 18:49:08 garbled Exp $ */
+/* $Id: jsh.c,v 1.20 2007/04/02 18:57:05 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -44,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsh.c,v 1.19 2007/04/02 18:49:08 garbled Exp $");
+__RCSID("$Id: jsh.c,v 1.20 2007/04/02 18:57:05 garbled Exp $");
 #endif
 
 void do_command(char **argv, int allrun, char *username);
@@ -455,6 +455,9 @@ do_command(char **argv, int allrun, char *username)
     } else
 	    free(command);
     free(rshstring);
+    for (i=0; rsh[i] != NULL; i++)
+	    free(rsh[i]);
+    free(rsh);
 }
 
 void
