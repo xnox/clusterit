@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.32 2007/03/29 18:34:20 garbled Exp $ */
+/* $Id: common.c,v 1.33 2007/04/02 18:27:18 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.32 2007/03/29 18:34:20 garbled Exp $");
+__RCSID("$Id: common.c,v 1.33 2007/04/02 18:27:18 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
@@ -536,6 +536,7 @@ build_rshstring(char **rsh, int nrofargs)
 		if (rsh[i] != NULL)
 			sprintf(rshstring, "%s %s", rshstring, rsh[i]);
 	}
+
 	return(rshstring);
 }
 
@@ -569,17 +570,20 @@ parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
 
 	tmp = getenv(args_env);
 	p = tmp;
-	a = 0;
+	a = 1;
+	j = 3;
+	
 	if (tmp != NULL) {
 		while (*p != '\0') {
 			if (isspace((unsigned char)*p))
-				j++;
+				a++;
 			p++;
 		}
-	}
+	} else
+		a = 0;
+
 	tmp = getenv(rcmd_env);
 	p = tmp;
-	j = 3;
 	if (tmp != NULL) {
 		while (*p != '\0') {
 			if (isspace((unsigned char)*p))
@@ -599,6 +603,7 @@ parse_rcmd(char *rcmd_env, char *args_env, int *nrofargs)
 		i = 1;
 		*nrofargs = j+a;
 	}
+
 	tmp = getenv(args_env);
 	while (tmp != NULL)
 		cmd[i++] = strdup(strsep(&tmp, " "));
