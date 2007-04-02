@@ -1,4 +1,4 @@
-/* $Id: jsd.c,v 1.21 2007/04/02 18:45:15 garbled Exp $ */
+/* $Id: jsd.c,v 1.22 2007/04/02 19:08:26 garbled Exp $ */
 /*
  * Copyright (c) 2000
  *	Tim Rightnour.  All rights reserved.
@@ -51,7 +51,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: jsd.c,v 1.21 2007/04/02 18:45:15 garbled Exp $");
+__RCSID("$Id: jsd.c,v 1.22 2007/04/02 19:08:26 garbled Exp $");
 #endif
 
 /* globals */
@@ -507,6 +507,10 @@ do_bench_command(char *argv, int fanout, char *username)
 	    nodeptr = nodeptr->next;
 	} /* for i */			
     } /* for n */
+    free(rshstring);
+    for (i=0; rsh[i] != NULL; i++)
+	    free(rsh[i]);
+    free(rsh);
 }
 
 /*ARGSUSED*/
