@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.34 2007/04/02 18:49:07 garbled Exp $ */
+/* $Id: common.c,v 1.35 2007/04/03 17:44:23 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.34 2007/04/02 18:49:07 garbled Exp $");
+__RCSID("$Id: common.c,v 1.35 2007/04/03 17:44:23 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
@@ -562,6 +562,7 @@ default_rcmd(char *rcmd_env)
 
 /* This routine parses the RCMD_CMD and RCMD_CMD_ARGS environment variables
  * and tries to set things up properly for them.
+ * The contents of the returned cmd must be freed by the caller.
  */
 
 char **
