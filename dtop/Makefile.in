@@ -34,10 +34,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = rvt$(EXEEXT)
-subdir = rvt
-DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	COPYING
+bin_PROGRAMS = dtop$(EXEEXT)
+subdir = dtop
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -48,11 +47,9 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_rvt_OBJECTS = rvt.$(OBJEXT) command.$(OBJEXT) sbar.$(OBJEXT) \
-	screen.$(OBJEXT) xsetup.$(OBJEXT) ttyinit.$(OBJEXT) \
-	common.$(OBJEXT) netbsd.$(OBJEXT)
-rvt_OBJECTS = $(am_rvt_OBJECTS)
-rvt_DEPENDENCIES =
+am_dtop_OBJECTS = dtop.$(OBJEXT) common.$(OBJEXT) netbsd.$(OBJEXT)
+dtop_OBJECTS = $(am_dtop_OBJECTS)
+dtop_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -60,8 +57,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(rvt_SOURCES)
-DIST_SOURCES = $(rvt_SOURCES)
+SOURCES = $(dtop_SOURCES)
+DIST_SOURCES = $(dtop_SOURCES)
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(man_MANS)
@@ -155,22 +152,17 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-AM_CPPFLAGS = -DNEED_PTY @X_CFLAGS@
+AM_CPPFLAGS = -DCLUSTERS
 INCLUDES = 
-rvt_SOURCES = \
-	rvt.c \
-	command.c \
-	sbar.c \
-	screen.c \
-	xsetup.c \
-	ttyinit.c \
+dtop_SOURCES = \
+	dtop.c \
 	../common/common.c ../common/common.h \
 	../common/netbsd.c
 
 man_MANS = \
-	rvt.1
+	dtop.1
 
-rvt_LDADD = @X_LIBS@ -lX11 @ADDLIBS@
+dtop_LDADD = @CURSESLIBS@
 all: all-am
 
 .SUFFIXES:
@@ -184,9 +176,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  rvt/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  dtop/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  rvt/Makefile
+	  $(AUTOMAKE) --foreign  dtop/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -227,9 +219,9 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-rvt$(EXEEXT): $(rvt_OBJECTS) $(rvt_DEPENDENCIES) 
-	@rm -f rvt$(EXEEXT)
-	$(LINK) $(rvt_LDFLAGS) $(rvt_OBJECTS) $(rvt_LDADD) $(LIBS)
+dtop$(EXEEXT): $(dtop_OBJECTS) $(dtop_DEPENDENCIES) 
+	@rm -f dtop$(EXEEXT)
+	$(LINK) $(dtop_LDFLAGS) $(dtop_OBJECTS) $(dtop_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -237,14 +229,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/command.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dtop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netbsd.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rvt.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sbar.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/screen.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ttyinit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xsetup.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

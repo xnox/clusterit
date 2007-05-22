@@ -5,7 +5,7 @@ AC_PREREQ(2.59)
 AC_INIT(clusterit, 2.4, root@garbled.net)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([dsh/dsh.c])
-AC_CONFIG_HEADER([config.h])
+AM_CONFIG_HEADER([config.h])
 
 # Checks for programs.
 AC_PATH_PROGS(AWK, gawk /usr/xpg4/bin/awk awk)
@@ -24,6 +24,8 @@ AC_CHECK_LIB([util], [login_tty], [AC_DEFINE(HAVE_LOGIN_TTY)
 	ADDLIBS="$ADDLIBS -lutil"])
 AC_CHECK_LIB([socket], [listen])
 AC_CHECK_LIB([nsl], [gethostbyname])
+AC_CHECK_LIB([curses], [initscr],
+	[CURSESLIBS="$CURSESLIBS -lcurses"])
 
 # Checks for header files.
 AC_PATH_XTRA
@@ -51,10 +53,11 @@ AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_SETPGRP
 AC_TYPE_SIGNAL
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([strsep setpriority openpty login_tty])
+AC_CHECK_FUNCS([strsep setpriority openpty login_tty humanize_number])
 
 AC_SUBST(X11LIBS)
 AC_SUBST(ADDLIBS)
+AC_SUBST(CURSESLIBS)
 
 AC_CONFIG_FILES([Makefile
                  barrier/Makefile
@@ -63,5 +66,6 @@ AC_CONFIG_FILES([Makefile
                  jsd/Makefile
                  pcp/Makefile
                  rvt/Makefile
+		 dtop/Makefile
                  tools/Makefile])
 AC_OUTPUT
