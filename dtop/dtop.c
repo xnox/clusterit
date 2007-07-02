@@ -1,4 +1,4 @@
-/* $Id: dtop.c,v 1.1 2007/05/22 08:52:12 garbled Exp $ */
+/* $Id: dtop.c,v 1.2 2007/07/02 17:30:28 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000, 2007
  *	Tim Rightnour.  All rights reserved.
@@ -49,7 +49,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dtop.c,v 1.1 2007/05/22 08:52:12 garbled Exp $");
+__RCSID("$Id: dtop.c,v 1.2 2007/07/02 17:30:28 garbled Exp $");
 #endif /* not lint */
 
 #define DPRINTF if (debug) printf
@@ -66,14 +66,14 @@ typedef struct procdata {
 
 typedef struct nodedata {
 	node_t *node;
-	int actmem;
-	int inactmem;
-	int wiredmem;
-	int execmem;
-	int filemem;
-	int freemem;
-	int swap;
-	int swapfree;
+	long long int actmem;
+	long long int inactmem;
+	long long int wiredmem;
+	long long int execmem;
+	long long int filemem;
+	long long int freemem;
+	long long int swap;
+	long long int swapfree;
 	int procs;
 	float load1, load5, load15;
 } nodedata_t;
@@ -81,7 +81,7 @@ typedef struct nodedata {
 void do_command(int fanout, char *username);
 void sig_handler(int i);
 
-#define TOP_COMMAND "top -Sb"
+#define TOP_COMMAND "/bin/sh -c \"if [ `uname` = \"Linux\" ]; then top -bn 1; else top -Sb 2000; fi\""
 #define SORT_CPU 0
 #define SORT_SIZE 1
 #define SORT_RES 2
@@ -97,6 +97,10 @@ void sig_handler(int i);
 
 #define DISPLAY_PROC  1
 #define DISPLAY_LOAD  2
+
+#define TOP_NORMAL 0
+#define TOP_PROCPS 1
+#define TOP_NORMAL_THR 2
 
 /* globals */
 int debug, exclusion, grouping, interval;
@@ -114,7 +118,9 @@ nodedata_t *nodedata, *sortnode;
 procdata_t **procdata, **sortedprocs;
 int totalpids, sortmethod=SORT_CPU;
 int displaymode=DISPLAY_PROC;
+int topmode=0;
 size_t maxnodelen;
+WINDOW *stdscr;
 
 /*
  * Dtop is program that runs top across an entire cluster, and displays
@@ -268,21 +274,24 @@ main(int argc, char *argv[])
     return(EXIT_SUCCESS);
 }
 
-int dehumanize_number(char *num)
+long long int
+dehumanize_number(char *num)
 {
-	int i, val;
+	int i;
+	long long int val;
 
 	for (i=0; i < 30; i++) {
 		switch (num[i]) {
 		case 'M':
 		case 'm':
 			num[i] = '\0';
-			val = atoi(num) * 1024 * 1024;
+			val = atoll(num) * 1024 * 1024;
 			return val;
 		case 'K':
 		case 'k':
 			num[i] = '\0';
-			val = atoi(num) * 1024;
+			val = atoll(num) * 1024;
+			DPRINTF("DE: %s, val=%lld num=%lld\n", num, val, atoll(num));
 			return val;
 		default:
 			break;
@@ -298,7 +307,7 @@ int dehumanize_number(char *num)
 void
 parse_mem(char *c, nodedata_t *nd, int which)
 {
-	char *p, *q, *n, buf[30];
+	char *p, *q, *r, *n, buf[30];
 
 	n = q = strdup(c);
 	q = strchr(q, ':');
@@ -306,39 +315,86 @@ parse_mem(char *c, nodedata_t *nd, int which)
 	p = strsep(&q, ",");
 	while (p != NULL) {
 		DPRINTF("got %s\n", p);
-		if (strstr(p, "Act") != NULL) {
+		if (strstr(p, "inactive") != NULL) {
+			sscanf(p, "%s inactive", buf);
+			nd->inactmem = dehumanize_number(buf);
+			DPRINTF(" inactive final %lld\n", nd->inactmem);
+		} else if (strstr(p, "swap free") != NULL) {
+			sscanf(p, "%s swap free", buf);
+			nd->swapfree = dehumanize_number(buf);
+			nd->swap += nd->swapfree;
+		} else if (strstr(p, "swap in use") != NULL) {
+			sscanf(p, "%s swap in use", buf);
+			nd->swap = dehumanize_number(buf);
+		} else if (strstr(p, "active") != NULL) {
+			sscanf(p, "%s active", buf);
+			nd->actmem = dehumanize_number(buf);
+			DPRINTF(" active final %lld\n", nd->actmem);
+		} else if (strstr(p, "used") != NULL && !which) {
+			sscanf(p, "%s used", buf);
+			nd->wiredmem = dehumanize_number(buf);
+			DPRINTF(" wired final %lld\n", nd->wiredmem);
+		} else if (strstr(p, "shared") != NULL) {
+			sscanf(p, "%s shared", buf);
+			nd->execmem = dehumanize_number(buf);
+			DPRINTF(" exec final %lld\n", nd->execmem);
+		} else if (strstr(p, "free") != NULL && !which) {
+			sscanf(p, "%s free", buf);
+			nd->freemem = dehumanize_number(buf);
+			DPRINTF(" memfree final %lld\n", nd->freemem);
+		} else if (strstr(p, "cached") != NULL) {
+			r = strstr(p, "free");
+			sscanf(p, "%s free", buf);
+			if (which) {
+				nd->swapfree = dehumanize_number(buf);
+				DPRINTF(" swapfree final %lld\n", nd->swapfree);
+			}
+			DPRINTF("FOO: %s %s\n", r, p);
+			if (r != NULL) {
+				while (!isdigit(*r))
+					r++;
+				sscanf(r, "%s cached", buf);
+			} else
+				sscanf(p, "%s cached", buf);
+			nd->filemem = dehumanize_number(buf);
+			DPRINTF(" cached final %lld\n", nd->filemem);
+		} else if (strstr(p, "av") != NULL && which) {
+			sscanf(p, "%s av", buf);
+			nd->swap = dehumanize_number(buf);
+			DPRINTF(" swaptotal final %lld\n", nd->swap);
+		} else if (strstr(p, "Act") != NULL) {
 			sscanf(p, "%s Act", buf);
 			nd->actmem = dehumanize_number(buf);
-			DPRINTF(" final %d\n", nd->actmem);
+			DPRINTF(" final %lld\n", nd->actmem);
 		} else if (strstr(p, "Inact") != NULL) {
 			sscanf(p, "%s Inact", buf);
 			nd->inactmem = dehumanize_number(buf);
-			DPRINTF(" final %d\n", nd->inactmem);
+			DPRINTF(" final %lld\n", nd->inactmem);
 		} else if (strstr(p, "Wired") != NULL) {
 			sscanf(p, "%s Wired", buf);
 			nd->wiredmem = dehumanize_number(buf);
-			DPRINTF(" final %d\n", nd->wiredmem);
+			DPRINTF(" final %lld\n", nd->wiredmem);
 		} else if (strstr(p, "Exec") != NULL) {
 			sscanf(p, "%s Exec", buf);
 			nd->execmem = dehumanize_number(buf);
-			DPRINTF(" final %d\n", nd->execmem);
+			DPRINTF(" final %lld\n", nd->execmem);
 		} else if (strstr(p, "File") != NULL) {
 			sscanf(p, "%s File", buf);
 			nd->filemem = dehumanize_number(buf);
-			DPRINTF(" final %d\n", nd->filemem);
+			DPRINTF(" final %lld\n", nd->filemem);
 		} else if (strstr(p, "Free") != NULL) {
 			sscanf(p, "%s Free", buf);
 			if (which) {
 			       nd->swapfree = dehumanize_number(buf);
-			       DPRINTF(" final %d\n", nd->swapfree);
+			       DPRINTF(" final %lld\n", nd->swapfree);
 			} else {
 				nd->freemem = dehumanize_number(buf);
-				DPRINTF(" final %d\n", nd->freemem);
+				DPRINTF(" final %lld\n", nd->freemem);
 			}
 		} else if (strstr(p, "Total") != NULL) {
 			sscanf(p, "%s Total", buf);
 			nd->swap = dehumanize_number(buf);
-			DPRINTF(" final %d\n", nd->swap);
+			DPRINTF(" final %lld\n", nd->swap);
 		}
 		p = strsep(&q, ",");
 	}
@@ -369,23 +425,57 @@ parse_pid(char *c, node_t *node, int nn, int pid)
 			DPRINTF("user=%s\n", procdata[nn][pid].username);
 			break;
 		case 4:
+			if (topmode == TOP_NORMAL_THR)
+				break;
 			procdata[nn][pid].size = dehumanize_number(p);
+			if (topmode == TOP_PROCPS)
+				procdata[nn][pid].size *= 1024;
 			DPRINTF("size=%d\n", procdata[nn][pid].size);
 			break;
 		case 5:
-			procdata[nn][pid].res = dehumanize_number(p);
+			if (topmode == TOP_NORMAL_THR)
+				procdata[nn][pid].size = dehumanize_number(p);
+			else
+				procdata[nn][pid].res = dehumanize_number(p);
+			if (topmode == TOP_PROCPS)
+				procdata[nn][pid].res *= 1024;
 			DPRINTF("res=%d\n", procdata[nn][pid].res);
+			DPRINTF("size=%d\n", procdata[nn][pid].size);
 			break;
+		case 6:
+			if (topmode == TOP_NORMAL_THR)
+				procdata[nn][pid].res = dehumanize_number(p);
+			DPRINTF("res=%d\n", procdata[nn][pid].res);
+			DPRINTF("size=%d\n", procdata[nn][pid].size);
+			break;
+		case 8:
+			if (topmode == TOP_PROCPS) {
+				sscanf(p, "%f%%", &procdata[nn][pid].cpu);
+				DPRINTF("cpu=%f\n", procdata[nn][pid].cpu);
+			}
 		case 9:
-			sscanf(p, "%f%%", &procdata[nn][pid].cpu);
-			DPRINTF("cpu=%f\n", procdata[nn][pid].cpu);
+			if (topmode != TOP_PROCPS) {
+				sscanf(p, "%f%%", &procdata[nn][pid].cpu);
+				DPRINTF("cpu=%f\n", procdata[nn][pid].cpu);
+			}
 			break;
 		case 10:
-			strncpy(procdata[nn][pid].command, p, 30);
-			for (i=0; i < 30; i++)
-				if (procdata[nn][pid].command[i] == '\n')
-					procdata[nn][pid].command[i] = '\0';
-			DPRINTF("comm=%s\n", procdata[nn][pid].command);
+			if (topmode != TOP_PROCPS) {
+				strncpy(procdata[nn][pid].command, p, 30);
+				for (i=0; i < 30; i++)
+					if (procdata[nn][pid].command[i] == '\n')
+						procdata[nn][pid].command[i] = '\0';
+				DPRINTF("comm=%s\n", procdata[nn][pid].command);
+			}
+			break;
+		case 12:
+			if (topmode == TOP_PROCPS) {
+				strncpy(procdata[nn][pid].command, p, 30);
+				for (i=0; i < 30; i++)
+					if (procdata[nn][pid].command[i] == '\n')
+						procdata[nn][pid].command[i] = '\0';
+				DPRINTF("comm=%s\n", procdata[nn][pid].command);
+			}
 			break;
 		default:
 			break;
@@ -404,14 +494,23 @@ parse_pid(char *c, node_t *node, int nn, int pid)
 int
 parse_top(char *cd, node_t *node, int nn, int pid)
 {
-	char *c;
+	char *c, *d;
 	int ret;
 
 	ret = 0;
 	c = cd;
 	DPRINTF("enter pzarse_top for %d %s\n", nn, node->name);
+	DPRINTF("LINE %s\n", cd);
 	while (c != NULL) {
-		if (strstr(c, "load averages") != NULL) {
+		if (strstr(c, "load average:") != NULL) {
+			topmode = TOP_PROCPS;
+			d = strstr(c, "load average:");
+			nodedata[nn].node = node;
+			sscanf(d, "load average: %f, %f, %f",
+			    &nodedata[nn].load1, &nodedata[nn].load5,
+			    &nodedata[nn].load15);
+			DPRINTF("parse_top: Xfloats %f %f %f\n",nodedata[nn].load1,nodedata[nn].load5,nodedata[nn].load15 );
+		} else if (strstr(c, "load averages") != NULL) {
 			nodedata[nn].node = node;
 			sscanf(c, "load averages: %f, %f, %f", &nodedata[nn].load1,
 			    &nodedata[nn].load5, &nodedata[nn].load15);
@@ -428,9 +527,18 @@ parse_top(char *cd, node_t *node, int nn, int pid)
 			}
 		} else if (strstr(c, "Memory:") != NULL) {
 			parse_mem(c, &nodedata[nn], 0);
+		} else if (strstr(c, "inactive") != NULL) {
+			c[0] = ':';
+			parse_mem(c, &nodedata[nn], 0);
+		} else if (strstr(c, "Mem:") != NULL) {
+			parse_mem(c, &nodedata[nn], 0);
 		} else if (strstr(c, "Swap:") != NULL) {
 			parse_mem(c, &nodedata[nn], 1);
 		} else if (strstr(c, "  PID") != NULL) {
+			if (strstr(c, " THR ") != NULL)
+				topmode = TOP_NORMAL_THR;
+			/* ignore this line */
+		} else if (c[0] == '\n') {
 			; /* ignore this line */
 		} else if (isdigit(c[4])) {
 			parse_pid(c, node, nn, pid);
@@ -549,6 +657,7 @@ print_pid(char *obuf, int idx)
 {
 	int i;
 	char buf[8], xbuf[80];
+	const char *die = "";
 	
 	if (sortedprocs[idx]->node == NULL)
 		return;
@@ -557,7 +666,7 @@ print_pid(char *obuf, int idx)
 	strcat(obuf, xbuf);
 	sprintf(xbuf, " %8s", sortedprocs[idx]->username);
 	strcat(obuf, xbuf);
-	i = humanize_number(buf, 6, sortedprocs[idx]->size, "", HN_AUTOSCALE,
+	i = humanize_number(buf, 6, sortedprocs[idx]->size, die, HN_AUTOSCALE,
 	    HN_NOSPACE|HN_DECIMAL);
 	if (i == -1)
 		sprintf(xbuf, " UNK");
@@ -668,6 +777,7 @@ batch_print(int tprocs, int tnodes)
 	default:		
 		printf("%*s %6s %8s %6s %6s %6s %s\n", maxnodelen, "HOSTNAME",
 		    "PID", "USERNAME", "SIZE", "RES", "CPU", "COMMAND");
+		printf("tprocs==%d showprocs==%d\n", tprocs, showprocs);
 		for (i=0; i < tprocs && i < showprocs; i++) {
 			print_pid(buf, i);
 			printf("%s\n", buf);
@@ -733,7 +843,8 @@ curses_setup(void)
 
 	if (debug)
 		return;
-	if (initscr() == NULL) {
+	stdscr = initscr();
+	if (stdscr == NULL) {
 		fprintf(stderr, "Could not initialize curses\n");
 		bailout();
 	}
@@ -1092,6 +1203,7 @@ do_command(int fanout, char *username)
 	    i = 0;
 	    DPRINTF("tnodes=%d\n", tnodes);
 	    for (k=0; k < tnodes; k++) {
+		    DPRINTF("node %d procs==%d\n", k, nodedata[k].procs);
 		    for (l=0; l < nodedata[k].procs; l++) {
 			    if (procdata[k][l].node != NULL &&
 				strcmp(procdata[k][l].command, "")) {
@@ -1102,23 +1214,25 @@ do_command(int fanout, char *username)
 		    }
 	    }
 	    qsort(sortedprocs, i, sizeof(procdata_t *), compare_proc);
+#if 0
 	    for (k=0; k < i; k++)
 		    DPRINTF("node=%s, pid=%d, cpu=%f\n",
 			sortedprocs[k]->node->name, sortedprocs[k]->pid,
 			sortedprocs[k]->cpu);
-	    if (!batchflag) {
+#endif
+	    if (!batchflag && !debug) {
 		    curses_print(i, tnodes);
 		    curses_getkey();
 	    }
 	} /* for n */
 	DPRINTF("fanout done\n");
-	if (batchflag == 1) {
+	if (batchflag == 1 || debug) {
 		batch_print(i, tnodes);
 		exitflag = 1;
 	}
     } /* while loop */
 out:
-    if (!batchflag) {
+    if (!batchflag && !debug) {
 	    move(LINES, 0);
 	    endwin();
     }
