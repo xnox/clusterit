@@ -1,4 +1,4 @@
-/* $Id: dsh.c,v 1.38 2007/04/02 18:57:05 garbled Exp $ */
+/* $Id: dsh.c,v 1.39 2007/07/03 18:33:37 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -48,7 +48,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dsh.c,v 1.38 2007/04/02 18:57:05 garbled Exp $");
+__RCSID("$Id: dsh.c,v 1.39 2007/07/03 18:33:37 garbled Exp $");
 #endif /* not lint */
 
 void do_command(char **argv, int fanout, char *username);
@@ -213,8 +213,11 @@ main(int argc, char *argv[])
 	bailout();
     if (limit.rlim_cur < fanout * 5) {
 	limit.rlim_cur = fanout * 5;
-	if (setrlimit(RLIMIT_NOFILE, &limit) != 0)
+	if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
+	    fprintf(stderr, "setrlimit failed, increase max open files"
+	        " as root, or lower fanout setting.\n");
 	    bailout();
+	}
     }
 
     do_command(argv, fanout, username);

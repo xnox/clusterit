@@ -1,4 +1,4 @@
-.\"	$Id: pcp.1,v 1.17 2007/01/11 20:19:21 garbled Exp $
+.\"	$Id: pcp.1,v 1.18 2007/07/03 18:33:37 garbled Exp $
 .\"
 .\" Copyright (c) 1998, 1999, 2000
 .\"	Tim Rightnour.  All rights reserved.
@@ -39,7 +39,7 @@
 .Nd copy a file to a cluster of machines
 .Sh SYNOPSIS
 .Nm
-.Op Fl ceprtv
+.Op Fl bceprtv
 .Op Fl f Ar fanout
 .Op Fl g Ar rungroup1,...,rungroupN
 .Op Fl o Ar porttimeout
@@ -59,6 +59,14 @@ the environment setting
 .
 The following options are available:
 .Bl -tag -width www
+.It Fl b
+This flag causes
+.Nm
+to copy files in reverse, or backwards.  Instead of copying a single file
+from a single machine, out to the list of target machines, the command will
+copy a file from all target machines, to the local machine, and name it
+file.nodename.  This can be used to gather configuration files from a group
+of machines and store them locally.
 .It Fl c
 Normally 
 .Nm 
@@ -255,6 +263,19 @@ on the machines
 .Sq hadar
 and
 .Sq rigel .
+.Pp
+.Pp
+The command:
+.Pp
+pcp -bw hadar,rigel /etc/passwd hello
+.Pp
+will copy the file
+.Sq /etc/passwd
+from both hadar and rigel, and name it
+.Sq hello.hadar
+and
+.Sq hello.rigel
+in the current working directory.
 .Pp
 .Pp
 .Sh DIAGNOSTICS

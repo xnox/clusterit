@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.27 2007/04/02 19:05:44 garbled Exp $ */
+/* $Id: pcp.c,v 1.28 2007/07/03 18:33:37 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -45,7 +45,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.27 2007/04/02 19:05:44 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.28 2007/07/03 18:33:37 garbled Exp $");
 #endif
 
 extern int errno;
@@ -55,12 +55,14 @@ void paralell_copy(char *rcp, int nrof, char *username, char *source_file,
     char *destination_file);
 void serial_copy(char *rcp, char *username, char *source_file,
     char *destination_file);
+void reverse_copy(char *rcp, char *username, char *source_file,
+    char *destination_file);
 
 char **lumplist;
 char **rungroup;
 char *progname;
 int fanout, concurrent, quiet, debug, grouping, exclusion, nrofrungroups;
-int testflag, rshport, porttimeout;
+int testflag, rshport, porttimeout, bflag;
 node_t *nodelink;
 group_t *grouplist;
 volatile sig_atomic_t alarmtime;
@@ -94,6 +96,7 @@ main(int argc, char **argv)
     nrofrungroups = 0;
     testflag = 0;
     rshport = 0;
+    bflag = 0;
     porttimeout = 5; /* 5 seconds to port timeout */
     username = NULL;
     group = NULL;
@@ -108,11 +111,14 @@ main(int argc, char **argv)
     progname = strdup(basename(argv[0]));
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?cdeprtvf:g:l:n:o:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?bcdeprtvf:g:l:n:o:w:x:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?cdeprtvf:g:l:n:o:w:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?bcdeprtvf:g:l:n:o:w:x:")) != -1)
 #endif
 	switch (ch) {
+	case 'b':               /* set reverse/backwards mode */
+	   bflag = 1;
+	   break;
 	case 'c':		/* set concurrent mode */
 	    concurrent = 1;
 	    break;
@@ -225,7 +231,7 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
 	    j++;
 	}
     }
-    if (*argv == (char *) NULL) {
+    if (*argv == (char *)NULL) {
 	(void)fprintf(stderr, "Must specify at least one file to copy\n");
 	exit(EXIT_FAILURE);
     }
@@ -258,6 +264,16 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
     else
 	destination_file = strdup(tempstore);
 
+    if (bflag && numsource > 2) {
+	fprintf(stderr, "Can only specify one file for reverse copy\n");
+	bailout();
+    }
+
+    if (bflag && numsource == 1) {
+	    free(destination_file);
+	    destination_file = strdup(".");
+    }
+    
     if (debug)
 	printf("\nDo Copy: %s %s\n", source_file, destination_file);
 
@@ -272,8 +288,10 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
 	    strcat(rcpstring, " -p ");
 	    nrofargs++;
     }
-        
-    if (concurrent)
+
+    if (bflag)
+	    reverse_copy(rcpstring, username, source_file, destination_file);
+    else if (concurrent)
 	    paralell_copy(rcpstring, nrofargs + numsource, username,
 		source_file, destination_file);
     else
@@ -501,6 +519,69 @@ serial_copy(char *rcp, char *username, char *source_file,
 		else
 			(void)snprintf(command, rcplen, "%s %s %s:%s", rcp,
 			    source_file, nodeptr->name, destination_file);
+		if (debug)
+			printf("Running command: %s\n", command);
+		system(command);
+	}
+	free(command);
+}
+
+/* Reverse copy */
+
+void
+reverse_copy(char *rcp, char *username, char *source_file,
+	    char *destination_file)
+{
+	node_t *nodeptr;
+	char *command, *bname;
+	struct stat st;
+	size_t maxnodelen, rcplen;
+	int isdir=0;
+
+	maxnodelen = 0;
+
+	for (nodeptr = nodelink; nodeptr; nodeptr = nodeptr->next) {
+		if (strlen(nodeptr->name) > maxnodelen)
+			maxnodelen = strlen(nodeptr->name);
+	}
+
+	if (stat(destination_file, &st) == 0)
+		if (st.st_mode && S_IFDIR)
+			isdir = 1;
+
+	bname = basename(source_file);
+	
+	if (username)
+		rcplen = strlen(username) + 128;
+	else
+		rcplen = 128;
+	rcplen += strlen(source_file) + strlen(rcp) + maxnodelen +
+	    maxnodelen + strlen(destination_file);
+	command = calloc(rcplen, sizeof(char));
+	if (command == NULL)
+		bailout();
+    
+	for (nodeptr=nodelink; nodeptr != NULL; nodeptr = nodeptr->next) {
+		if (testflag && rshport > 0 && porttimeout > 0)
+			if (!test_node_connection(rshport, porttimeout,
+				nodeptr))
+			    continue;
+		if (isdir && username != NULL)
+			(void)snprintf(command, rcplen, "%s %s@%s:%s %s/%s.%s",
+			    rcp, username, nodeptr->name, source_file,
+			    destination_file, bname, nodeptr->name);
+		else if (!isdir && username != NULL)
+			(void)snprintf(command, rcplen, "%s %s@%s:%s %s.%s",
+			    rcp, username, nodeptr->name, source_file,
+			    destination_file, nodeptr->name);
+		else if (isdir)
+			(void)snprintf(command, rcplen, "%s %s:%s %s/%s.%s",
+			    rcp, nodeptr->name, source_file, destination_file,
+			    bname, nodeptr->name);
+		else
+			(void)snprintf(command, rcplen, "%s %s:%s %s.%s", rcp,
+			    nodeptr->name, source_file, destination_file,
+			    nodeptr->name);
 		if (debug)
 			printf("Running command: %s\n", command);
 		system(command);

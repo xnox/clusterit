@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.14 2007/02/13 17:46:55 garbled Exp $ */
+/* $Id: dvt.c,v 1.15 2007/07/03 18:33:37 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -57,7 +57,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.14 2007/02/13 17:46:55 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.15 2007/07/03 18:33:37 garbled Exp $");
 #endif /* not lint */
 
 void do_command(int fanout, char *username);
@@ -206,8 +206,11 @@ main(int argc, char **argv)
 	bailout();
     if (limit.rlim_cur < fanout * 5) {
 	limit.rlim_cur = fanout * 5;
-	if (setrlimit(RLIMIT_NOFILE, &limit) != 0)
+	if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
+	    fprintf(stderr, "setrlimit failed, increase max open files"
+	        " as root, or lower fanout setting.\n");
 	    bailout();
+	}
     }
 
     setup_xlib();
