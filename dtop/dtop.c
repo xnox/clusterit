@@ -1,4 +1,4 @@
-/* $Id: dtop.c,v 1.2 2007/07/02 17:30:28 garbled Exp $ */
+/* $Id: dtop.c,v 1.3 2007/07/23 19:03:20 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000, 2007
  *	Tim Rightnour.  All rights reserved.
@@ -49,7 +49,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dtop.c,v 1.2 2007/07/02 17:30:28 garbled Exp $");
+__RCSID("$Id: dtop.c,v 1.3 2007/07/23 19:03:20 garbled Exp $");
 #endif /* not lint */
 
 #define DPRINTF if (debug) printf
@@ -162,9 +162,9 @@ main(int argc, char *argv[])
     progname = strdup(basename(argv[0]));
 
 #if defined(__linux__)
-    while ((ch = getopt(argc, argv, "+?bdiqtf:g:l:m:o:p:s:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "+?bdqti:f:g:l:m:o:p:s:vw:x:")) != -1)
 #else
-    while ((ch = getopt(argc, argv, "?bdiqtf:g:l:m:o:p:s:vw:x:")) != -1)
+    while ((ch = getopt(argc, argv, "?bdqti:f:g:l:m:o:p:s:vw:x:")) != -1)
 #endif
 	switch (ch) {
 	case 'b':
@@ -174,7 +174,7 @@ main(int argc, char *argv[])
 	    debug = 1;
 	    break;
 	case 'i':		/* interval between node reads */
-	    interval = 1;
+	    interval = atoi(optarg);
 	    break;
 	case 'l':		/* invoke me as some other user */
 	    username = strdup(optarg);
@@ -223,10 +223,10 @@ main(int argc, char *argv[])
 	    break;
 	case '?':		/* you blew it */
 	    (void)fprintf(stderr,
-	        "usage:\n%s [-iqtv] [-f fanout] [-p portnum] [-o timeout] "
+	        "usage:\n%s [-bqtv] [-f fanout] [-p portnum] [-o timeout] "
 		"[-g rungroup1,...,rungroupN]\n"
-		"    [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN]\n"
-		, progname);
+		"     [-l username] [-x node1,...,nodeN] [-w node1,..,nodeN]"
+		" [-m proc|load] [-i interval]\n", progname);
 	    return(EXIT_FAILURE);
 	    /*NOTREACHED*/
 	    break;
@@ -820,8 +820,7 @@ curses_help(void)
 	move(1, 0);
 	printw("  p : Switch to proc view, sorted by CPU\n");
 	printw("  m : Switch to proc view, sorted by MEM\n");
-	printw("  l : Switch to load view, sorted by node\n");
-	printw("  h : Switch to load view, sorted by HOSTNAME\n");
+	printw("  l : Switch to load view, sorted by HOSTNAME\n");
 	printw("  v : Switch to load view, sorted by loadavg\n");
 	printw("  a : Switch to load view, sorted by active\n");
 	printw("  i : Switch to load view, sorted by inact\n");
@@ -908,7 +907,7 @@ curses_getkey(void)
 		break;
 	case 'l':
 		displaymode = DISPLAY_LOAD;
-		sortmethod = SORT_CPU;
+		sortmethod = SORT_HOSTNAME;
 		break;
 	case 'h':
 		displaymode = DISPLAY_LOAD;

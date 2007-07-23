@@ -1,0 +1,328 @@
+.\" $Id: dtop.1,v 1.2 2007/07/23 19:03:20 garbled Exp $
+.\" Copyright (c) 2007
+.\"	Tim Rightnour.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by Tim Rightnour.
+.\" 4. The name of Tim Rightnour may not be used to endorse or promote 
+.\"    products derived from this software without specific prior written 
+.\"    permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY TIM RIGHTNOUR ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL TIM RIGHTNOUR BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" The following requests are required for all man pages.
+.Dd July 23, 2007
+.Dt DTOP 1
+.Sh NAME
+.Nm dtop
+.Nd display and update information about processes on a cluster of machines
+.Sh SYNOPSIS
+.Nm
+.Op Fl bqtv
+.Op Fl f Ar fanout
+.Op Fl g Ar rungroup1,...,rungroupN
+.Op Fl l Ar username
+.Op Fl o Ar porttimeout
+.Op Fl p Ar portnum
+.Op Fl w Ar node1,...,nodeN
+.Op Fl x Ar node1,...,nodeN
+.Op Fl m Ar proc | load
+.Op Fl i Ar interval
+.Op Ar command ...
+.Sh DESCRIPTION
+The 
+.Nm
+command can be used to remotely monitor a cluster of machines for CPU and
+process information.  It provides the same information as the top program,
+but rather than showing it just for one machine, it gathers the information
+from a cluster of machines, and sorts it all together into a single,
+periodically updating report.
+The following options are available:
+.Bl -tag -width www
+.It Fl b
+The
+.Fl b
+flag causes
+.Nm
+to run one iteration on each node, and print out a single report of the
+processes running on those nodes, rather than continuously updating.
+.It Fl m
+The
+.Fl m
+option determines if the output is process output, or load average output.
+Load average output gives the load average, and memory usage statistics for the
+machines being monitored.  Process output gives a list of processes on each
+machine, sorted by cpu usage.  The default mode is proc.
+.It Fl i
+The
+.Fl i
+flag selects the interval of time between the update of each nodes process
+or load information.  It is not wise to set this value too low, otherwise
+you may produce uneccesary load on the target hosts.  The interval is specified
+in seconds.
+.It Fl f
+If the
+.Fl f
+option is specified, followed by a number, it sets the fanout size of the 
+cluster.  The fanout size is the number of nodes a command will run on in 
+parallel at one time.  Thus a 80 node cluster, with a fanout size of 64, 
+would run 64 nodes in parallel, then, when all have finished, it would 
+execute the command on the last 16 nodes.  The fanout size defaults to 64. 
+This option overrides the
+.Ev FANOUT
+environment variable.
+.It Fl g
+If the
+.Fl g
+option is specified, followed by a comma separated list of group names, the 
+command will only be run on that group of nodes.  A node may be a part of 
+more than one group if desired, however running without the
+.Fl g
+option will run the command on the same node as many times as it appears in the
+file specified by the
+.Ev CLUSTER
+environment variable.  This option is silently ignored if used with the
+.Fl w
+option.
+.It Fl l
+If the
+.Fl l
+option is specified, followed by a username, the commands will be run under 
+that userid on the remote machines.  Consideration must be taken for proper 
+authentication, for this to work.
+.It Fl o
+The
+.Fl o
+option is used to set the timeout in seconds to be used when testing remote
+connections.  The default is five seconds.
+.It Fl p
+The
+.Fl p
+option can be used to set the port number that testing should occur on when
+testing remote connections.  The default behavior is to guess based on the
+remote command name.
+.It Fl q
+The
+.Fl q
+option does not issue any commands, but displays information about the 
+cluster, and the fanout groupings.
+.It Fl t
+The
+.Fl t
+option causes
+.Nm
+to attempt a connection test to each node prior to attempting to run the
+remote command.  If the test fails for any reason, the remote command will
+not be attempted.  This can be useful when clusterfiles have suffered bitrot
+and some nodes no longer exist, or might be down for maintenance.  The default
+timeout is 5 seconds.  The timeout can be changed with the
+.Fl o
+option.
+.Nm
+will attempt to guess the port number of the remote service based on your
+.Ev RCMD_CMD
+setting.  It knows about ssh and rsh.  If
+.Nm
+fails to guess your port correctly, you may use the
+.Fl p
+argument to set the remote port number.  If the
+.Ev RCMD_TEST
+environment variable exists, the testing will automatically take place.
+.It Fl v
+Prints the version of ClusterIt to the stdout, and exits.
+.It Fl w
+If the
+.Fl w
+option is specified, followed by a comma delimited list of machine names,
+the
+.Ar command
+will be run on each node in the list.  Without this option,
+.Nm
+runs on the nodes listed in the file pointed to by the
+.Ev CLUSTER
+environment variable.
+.It Fl x
+The
+.Fl x
+option can be used to exclude specific nodes from the cluster.  The format 
+is the same as the
+.Fl w
+option, a comma delimited list of machine names.  This option is silently 
+ignored if used with the
+.Fl w
+option.
+.El
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+.Bl -tag -width "RCMD_TEST_TIMEOUT"
+.It Ev CLUSTER
+Contains a filename, which is a newline separated list of nodes
+in the cluster.
+.It Ev RCMD_CMD
+Command to use to connect to remote machines.  The command chosen must
+be able to connect with no password to the remote host.  Defaults to
+.Ic rsh
+.It Ev RCMD_CMD_ARGS
+Arguments to pass to the remote shell command.  Defaults to none.
+.It Ev RCMD_PORT
+The port number used to test remote connections.  See the
+.Fl p
+flag.
+.It Ev RCMD_TEST
+When set,
+.Nm
+will automatically test all hosts before launching the remote command. See the
+.Fl t
+option for more information.
+.It Ev RCMD_TEST_TIMEOUT
+The timeout in seconds to use when testing for remote connections.
+.It Ev RCMD_USER
+The username to connect to remote machines as by default.
+.It Ev FANOUT
+When set, limits the maximum number of concurrent commands sent at once.  
+This can be used to keep from overloading a small host when sending out 
+commands in parallel.  Defaults to 64.  This environment setting can be 
+overridden by the
+.Fl f
+option.
+.El
+.Sh INTERACTIVE MODE
+When
+.Nm
+is running in interactive mode, it reads commands from the terminal and acts
+upon them accordingly.  During interactive mode, every few seconds, depending
+on the interval,
+.Nm
+will query the next few hosts in the cluster, and merge the data from those
+hosts into the display.  The number of hosts updated each interval, is
+determined by the fanout setting.
+.Pp
+Certain characters cause immediate action by
+.Nm .
+These are
+.Bl -tag -width Fl
+.It Ic \&p
+Switch the mode to the process mode, sorted by the CPU usage of each process.
+.It Ic \&m
+Switch the mode to the process mode, sorted by the memory usage of each
+process.
+.It Ic \&l
+Switch the mode to the load average mode, sorted by hostname.
+.It Ic \&v
+Switch the mode to the load average mode, sorted by load average.
+.It Ic \&a
+Switch the mode to the load average mode, sorted by active memory.
+.It Ic \&i
+Switch the mode to the load average mode, sorted by inactive memory.
+.It Ic \&r
+Switch the mode to the load average mode, sorted by file cache/buffer memory.
+.It Ic \&f
+Switch the mode to the load average mode, sorted by free memory.
+.It Ic \&s
+Switch the mode to the load average mode, sorted by swap used.
+.It Ic \&?
+Display the interactive help menu.
+.It Ic \&q
+Quit
+.Nm
+.El
+.Sh FILES
+The file pointed to by the
+.Ev CLUSTER
+environment variable has the following format:
+.Bd -literal -offset indent
+pollux
+castor
+GROUP:alpha
+rigel
+kent
+GROUP:sparc
+alshain
+altair
+LUMP:alphasparc
+alpha
+sparc
+.Ed
+.Pp
+This example would have pollux and castor a member of no groups, rigel and
+kent a member of group 'alpha', and alshain and altair a member of group 
+.Sq sparc .
+Note the format of the GROUP command, it is in all capital letters, followed
+by a colon, and the group name.  There can be no spaces following the GROUP
+command, or in the name of the group.
+.Pp
+There is also a LUMP command, which is identical in syntax to the GROUP
+command.  This command allows you to create a named group of groups.  Each
+member of the lump is the name of a group.  The LUMP command is terminated
+by another LUMP or GROUP command, or the EOF marker.
+.Pp
+Any line beginning with a
+.Sq #
+symbol denotes a comment field, and the entire line will be ignored.
+Note that a hash mark placed anywhere other than the first character
+of a line, will be considered part of a valid hostname or command.
+.Sh SEE ALSO
+.Xr dsh 1 ,
+.Xr ssh 1 ,
+.Xr top 1
+.Sh HISTORY
+The
+.Nm
+command appeared in clusterit 2.5.
+Work on
+.Nm
+was made possible by a generous donation from Mach1 Computing, LLC.
+.Sh AUTHOR
+.Nm
+was written by Tim Rightnour.
+.Sh BUGS
+Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
+that
+.Nm
+will fail on a fanout size greater than about 32-40 nodes.
+.Pp
+.Nm
+uses the top command in batch mode to collect data from remote machines.
+Because of this, the top command must exist on the remote node, and
+additionally,
+.Nm
+must understand it's output.
+.Nm
+should be able to understand output from top on NetBSD, Solaris, and Linux,
+however, it is possible that if the format were to change, or be different,
+it would break.  If
+.Nm
+fails to work for you, please send the output of:
+.Bd -literal -offset indent
+top -Sb 20
+.Ed
+or
+.Bd -literal -offset indent
+top -bn 1
+.Ed
+.Pp
+to root@garbled.net, or file a bug report on sourceforge.
+.Pp
+.Nm
+is still rather new, and is likely to still have a few display bugs and
+parsing issues.
