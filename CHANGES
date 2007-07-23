@@ -1,4 +1,26 @@
-$Id: CHANGES,v 1.18 2007/01/04 18:59:06 garbled Exp $
+$Id: CHANGES,v 1.19 2007/07/23 19:37:18 garbled Exp $
+
+Add -b option to pcp.  This adds the ability to reverse the operation of pcp
+and use it to gather files from remote machines, rather than push to them.
+
+Add -t (test) option to all the utilities.  This allows the user to perform
+a quick port-is-active test on each node, before attempting to run the remote
+commands on those nodes.
+
+Switch the default RCMD's from rsh to ssh by popular demand.
+
+Change the RCMD_CMD and similar settings parsing to allow the user to set
+RCMD_CMD to something like "ssh -v" and have it work properly.
+
+Fix dsh interactive mode on linux.
+
+Fix timeout handling on linux, and fix the bug where -x didn't work if there
+were no groups present in the clusterfile.
+
+Run all of clusterit through coverity until all bugs were fixed (mostly memory
+leaks)
+
+Add dtop, a distributed top command.
 
 Add -s option to dsh.  This adds the ability to copy a script to a remote
 machine, execute it, and delete it, all in a single operation.
