@@ -1,4 +1,4 @@
-SUBDIR=	dsh pcp barrier jsd rvt dvt tools
+SUBDIR=	dsh pcp barrier jsd rvt dvt tools dtop
 
 htmlmans:
 	for dir in ${SUBDIR} ; do \

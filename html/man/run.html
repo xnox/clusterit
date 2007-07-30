@@ -1,7 +1,7 @@
 <html>
 <head>
         <title>
-                 May 5, 1999 RUN 1
+                 January 10, 2007 RUN 1
 
         </title>
         <style type="text/css">
@@ -25,9 +25,11 @@
         SYNOPSIS
         </h3>
 <b>run</b>
-[<b>-</b><b></b><b>aeiqv</b>]
+[<b>-</b><b></b><b>aeiqtv</b>]
 [<b>-</b><b></b><b>g</b><i></i><i> rungroup1,...,rungroupN</i>]
 [<b>-</b><b></b><b>l</b><i></i><i> username</i>]
+[<b>-</b><b></b><b>o</b><i></i><i> porttimeout</i>]
+[<b>-</b><b></b><b>p</b><i></i><i> portnum</i>]
 [<b>-</b><b></b><b>w</b><i></i><i> node1,...,nodeN</i>]
 [<b>-</b><b></b><b>x</b><i></i><i> node1,...,nodeN</i>]
 [<i></i><i>command</i><i> ...</i>]
@@ -86,6 +88,39 @@ If the
 option is specified, followed by a username, the commands will be run
 under that userid on the remote machines.  Consideration must be taken
 for proper authentication, for this to work.
+<p><dt><b>-</b><b></b><b>o</b><dd>
+The
+<b>-</b><b></b><b>o</b>
+option is used to set the timeout in seconds to be used when testing remote
+connections.  The default is five seconds.
+<p><dt><b>-</b><b></b><b>p</b><dd>
+The
+<b>-</b><b></b><b>p</b>
+option can be used to set the port number that testing should occur on when
+testing remote connections.  The default behavior is to guess based on the
+remote command name.
+<p><dt><b>-</b><b></b><b>t</b><dd>
+The
+<b>-</b><b></b><b>t</b>
+option causes
+<b>run</b>
+to attempt a connection test to each node prior to attempting to run the
+remote command.  If the test fails for any reason, the remote command will
+not be attempted.  This can be useful when clusterfiles have suffered bitrot
+and some nodes no longer exist, or might be down for maintenance.  The default
+timeout is 5 seconds.  The timeout can be changed with the
+<b>-</b><b></b><b>o</b>
+option.
+<b>run</b>
+will attempt to guess the port number of the remote service based on your
+<code></code><code>RCMD_CMD</code>
+setting.  It knows about ssh and rsh.  If
+<b>run</b>
+fails to guess your port correctly, you may use the
+<b>-</b><b></b><b>p</b>
+argument to set the remote port number.  If the
+<code></code><code>RCMD_TEST</code>
+environment variable exists, the testing will automatically take place.
 <p><dt><b>-</b><b></b><b>w</b><dd>
 If the
 <b>-</b><b></b><b>w</b>
@@ -126,6 +161,18 @@ be able to connect with no password to the remote host.  Defaults to
 Arguments to pass to the remote shell command.  Defaults to none.
 <p><dt><code></code><code>RCMD_USER</code><dd>
 The username to connect to remote machines as by default.
+<p><dt><code></code><code>RCMD_PORT</code><dd>
+The port number used to test remote connections.  See the
+<b>-</b><b></b><b>p</b>
+flag.
+<p><dt><code></code><code>RCMD_TEST</code><dd>
+When set,
+<b>run</b>
+will automatically test all hosts before launching the remote command. See the
+<b>-</b><b></b><b>t</b>
+option for more information.
+<p><dt><code></code><code>RCMD_TEST_TIMEOUT</code><dd>
+The timeout in seconds to use when testing for remote connections.
 </dl>
         <h3>
         DIAGNOSTICS
@@ -151,6 +198,7 @@ command appeared in clusterit 1.1.
         </h3>
 <b>Run</b>
 was written by Tim Rightnour.
-</font></body>
+</body>
 </html>
+
 
