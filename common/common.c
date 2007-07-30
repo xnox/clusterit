@@ -1,4 +1,4 @@
-/* $Id: common.c,v 1.35 2007/04/03 17:44:23 garbled Exp $ */
+/* $Id: common.c,v 1.36 2007/07/30 16:49:04 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -42,7 +42,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: common.c,v 1.35 2007/04/03 17:44:23 garbled Exp $");
+__RCSID("$Id: common.c,v 1.36 2007/07/30 16:49:04 garbled Exp $");
 #endif
 
 char *version = "ClusterIt Version 2.4.1_BETA";
@@ -432,6 +432,9 @@ test_node_connection(int rshport, int timeout, node_t *nodeptr)
     struct hostent *hostinfo;
     struct itimerval timer;
     struct sigaction signaler;
+#ifdef __linux__
+    struct sigaction old;
+#endif
     
     /* test if the port exists and is serviceable */
     sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -456,6 +459,12 @@ test_node_connection(int rshport, int timeout, node_t *nodeptr)
     signaler.sa_handler = alarm_handler;
     signaler.sa_flags = SA_RESTART;
     sigaction(SIGALRM, &signaler, NULL);
+#ifdef __linux__
+    sigaction(SIGALRM, NULL, &old);
+    memcpy(&signaler, &old, sizeof(struct sigaction));
+    signaler.sa_flags &= ~SA_RESTART;
+    sigaction(SIGALRM, &signaler, &old);
+#endif
     setitimer(ITIMER_REAL, &timer, NULL);
     if (connect(sock, (struct sockaddr *)&name,	sizeof(name)) != 0) {
 	if (alarmtime)

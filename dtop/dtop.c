@@ -1,4 +1,4 @@
-/* $Id: dtop.c,v 1.3 2007/07/23 19:03:20 garbled Exp $ */
+/* $Id: dtop.c,v 1.4 2007/07/30 16:49:05 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000, 2007
  *	Tim Rightnour.  All rights reserved.
@@ -49,7 +49,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dtop.c,v 1.3 2007/07/23 19:03:20 garbled Exp $");
+__RCSID("$Id: dtop.c,v 1.4 2007/07/30 16:49:05 garbled Exp $");
 #endif /* not lint */
 
 #define DPRINTF if (debug) printf
@@ -1161,18 +1161,26 @@ do_command(int fanout, char *username)
 		    if ((fds[0].revents&POLLIN) == POLLIN ||
 			(fds[0].revents&POLLHUP) == POLLHUP ||
 		        (fds[0].revents&POLLPRI) == POLLPRI) {
+#ifdef __linux__
+			cd = fgets(pipebuf, sizeof(pipebuf), fda);
+			if (cd != NULL) {
+#else
 			while ((cd = fgets(pipebuf, sizeof(pipebuf), fda))) {
+#endif
 				pid += parse_top(cd, nodeptr,
 				    n*fanout + i, pid);
-				/*(void)printf("%*s: %s", -maxnodelen,
-				  nodeptr->name, cd);*/
 			    gotdata++;
 			}
 		    }
 		    if ((fds[1].revents&POLLIN) == POLLIN ||
-			(fds[0].revents&POLLHUP) == POLLHUP ||
+			(fds[1].revents&POLLHUP) == POLLHUP ||
 			(fds[1].revents&POLLPRI) == POLLPRI) {
+#ifdef __linux__
+			cd = fgets(pipebuf, sizeof(pipebuf), fd);
+			if (cd != NULL) {
+#else
 			while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
+#endif
 			    gotdata++;
 			}
 		    }

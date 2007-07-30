@@ -1,4 +1,4 @@
-/* $Id: rseq.c,v 1.29 2007/04/02 18:57:05 garbled Exp $ */
+/* $Id: rseq.c,v 1.30 2007/07/30 16:49:05 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -44,7 +44,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: rseq.c,v 1.29 2007/04/02 18:57:05 garbled Exp $");
+__RCSID("$Id: rseq.c,v 1.30 2007/07/30 16:49:05 garbled Exp $");
 #endif
 
 /* externs */
@@ -404,7 +404,12 @@ do_command(char **argv, int allrun, char *username)
 	    if ((fds[0].revents&POLLIN) == POLLIN ||
 		(fds[0].revents&POLLHUP) == POLLHUP ||
 		(fds[0].revents&POLLPRI) == POLLPRI) {
+#ifdef __linux__
+		cd = fgets(pipebuf, sizeof(pipebuf), fda);
+		if (cd != NULL) {
+#else
 		while ((cd = fgets(pipebuf, sizeof(pipebuf), fda))) {
+#endif
 		    (void)printf("%*s: %s", -maxnodelen,
 			nodeptr->name, cd);
 		    gotdata++;
@@ -413,7 +418,12 @@ do_command(char **argv, int allrun, char *username)
 	    if ((fds[1].revents&POLLIN) == POLLIN ||
 		(fds[1].revents&POLLHUP) == POLLHUP ||
 		(fds[1].revents&POLLPRI) == POLLPRI) {
+#ifdef __linux__
+		cd = fgets(pipebuf, sizeof(pipebuf), fd);
+		if (cd != NULL) {
+#else
 		while ((cd = fgets(pipebuf, sizeof(pipebuf), fd))) {
+#endif
 		    if (errorflag) 
 			(void)printf("%*s: %s", -maxnodelen,
 			    nodeptr->name, cd);
