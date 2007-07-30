@@ -1,7 +1,7 @@
 RVT(1)                  NetBSD General Commands Manual                  RVT(1)
 
 NNAAMMEE
-     rrvvtt - a specialized VT100 emulator for the X window system
+     rrvvtt -- a specialized VT100 emulator for the X window system
 
 SSYYNNOOPPSSIISS
      rrvvtt [--vv] [--ll _u_s_e_r_n_a_m_e] [--ddiissppllaayy _d_i_s_p_l_a_y_-_n_a_m_e]
@@ -235,4 +235,4 @@ AAUUTTHHOORR
 BBUUGGSS
      Pasting very large quantities of text does not work.
 
-NetBSD 2.0                      January 7, 2001                     NetBSD 2.0
+NetBSD 4.0_BETA2                January 7, 2001               NetBSD 4.0_BETA2

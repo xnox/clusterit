@@ -1,7 +1,7 @@
 CLUSTERSED(1)           NetBSD General Commands Manual           CLUSTERSED(1)
 
 NNAAMMEE
-     cclluusstteerrsseedd - quickly dissect cluster files
+     cclluusstteerrsseedd -- quickly dissect cluster files
 
 SSYYNNOOPPSSIISS
      cclluusstteerrsseedd _c_l_u_s_t_e_r_f_i_l_e|- _s_t_r_i_n_g_1 _._._. _s_t_r_i_n_g_n
@@ -48,4 +48,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      CClluusstteerrsseedd was written by Tim Rightnour.
 
-NetBSD 2.0                     February 25, 2000                    NetBSD 2.0
+NetBSD 4.0_BETA2               February 25, 2000              NetBSD 4.0_BETA2

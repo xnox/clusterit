@@ -1,7 +1,7 @@
 JSH(1)                  NetBSD General Commands Manual                  JSH(1)
 
 NNAAMMEE
-     jjsshh - run scheduled commands on remote machines
+     jjsshh -- run scheduled commands on remote machines
 
 SSYYNNOOPPSSIISS
      jjsshh [--aaeeiivv] [--ll _u_s_e_r_n_a_m_e] [--pp _p_o_r_t] [--oo _p_o_r_t] [--hh _h_o_s_t_n_a_m_e] [_c_o_m_m_a_n_d _._._.]
@@ -82,4 +82,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      JJsshh was written by Tim Rightnour.
 
-NetBSD 2.0                     February 19, 2000                    NetBSD 2.0
+NetBSD 4.0_BETA2               February 19, 2000              NetBSD 4.0_BETA2

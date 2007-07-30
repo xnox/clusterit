@@ -1,11 +1,12 @@
 SEQ(1)                  NetBSD General Commands Manual                  SEQ(1)
 
 NNAAMMEE
-     rrsseeqq - run a command on a cluster in sequence
+     rrsseeqq -- run a command on a cluster in sequence
 
 SSYYNNOOPPSSIISS
-     rrsseeqq [--aaeeiiqqvv] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
-          [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
+     rrsseeqq [--aaeeiiqqttvv] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
+          [--oo _p_o_r_t_t_i_m_e_o_u_t] [--pp _p_o_r_t_n_u_m] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N]
+          [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
 
 DDEESSCCRRIIPPTTIIOONN
      The rrsseeqq utility can be used to run a command, or group of commands on a
@@ -42,6 +43,25 @@ DDEESSCCRRIIPPTTIIOONN
           will be run under that userid on the remote machines.  Consideration
           must be taken for proper authentication, for this to work.
 
+     --oo   The --oo option is used to set the timeout in seconds to be used when
+          testing remote connections.  The default is five seconds.
+
+     --pp   The --pp option can be used to set the port number that testing should
+          occur on when testing remote connections.  The default behavior is
+          to guess based on the remote command name.
+
+     --tt   The --tt option causes rrsseeqq to attempt a connection test to each node
+          prior to attempting to run the remote command.  If the test fails
+          for any reason, the remote command will not be attempted.  This can
+          be useful when clusterfiles have suffered bitrot and some nodes no
+          longer exist, or might be down for maintenance.  The default timeout
+          is 5 seconds.  The timeout can be changed with the --oo option.  rrsseeqq
+          will attempt to guess the port number of the remote service based on
+          your RCMD_CMD setting.  It knows about ssh and rsh.  If rrsseeqq fails
+          to guess your port correctly, you may use the --pp argument to set the
+          remote port number.  If the RCMD_TEST environment variable exists,
+          the testing will automatically take place.
+
      --ww   If the --ww option is specified, followed by a comma delimited list of
           machine names, the _c_o_m_m_a_n_d will be run on each node in the list.
           Without this option, rrsseeqq runs on the nodes listed in the file
@@ -74,6 +94,17 @@ EENNVVIIRROONNMMEENNTT
                     SEQ_FILE to a particular file, in order to keep proper
                     sequence when invoking rrsseeqq from subshells or scripts.
 
+     RCMD_PORT      The port number used to test remote connections.  See the
+                    --pp flag.
+
+     RCMD_TEST      When set, rrsseeqq will automatically test all hosts before
+                    launching the remote command. See the --tt option for more
+                    information.
+
+     RCMD_TEST_TIMEOUT
+                    The timeout in seconds to use when testing for remote con-
+                    nections.
+
 DDIIAAGGNNOOSSTTIICCSS
      Exit status is 0 on success, 1 if an error occurs.
 
@@ -94,4 +125,4 @@ BBUUGGSS
      numbers recorded in the temporary file may not match up to a new sequence
      placed on the command line.
 
-NetBSD 2.0                     January 14, 2000                     NetBSD 2.0
+NetBSD 4.0_BETA2                January 9, 2007               NetBSD 4.0_BETA2

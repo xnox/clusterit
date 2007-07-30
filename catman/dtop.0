@@ -1,24 +1,36 @@
-DSH(1)                  NetBSD General Commands Manual                  DSH(1)
+DTOP(1)                 NetBSD General Commands Manual                 DTOP(1)
 
 NNAAMMEE
-     ddsshh -- run a command on a cluster of machines
+     ddttoopp -- display and update information about processes on a cluster of
+     machines
 
 SSYYNNOOPPSSIISS
-     ddsshh [--eeiiqqttvv] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
-         [--oo _p_o_r_t_t_i_m_e_o_u_t] [--pp _p_o_r_t_n_u_m] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N]
-         [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [_c_o_m_m_a_n_d _._._.]
-     ddsshh [--eeiiqqttvv] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
-         [--oo _p_o_r_t_t_i_m_e_o_u_t] [--pp _p_o_r_t_n_u_m] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N]
-         [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] --ss _s_c_r_i_p_t_n_a_m_e [_a_r_g_u_m_e_n_t_s _._._.]
+     ddttoopp [--bbqqttvv] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
+          [--oo _p_o_r_t_t_i_m_e_o_u_t] [--pp _p_o_r_t_n_u_m] [--ww _n_o_d_e_1_,_._._._,_n_o_d_e_N]
+          [--xx _n_o_d_e_1_,_._._._,_n_o_d_e_N] [--mm _p_r_o_c | _l_o_a_d] [--ii _i_n_t_e_r_v_a_l] [_c_o_m_m_a_n_d _._._.]
 
 DDEESSCCRRIIPPTTIIOONN
-     The ddsshh utility can be used to run a command, or group of commands on a
-     cluster of machines.  All commands are run in parallel, on the cluster.
-     Interrupt signals will be sent to the remote host that is currently being
-     displayed to the user.  The following options are available:
+     The ddttoopp command can be used to remotely monitor a cluster of machines
+     for CPU and process information.  It provides the same information as the
+     top program, but rather than showing it just for one machine, it gathers
+     the information from a cluster of machines, and sorts it all together
+     into a single, periodically updating report.  The following options are
+     available:
 
-     --ee   Unless the --ee option is specified, stderr from remote commands will
-          not be reported to the user.
+     --bb   The --bb flag causes ddttoopp to run one iteration on each node, and print
+          out a single report of the processes running on those nodes, rather
+          than continuously updating.
+
+     --mm   The --mm option determines if the output is process output, or load
+          average output.  Load average output gives the load average, and
+          memory usage statistics for the machines being monitored.  Process
+          output gives a list of processes on each machine, sorted by cpu
+          usage.  The default mode is proc.
+
+     --ii   The --ii flag selects the interval of time between the update of each
+          nodes process or load information.  It is not wise to set this value
+          too low, otherwise you may produce uneccesary load on the target
+          hosts.  The interval is specified in seconds.
 
      --ff   If the --ff option is specified, followed by a number, it sets the
           fanout size of the cluster.  The fanout size is the number of nodes
@@ -36,12 +48,6 @@ DDEESSCCRRIIPPTTIIOONN
           ronment variable.  This option is silently ignored if used with the
           --ww option.
 
-     --ii   The --ii option will list information about the current cluster, and
-          command groupings.  It will print out the current value of the
-          fanout, and how many groups of machines there are within the clus-
-          ter. It will also show you which command you are about to run, and
-          your username if specified with the --ll option.
-
      --ll   If the --ll option is specified, followed by a username, the commands
           will be run under that userid on the remote machines.  Consideration
           must be taken for proper authentication, for this to work.
@@ -56,28 +62,15 @@ DDEESSCCRRIIPPTTIIOONN
      --qq   The --qq option does not issue any commands, but displays information
           about the cluster, and the fanout groupings.
 
-     --ss   The --ss option causes ddsshh to copy a script to the remote machine,
-          execute it once, and delete it, all in a single operation.  The --ss
-          option requires a script name, which will be copied to all remote
-          machines and executed.  You may also optionally specify any number
-          of additional arguments to the script on the command line.  The
-          script will be placed in a temporary directory under /tmp on the
-          remote node, executed, and then the directory will be recursively
-          deleted.  Any executable can be used as the script, regardless of
-          programming language.  The script is copied with the tar command,
-          preserving permissions of the original.  The --ss option cannot be
-          used with the standard mode of ddsshh to run other commands, nor can it
-          be used in interactive mode.
-
-     --tt   The --tt option causes ddsshh to attempt a connection test to each node
+     --tt   The --tt option causes ddttoopp to attempt a connection test to each node
           prior to attempting to run the remote command.  If the test fails
           for any reason, the remote command will not be attempted.  This can
           be useful when clusterfiles have suffered bitrot and some nodes no
           longer exist, or might be down for maintenance.  The default timeout
-          is 5 seconds.  The timeout can be changed with the --oo option.  ddsshh
+          is 5 seconds.  The timeout can be changed with the --oo option.  ddttoopp
           will attempt to guess the port number of the remote service based on
-          your RCMD_CMD setting.  It knows about ssh and rsh.  If ddsshh fails to
-          guess your port correctly, you may use the --pp argument to set the
+          your RCMD_CMD setting.  It knows about ssh and rsh.  If ddttoopp fails
+          to guess your port correctly, you may use the --pp argument to set the
           remote port number.  If the RCMD_TEST environment variable exists,
           the testing will automatically take place.
 
@@ -85,7 +78,7 @@ DDEESSCCRRIIPPTTIIOONN
 
      --ww   If the --ww option is specified, followed by a comma delimited list of
           machine names, the _c_o_m_m_a_n_d will be run on each node in the list.
-          Without this option, ddsshh runs on the nodes listed in the file
+          Without this option, ddttoopp runs on the nodes listed in the file
           pointed to by the CLUSTER environment variable.
 
      --xx   The --xx option can be used to exclude specific nodes from the clus-
@@ -94,7 +87,7 @@ DDEESSCCRRIIPPTTIIOONN
           the --ww option.
 
 EENNVVIIRROONNMMEENNTT
-     ddsshh utilizes the following environment variables.
+     ddttoopp utilizes the following environment variables.
 
      CLUSTER            Contains a filename, which is a newline separated list
                         of nodes in the cluster.
@@ -109,9 +102,9 @@ EENNVVIIRROONNMMEENNTT
      RCMD_PORT          The port number used to test remote connections.  See
                         the --pp flag.
 
-     RCMD_TEST          When set, ddsshh will automatically test all hosts before
-                        launching the remote command. See the --tt option for
-                        more information.
+     RCMD_TEST          When set, ddttoopp will automatically test all hosts
+                        before launching the remote command. See the --tt option
+                        for more information.
 
      RCMD_TEST_TIMEOUT  The timeout in seconds to use when testing for remote
                         connections.
@@ -124,6 +117,46 @@ EENNVVIIRROONNMMEENNTT
                         overloading a small host when sending out commands in
                         parallel.  Defaults to 64.  This environment setting
                         can be overridden by the --ff option.
+
+IINNTTEERRAACCTTIIVVEE MMOODDEE
+     When ddttoopp is running in interactive mode, it reads commands from the ter-
+     minal and acts upon them accordingly.  During interactive mode, every few
+     seconds, depending on the interval, ddttoopp will query the next few hosts in
+     the cluster, and merge the data from those hosts into the display.  The
+     number of hosts updated each interval, is determined by the fanout set-
+     ting.
+
+     Certain characters cause immediate action by ddttoopp.  These are
+
+     pp           Switch the mode to the process mode, sorted by the CPU usage
+                 of each process.
+
+     mm           Switch the mode to the process mode, sorted by the memory
+                 usage of each process.
+
+     ll           Switch the mode to the load average mode, sorted by hostname.
+
+     vv           Switch the mode to the load average mode, sorted by load
+                 average.
+
+     aa           Switch the mode to the load average mode, sorted by active
+                 memory.
+
+     ii           Switch the mode to the load average mode, sorted by inactive
+                 memory.
+
+     rr           Switch the mode to the load average mode, sorted by file
+                 cache/buffer memory.
+
+     ff           Switch the mode to the load average mode, sorted by free mem-
+                 ory.
+
+     ss           Switch the mode to the load average mode, sorted by swap
+                 used.
+
+     ??           Display the interactive help menu.
+
+     qq           Quit ddttoopp
 
 FFIILLEESS
      The file pointed to by the CLUSTER environment variable has the following
@@ -157,54 +190,36 @@ FFIILLEESS
      than the first character of a line, will be considered part of a valid
      hostname or command.
 
-EEXXAAMMPPLLEESS
-     The command:
-
-           dsh hostname
-
-     will display:
-
-           pollux: pollux
-           castor: castor
-
-     if the file pointed to by CLUSTER contains:
-
-           pollux
-           castor
-
-     The command:
-
-           dsh -w hadar,rigel hostname
-
-     will display:
-
-           hadar:  hadar
-           rigel:  rigel
-
-     The command:
-
-           dsh -w hadar,rigel -s /bin/date
-
-     Will copy /bin/date to /tmp/dsh.$$ on hadar and rigel and execute it on
-     each node, displaying the date and time on each remote machine, assuming
-     that the /bin/date you copied is a valid binary for the remote end.
-
-DDIIAAGGNNOOSSTTIICCSS
-     Exit status is 0 on success, 1 if an error occurs.
-
 SSEEEE AALLSSOO
-     dshbak(1), pcp(1), pdf(1), prm(1), rsh(1), tar(1), kerberos(3),
-     hosts.equiv(5), rhosts(5)
+     dsh(1), ssh(1), top(1)
 
 HHIISSTTOORRYY
-     The ddsshh command appeared in clusterit 1.0. It is based on the ddsshh command
-     in IBM PSSP.
+     The ddttoopp command appeared in clusterit 2.5.  Work on ddttoopp was made possi-
+     ble by a generous donation from Mach1 Computing, LLC.
 
 AAUUTTHHOORR
-     DDsshh was written by Tim Rightnour.
+     ddttoopp was written by Tim Rightnour.
 
 BBUUGGSS
      Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
-     that ddsshh will fail on a fanout size greater than about 32-40 nodes.
+     that ddttoopp will fail on a fanout size greater than about 32-40 nodes.
 
-NetBSD 4.0_BETA2                January 9, 2007               NetBSD 4.0_BETA2
+     ddttoopp uses the top command in batch mode to collect data from remote
+     machines.  Because of this, the top command must exist on the remote
+     node, and additionally, ddttoopp must understand it's output.  ddttoopp should be
+     able to understand output from top on NetBSD, Solaris, and Linux, how-
+     ever, it is possible that if the format were to change, or be different,
+     it would break.  If ddttoopp fails to work for you, please send the output
+     of:
+
+           top -Sb 20
+     or
+
+           top -bn 1
+
+     to root@garbled.net, or file a bug report on sourceforge.
+
+     ddttoopp is still rather new, and is likely to still have a few display bugs
+     and parsing issues.
+
+NetBSD 4.0_BETA2                 July 23, 2007                NetBSD 4.0_BETA2

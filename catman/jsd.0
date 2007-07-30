@@ -1,7 +1,7 @@
 JSD(1)                  NetBSD General Commands Manual                  JSD(1)
 
 NNAAMMEE
-     jjssdd - simple command scheduling daemon for remote execution
+     jjssdd -- simple command scheduling daemon for remote execution
 
 SSYYNNOOPPSSIISS
      jjssdd [--iiqqvv] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
@@ -144,4 +144,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      JJssdd was written by Tim Rightnour.
 
-NetBSD 2.0                     February 19, 2000                    NetBSD 2.0
+NetBSD 4.0_BETA2               February 19, 2000              NetBSD 4.0_BETA2

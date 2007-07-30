@@ -1,7 +1,7 @@
 DSHBAK(1)               NetBSD General Commands Manual               DSHBAK(1)
 
 NNAAMMEE
-     ddsshhbbaakk - format the output of dsh
+     ddsshhbbaakk -- format the output of dsh
 
 SSYYNNOOPPSSIISS
      ddsshhbbaakk
@@ -23,4 +23,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      DDsshhbbaakk was written by Tim Rightnour.
 
-NetBSD 2.0                      October 6, 1998                     NetBSD 2.0
+NetBSD 4.0_BETA2                October 6, 1998               NetBSD 4.0_BETA2

@@ -1,7 +1,7 @@
 DVT(1)                  NetBSD General Commands Manual                  DVT(1)
 
 NNAAMMEE
-     ddvvtt - launch an interactive window on a cluster of machines
+     ddvvtt -- launch an interactive window on a cluster of machines
 
 SSYYNNOOPPSSIISS
      ddvvtt [--eeiiqqvv] [--ff _f_a_n_o_u_t] [--gg _r_u_n_g_r_o_u_p_1_,_._._._,_r_u_n_g_r_o_u_p_N] [--ll _u_s_e_r_n_a_m_e]
@@ -143,4 +143,4 @@ BBUUGGSS
      Solaris 2.5.1 has a maximum of 256 open file descriptors.  This means
      that ddvvtt will fail on a fanout size greater than about 32-40 nodes.
 
-NetBSD 2.0                      January 7, 2001                     NetBSD 2.0
+NetBSD 4.0_BETA2                January 7, 2001               NetBSD 4.0_BETA2

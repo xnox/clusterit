@@ -1,7 +1,7 @@
 BARRIERD(1)             NetBSD General Commands Manual             BARRIERD(1)
 
 NNAAMMEE
-     bbaarrrriieerrdd - syncronize a process on a number of machines.
+     bbaarrrriieerrdd -- syncronize a process on a number of machines.
 
 SSYYNNOOPPSSIISS
      bbaarrrriieerrdd [--vv] [--pp _p_o_r_t]
@@ -39,4 +39,4 @@ BBUUGGSS
      In addition, it can only handle a barrier size of up to 512 nodes.  These
      values can be modified by recompiling the program.
 
-NetBSD 2.0                     October 14, 1998                     NetBSD 2.0
+NetBSD 4.0_BETA2               October 14, 1998               NetBSD 4.0_BETA2

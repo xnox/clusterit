@@ -1,7 +1,7 @@
 PDF(1)                  NetBSD General Commands Manual                  PDF(1)
 
 NNAAMMEE
-     ppddff - display free disk space across a group of machines
+     ppddff -- display free disk space across a group of machines
 
 SSYYNNOOPPSSIISS
      ppddff [--llnn] [--gg _n_o_d_e_g_r_o_u_p_1_,_._._._,_n_o_d_e_g_r_o_u_p_N] [--mm _s_i_z_e] [--tt _t_y_p_e]
@@ -98,4 +98,4 @@ BBUUGGSS
      expects.  It has been made to work on HP-UX, Solaris, and AIX, along with
      any BSD, and most versions of Linux.
 
-NetBSD 2.0                        May 5, 1999                       NetBSD 2.0
+NetBSD 4.0_BETA2                  May 5, 1999                 NetBSD 4.0_BETA2

@@ -1,7 +1,7 @@
 BARRIER(1)              NetBSD General Commands Manual              BARRIER(1)
 
 NNAAMMEE
-     bbaarrrriieerr - syncronize a process on a number of machines.
+     bbaarrrriieerr -- syncronize a process on a number of machines.
 
 SSYYNNOOPPSSIISS
      bbaarrrriieerr [--qq] [--vv] [--hh _b_a_r_r_i_e_r___h_o_s_t] [--kk _k_e_y] [--pp _p_o_r_t] --ss _c_l_u_s_t_e_r___s_i_z_e
@@ -54,4 +54,4 @@ HHIISSTTOORRYY
 AAUUTTHHOORR
      BBaarrrriieerr was written by Tim Rightnour.
 
-NetBSD 2.0                     October 14, 1998                     NetBSD 2.0
+NetBSD 4.0_BETA2               October 14, 1998               NetBSD 4.0_BETA2
