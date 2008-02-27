@@ -741,6 +741,11 @@ struct tokenst *tk;
 			tk->tk_nargs = 4;
 			break;
 		    case ButtonPress :
+			/* Deal with a SendEvent */
+			if (xe->xe_window != vt_win &&
+			    xe->xe_window != sb_win &&
+			    xe->xe_window != main_win)
+				xe->xe_window = vt_win;
 			if (xe->xe_window == vt_win && xe->xe_state == ControlMask) {
 				tk->tk_type = TK_SBSWITCH;
 				tk->tk_nargs = 0;
@@ -782,6 +787,20 @@ struct tokenst *tk;
 			}
 			break;
 		    case ButtonRelease :
+			/* Deal with a SendEvent */
+			if (xe->xe_window != vt_win &&
+			    xe->xe_window != main_win &&
+			    xe->xe_window != sb_win) {
+				switch (xe->xe_button) {
+				case Button1:
+				case Button3:
+					xe->xe_window = sb_win;
+					break;
+				case Button2:
+					xe->xe_window = vt_win;
+					break;
+				}
+			}
 			if (xe->xe_window == sb_win) {
 				switch (xe->xe_button) {
 				    case Button1 :

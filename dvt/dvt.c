@@ -1,4 +1,4 @@
-/* $Id: dvt.c,v 1.15 2007/07/03 18:33:37 garbled Exp $ */
+/* $Id: dvt.c,v 1.16 2008/02/27 18:54:35 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -57,7 +57,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved\n");
-__RCSID("$Id: dvt.c,v 1.15 2007/07/03 18:33:37 garbled Exp $");
+__RCSID("$Id: dvt.c,v 1.16 2008/02/27 18:54:35 garbled Exp $");
 #endif /* not lint */
 
 void do_command(int fanout, char *username);
@@ -595,6 +595,8 @@ do_command(int fanout, char *username)
 	    } else if (report.xbutton.window == sbup) {
 		report.xbutton.state = Mod5Mask; /* add the mod5 mask */
 		report.xbutton.button = Button3; /* set the button */
+		report.xbutton.y = 150;
+		report.type = ButtonRelease;
 		for (nodeptr = nodehold; nodeptr != NULL;
 		     nodeptr = nodeptr->next) {
 		    if (nodeptr->win_id != 0)
@@ -604,6 +606,8 @@ do_command(int fanout, char *username)
 	    } else if (report.xbutton.window == sbdown) {
 		report.xbutton.state = Mod5Mask; /* add the mod5 mask */
 		report.xbutton.button = Button1; /* set the button */
+		report.xbutton.y = 150;
+		report.type = ButtonRelease;
 		for (nodeptr = nodehold; nodeptr != NULL;
 		     nodeptr = nodeptr->next) {
 		    if (nodeptr->win_id != 0)
