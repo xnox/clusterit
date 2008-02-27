@@ -1,6 +1,6 @@
 Summary: clusterit is a collection of tools for distributed computing.
 Name: clusterit
-Version: 2.4
+Version: 2.5
 Release: 1
 License: BSD with advertising clause (Tim Rightnour), BSD-style (John Bovey)
 Group: Utilities
@@ -22,6 +22,7 @@ It includes:
        dvt -- Use many machines interactively simultaneously.
        rvt -- Hacked version of xvt used by dvt to open the terminals.
        barrier/barrierd -- Synchonize your parallel shell scripts.
+       dtop -- Run top across multiple machines and collate results.
 
 %prep
 %setup -q
@@ -59,6 +60,7 @@ rm -rf ${RPM_BUILD_ROOT}
 /usr/bin/rseq
 /usr/bin/run
 /usr/bin/rvt
+/usr/bin/dtop
 
 /usr/man/man1/barrier.1.gz
 /usr/man/man1/barrierd.1.gz
@@ -74,10 +76,13 @@ rm -rf ${RPM_BUILD_ROOT}
 /usr/man/man1/rseq.1.gz
 /usr/man/man1/run.1.gz
 /usr/man/man1/rvt.1.gz
+/usr/man/man1/dtop.1.gz
 
 %doc
 
 %changelog
+* Wed Feb 27 2008 Tim Rightnour <root@garbled.net> -
+- Updated to 2.5 release
 * Wed Feb  1 2006 Tim Rightnour <root@garbled.net> -
 - Updated to 2.4 release
 * Thu Jun  2 2005 Tim Rightnour <root@garbled.net> -
