@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.29 2007/07/30 16:49:05 garbled Exp $ */
+/* $Id: pcp.c,v 1.30 2008/02/27 18:50:34 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.29 2007/07/30 16:49:05 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.30 2008/02/27 18:50:34 garbled Exp $");
 #endif
 
 extern int errno;
@@ -408,7 +408,7 @@ paralell_copy(char *rcp, int nrof, char *username, char *source_file,
 		if (testflag && rshport > 0 && porttimeout > 0)
 			if (!test_node_connection(rshport, porttimeout,
 						  nodeptr))
-			    exit(EXIT_SUCCESS);
+			    _exit(EXIT_SUCCESS);
 		for (aps = argz; (*aps = strsep(&rcpstring, " ")) != NULL;)
 		    if (**aps != '\0')
 			++aps;
