@@ -1,4 +1,4 @@
-/* $Id: pcp.c,v 1.30 2008/02/27 18:50:34 garbled Exp $ */
+/* $Id: pcp.c,v 1.31 2008/02/27 18:52:39 garbled Exp $ */
 /*
  * Copyright (c) 1998, 1999, 2000
  *	Tim Rightnour.  All rights reserved.
@@ -47,7 +47,7 @@
 __COPYRIGHT(
 "@(#) Copyright (c) 1998, 1999, 2000\n\
         Tim Rightnour.  All rights reserved.\n");
-__RCSID("$Id: pcp.c,v 1.30 2008/02/27 18:50:34 garbled Exp $");
+__RCSID("$Id: pcp.c,v 1.31 2008/02/27 18:52:39 garbled Exp $");
 #endif
 
 extern int errno;
@@ -300,8 +300,11 @@ void do_copy(char **argv, int recurse, int preserve, char *username)
 	    serial_copy(rcpstring, username, source_file, destination_file);
     free(source_file);
     free(destination_file);
-    for (nrofargs=0; nrofargs < j; nrofargs++)
+    for (nrofargs=0; nrofargs < j-2; nrofargs++) {
+	    if (rcp[nrofargs] == NULL)
+		break;
 	    free(rcp[nrofargs]);
+	}
     free(rcp);
 }
 
