@@ -1,0 +1,5 @@
+clusterit (2.5-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Dmitrijs Ledkovs <xnox@debian.org>  Sun, 05 Aug 2012 03:42:25 +0100

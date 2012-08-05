@@ -1,0 +1,21 @@
+Source: clusterit
+Section: admin
+Priority: optional
+Maintainer: Dmitrijs Ledkovs <xnox@debian.org>
+Build-Depends: debhelper (>= 9), autotools-dev
+Standards-Version: 3.9.3
+Homepage: http://clusterit.sourceforge.net/, https://github.com/xnox/clusterit
+
+Package: clusterit
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: utilities for distributed computing and management of clusters
+ A collection of utilites that help manage large sets of machines over
+ SSH protocol. It includes utilities to execute the same command(s);
+ to execute in sequence; to schedule a queue of tasks across all
+ machines. A distributed virtual terminal is also included.
+ .
+ This package can be used as an alternative to parrallel-ssh for
+ managing cluster of machines. It also can be used as a lightweight
+ distributed computing environment similar to Hadoop or any other
+ MapReduce implementation.
